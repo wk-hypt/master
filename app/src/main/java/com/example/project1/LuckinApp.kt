@@ -2,6 +2,15 @@ package com.example.project1
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.List
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -10,7 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -18,13 +27,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.project1.ui.home.HomeView
-import com.example.project1.ui.home.HomeViewModel
 
-sealed class Screen(val route: String, val title: String, val iconRes: Int) {
-    object Home : Screen("home", "首页", R.drawable.splashscreen)
-    object Menu : Screen("menu", "菜单", R.drawable.splashscreen)
-    object Order : Screen("order", "订单", R.drawable.splashscreen)
-    object Mine : Screen("mine", "我的", R.drawable.splashscreen)
+sealed class Screen(
+    val route: String,
+    val title: String,
+    val filledIcon: ImageVector,
+    val outlineIcon: ImageVector
+) {
+    object Home : Screen("home", "Home", Icons.Filled.Home, Icons.Outlined.Home)
+    object Menu : Screen("menu", "Menu", Icons.Filled.List, Icons.Outlined.List)
+    object Order : Screen("order", "Order", Icons.Filled.ShoppingCart, Icons.Outlined.ShoppingCart)
+    object Mine : Screen("acc", "Account", Icons.Filled.Person, Icons.Outlined.Person)
 }
 
 @Composable
@@ -44,15 +57,17 @@ fun LuckinApp(navController: NavHostController = rememberNavController()) {
                 val currentRoute = navBackStackEntry?.destination?.route
 
                 items.forEach { screen ->
+                    val isSelected = currentRoute == screen.route
+
                     NavigationBarItem(
                         icon = {
                             Icon(
-                                painter = painterResource(id = screen.iconRes),
+                                imageVector = if (isSelected) screen.filledIcon else screen.outlineIcon,
                                 contentDescription = screen.title
                             )
                         },
                         label = { Text(screen.title) },
-                        selected = currentRoute == screen.route,
+                        selected = isSelected,
                         onClick = {
                             if (currentRoute != screen.route) {
                                 navController.navigate(screen.route) {
@@ -78,13 +93,10 @@ fun LuckinApp(navController: NavHostController = rememberNavController()) {
                 HomeView()
             }
             composable(Screen.Menu.route) {
-                // 放入你的 MenuScreen()
             }
             composable(Screen.Order.route) {
-                // 放入你的 OrderScreen()
             }
             composable(Screen.Mine.route) {
-                // 放入你的 MineScreen()
             }
         }
     }
