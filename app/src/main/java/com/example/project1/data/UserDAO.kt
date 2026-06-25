@@ -9,22 +9,23 @@ import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface UserDAO{
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(user: User)
+interface UserDAO {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUser(user: UserEntity)
 
     @Update
-    suspend fun update(user: User)
+    suspend fun updateUser(user: UserEntity)
 
-    @Delete
-    suspend fun delete(user: User)
+    @Query("SELECT * FROM users ORDER BY weeklyPoints DESC")
+    fun getWeeklyLeaderboardStream(): Flow<List<UserEntity>>
 
-    @Query("SELECT * from user WHERE id = :id")
-    fun getUser(id: Int): Flow<User>
+    @Query("SELECT * FROM users ORDER BY plasticsSaved DESC")
+    fun getPlasticsLeaderboardStream(): Flow<List<UserEntity>>
 
-    @Query("SELECT role FROM user WHERE name = :username AND password = :password")
-    fun getUserRole(username: String, password: String): String?
+    @Query("UPDATE users SET weeklyPoints = 0")
+    suspend fun resetWeeklyPoints()
 
-    @Query("SELECT * from user ORDER BY name ASC")
-    suspend fun getAllUsers(): List<User>
+    @Query("SELECT * FROM users WHERE studentId = :studentId")
+    fun getUserStream(studentId: String): Flow<UserEntity?>
 }
