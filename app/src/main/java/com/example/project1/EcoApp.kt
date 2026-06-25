@@ -1,25 +1,24 @@
 package com.example.project1
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.List
+import androidx.compose.material.icons.outlined.Leaderboard
+import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -27,6 +26,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.project1.ui.home.HomeView
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 sealed class Screen(
     val route: String,
@@ -35,24 +41,30 @@ sealed class Screen(
     val outlineIcon: ImageVector
 ) {
     object Home : Screen("home", "Home", Icons.Filled.Home, Icons.Outlined.Home)
-    object Menu : Screen("menu", "Menu", Icons.Filled.List, Icons.Outlined.List)
-    object Order : Screen("order", "Order", Icons.Filled.ShoppingCart, Icons.Outlined.ShoppingCart)
-    object Mine : Screen("acc", "Account", Icons.Filled.Person, Icons.Outlined.Person)
+    object Leaderboard : Screen("leaderboard", "Leaderboard", Icons.Filled.Leaderboard, Icons.Outlined.Leaderboard)
+    object Rewards : Screen("rewards", "Rewards", Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard)
+    object Profile : Screen("profile", "Profile", Icons.Filled.Person, Icons.Outlined.Person)
 }
 
 @Composable
-fun LuckinApp(navController: NavHostController = rememberNavController()) {
+fun EcoApp(navController: NavHostController = rememberNavController()) {
     val items = listOf(
         Screen.Home,
-        Screen.Menu,
-        Screen.Order,
-        Screen.Mine
+        Screen.Leaderboard,
+        Screen.Rewards,
+        Screen.Profile
     )
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = Color.White,
+                tonalElevation = 0.dp,
+                modifier = Modifier
+                    .height(120.dp)
+                    .border(width = 0.5.dp, color = Color(0xFFE5E5E5))
+            ) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
@@ -66,8 +78,21 @@ fun LuckinApp(navController: NavHostController = rememberNavController()) {
                                 contentDescription = screen.title
                             )
                         },
-                        label = { Text(screen.title) },
+                        label = {
+                            Text(
+                                text = screen.title,
+                                fontSize = 11.sp
+                            )
+                        },
                         selected = isSelected,
+                        alwaysShowLabel = true,
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color.White,
+                            selectedTextColor = Color(0xFF2E7D32),
+                            unselectedIconColor = Color(0xFF7F7F7F),
+                            unselectedTextColor = Color(0xFF7F7F7F),
+                            indicatorColor = Color(0xFF2E7D32)
+                        ),
                         onClick = {
                             if (currentRoute != screen.route) {
                                 navController.navigate(screen.route) {
@@ -92,11 +117,11 @@ fun LuckinApp(navController: NavHostController = rememberNavController()) {
             composable(Screen.Home.route) {
                 HomeView()
             }
-            composable(Screen.Menu.route) {
+            composable(Screen.Leaderboard.route) {
             }
-            composable(Screen.Order.route) {
+            composable(Screen.Rewards.route) {
             }
-            composable(Screen.Mine.route) {
+            composable(Screen.Profile.route) {
             }
         }
     }

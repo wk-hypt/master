@@ -12,27 +12,17 @@ import kotlinx.coroutines.flow.Flow
 interface OfferDAO {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPromotion(promotion: LuckinPromotionEntity)
+    suspend fun insertVoucher(voucher: VoucherEntity)
 
     @Update
-    suspend fun updatePromotion(promotion: LuckinPromotionEntity)
+    suspend fun updateVoucher(voucher: VoucherEntity)
 
     @Delete
-    suspend fun deletePromotion(promotion: LuckinPromotionEntity)
+    suspend fun deleteVoucher(voucher: VoucherEntity)
 
-    @Query("SELECT * from luckin_promotions ORDER BY id DESC")
-    fun getAllPromotionsStream(): Flow<List<LuckinPromotionEntity>>
+    @Query("SELECT * FROM campus_vouchers WHERE isRedeemed = 0 ORDER BY id ASC")
+    fun getAvailableVouchersStream(): Flow<List<VoucherEntity>>
 
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertVoucher(voucher: LuckinVoucherEntity)
-
-    @Update
-    suspend fun updateVoucher(voucher: LuckinVoucherEntity)
-
-    @Delete
-    suspend fun deleteVoucher(voucher: LuckinVoucherEntity)
-
-    @Query("SELECT * from luckin_vouchers WHERE isAvailable = 1 ORDER BY id ASC")
-    fun getAvailableVouchersStream(): Flow<List<LuckinVoucherEntity>>
+    @Query("SELECT * FROM campus_vouchers WHERE isRedeemed = 1 ORDER BY id DESC")
+    fun getMyWalletVouchersStream(): Flow<List<VoucherEntity>>
 }

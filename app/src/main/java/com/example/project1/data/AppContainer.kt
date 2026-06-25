@@ -3,21 +3,27 @@ package com.example.project1.data
 import android.content.Context
 
 interface AppContainer {
-    val luckinProductRepository: ProductRespository
-    val luckinMarketingRepository: LuckinAdsRespository
+    val ecoAdsRepository: EcoAdsRepository
+    val offerRepository: OfferRepository
+    val submissionRepository: SubmissionRepository
+    val userRepository: UserRepository
 }
 
 class AppDataContainer(private val context: Context) : AppContainer {
 
-    private val database: LuckinDatabase by lazy {
-        LuckinDatabase.getDatabase(context)
+    override val ecoAdsRepository: EcoAdsRepository by lazy {
+        OfflineEcoAdsRepository(EcoDatabase.getDatabase(context).ecoAdsDAO())
     }
 
-    override val luckinProductRepository: ProductRespository by lazy {
-        OfflineProductRespository(database.productDao())
+    override val offerRepository: OfferRepository by lazy {
+        OfflineOfferRepository(EcoDatabase.getDatabase(context).offerDAO())
     }
 
-    override val luckinMarketingRepository: LuckinAdsRespository by lazy {
-        OfflineLuckinAdsRespository(database.luckinAdsDao())
+    override val submissionRepository: SubmissionRepository by lazy {
+        OfflineSubmissionRepository(EcoDatabase.getDatabase(context).submissionDAO())
+    }
+
+    override val userRepository: UserRepository by lazy {
+        OfflineUserRepository(EcoDatabase.getDatabase(context).userDAO())
     }
 }

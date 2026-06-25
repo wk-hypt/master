@@ -2,14 +2,9 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="orange">#f68724</color>
-    <color name="cream">#efdec9</color>
-    <color name="lightCream">#ded9d1</color>
-    <color name="grey">#8d8d8d</color>
-    <color name="lightGrey">#f6f6f6</color>
-    <color name="brown">#7e4616</color>
-    <color name="darkBrown">#220c01</color>
-    <color name="tngBlueMain">#155CB4</color>
-    <color name="surfaceBg">#F4F7FA</color>
-    <color name="gridCardBg">#EDF1FF</color>
+    <color name="primaryGreen">#2E7D32</color>
+    <color name="lightGreen">#E8F5E9</color>
+    <color name="orangeAccent">#FF9800</color>
+    <color name="darkText">#1A237E</color>
+    <color name="backgroundLight">#F9FBE7</color>
 </resources>

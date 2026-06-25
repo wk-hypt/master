@@ -3,8 +3,8 @@ package com.example.project1.data
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "luckin_banners")
-data class LuckinBannerEntity(
+@Entity(tableName = "eco_banners")
+data class EcoBannerEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val imageUrl: String,
@@ -13,8 +13,8 @@ data class LuckinBannerEntity(
     val targetRoute: String
 )
 
-@Entity(tableName = "luckin_features")
-data class LuckinFeatureEntity(
+@Entity(tableName = "eco_features")
+data class EcoFeatureEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val title: String,

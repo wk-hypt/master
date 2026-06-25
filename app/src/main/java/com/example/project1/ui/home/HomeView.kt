@@ -15,7 +15,7 @@ fun HomeView(
 ) {
     val banners by viewModel.bannersUiState.collectAsState()
     val features by viewModel.featuresUiState.collectAsState()
-    val products by viewModel.productsUiState.collectAsState()
+    val submissions by viewModel.submissionsUiState.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -23,7 +23,7 @@ fun HomeView(
         HomeFunct(
             banners = banners,
             features = features,
-            products = products
+            submissions = submissions
         )
     }
 }

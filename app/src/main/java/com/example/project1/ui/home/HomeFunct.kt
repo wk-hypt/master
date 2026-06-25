@@ -14,58 +14,55 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.project1.data.LuckinBannerEntity
-import com.example.project1.data.LuckinFeatureEntity
-import com.example.project1.data.LuckinProductEntity
+import com.example.project1.data.*
 
 @Composable
 fun HomeFunct(
-    banners: List<LuckinBannerEntity>,
-    features: List<LuckinFeatureEntity>,
-    products: List<LuckinProductEntity>,
+    banners: List<EcoBannerEntity>,
+    features: List<EcoFeatureEntity>,
+    submissions: List<EcoSubmissionEntity>,
     modifier: Modifier = Modifier
 ) {
     val displayBanners = if (banners.isEmpty()) {
-        listOf(LuckinBannerEntity(id = 1, imageUrl = "", title = "Welcome to Luckin", subtitle = "Freshly Brewed Everyday", targetRoute = "menu"),
-            LuckinBannerEntity(id = 2, imageUrl = "", title = "Buy 1 Free 1", subtitle = "On Selected Drinks", targetRoute = "menu")
+        listOf(
+            EcoBannerEntity(id = 1, imageUrl = "", title = "Campus Eco Challenge", subtitle = "Bring your own container & save points", targetRoute = "rewards"),
+            EcoBannerEntity(id = 2, imageUrl = "", title = "Weekly Reset Leaderboard", subtitle = "Check who is top this week!", targetRoute = "leaderboard")
         )
     } else banners
 
     val displayFeatures = if (features.isEmpty()) {
         listOf(
-            LuckinFeatureEntity(id = 1, title = "Now Ordering", subtitle = "Café Express", bgColorHex = "#1A4C8B"),
-            LuckinFeatureEntity(id = 2, title = "Buy 1 Free 1", subtitle = "Voucher Club", bgColorHex = "#D32F2F")
+            EcoFeatureEntity(id = 1, title = "Lunchbox Log", subtitle = "Snap container", bgColorHex = "#2E7D32"),
+            EcoFeatureEntity(id = 2, title = "Tumbler Log", subtitle = "Snap bottle", bgColorHex = "#1565C0")
         )
     } else features
 
-    val displayProducts = if (products.isEmpty()) {
+    val displaySubmissions = if (submissions.isEmpty()) {
         listOf(
-            LuckinProductEntity(id = 1, name = "Caffè Latte", price = 12.0, originalPrice = 15.0, discountTag = "Best Seller"),
-            LuckinProductEntity(id = 2, name = "Coconut Latte", price = 13.5, originalPrice = 16.0, discountTag = "New"),
-            LuckinProductEntity(id = 3, name = "Americano", price = 9.0, originalPrice = 12.0, discountTag = "Promo")
+            EcoSubmissionEntity(id = 1, userId = "2400123", actionType = "Tumbler", stallName = "Stall 3 Café", imagePath = "", status = "Approved"),
+            EcoSubmissionEntity(id = 2, userId = "2400123", actionType = "Lunchbox", stallName = "Stall 5 Rice", imagePath = "", status = "Pending")
         )
-    } else products
+    } else submissions
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        LuckinBannerSlider(banners = displayBanners)
+        EcoBannerSlider(banners = displayBanners)
         Spacer(modifier = Modifier.height(16.dp))
-        LuckinFeatureGrid(features = displayFeatures)
+        EcoFeatureGrid(features = displayFeatures)
         Spacer(modifier = Modifier.height(16.dp))
-        LuckinProductSection(products = displayProducts)
+        EcoSubmissionSection(submissions = displaySubmissions)
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LuckinBannerSlider(
-    banners: List<LuckinBannerEntity>,
+fun EcoBannerSlider(
+    banners: List<EcoBannerEntity>,
     modifier: Modifier = Modifier
 ) {
     if (banners.isEmpty()) return
@@ -76,7 +73,7 @@ fun LuckinBannerSlider(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(if (page == 0) Color(0xFF1A4C8B) else Color(0xFF3A6CBB)),
+                    .background(if (page == 0) Color(0xFF2E7D32) else Color(0xFF1B5E20)),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -99,8 +96,8 @@ fun LuckinBannerSlider(
 }
 
 @Composable
-fun LuckinFeatureGrid(
-    features: List<LuckinFeatureEntity>,
+fun EcoFeatureGrid(
+    features: List<EcoFeatureEntity>,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -130,8 +127,8 @@ fun LuckinFeatureGrid(
 }
 
 @Composable
-fun LuckinProductSection(
-    products: List<LuckinProductEntity>,
+fun EcoSubmissionSection(
+    submissions: List<EcoSubmissionEntity>,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -140,43 +137,52 @@ fun LuckinProductSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Best Sellers", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(text = "Recent History", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             Text(text = "More", fontSize = 12.sp, color = Color.Gray)
         }
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(products) { product ->
-                LuckinProductCard(product = product)
+            items(submissions) { submission ->
+                EcoSubmissionCard(submission = submission)
             }
         }
     }
 }
 
 @Composable
-fun LuckinProductCard(product: LuckinProductEntity) {
+fun EcoSubmissionCard(submission: EcoSubmissionEntity) {
+    val statusColor = when (submission.status) {
+        "Approved" -> Color(0xFFE8F5E9)
+        "Rejected" -> Color(0xFFFFEBEE)
+        else -> Color(0xFFFFF3E0)
+    }
+    val statusTextColor = when (submission.status) {
+        "Approved" -> Color(0xFF2E7D32)
+        "Rejected" -> Color(0xFFC62828)
+        else -> Color(0xFFEF6C00)
+    }
+
     Card(
         modifier = Modifier.width(140.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F7F7))
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Box(modifier = Modifier.fillMaxWidth().height(120.dp).background(Color.LightGray)) {
+            Box(modifier = Modifier.fillMaxWidth().height(100.dp).background(Color.LightGray)) {
                 Box(
-                    modifier = Modifier.background(Color(0xFFFFEBEB), RoundedCornerShape(bottomEnd = 8.dp)).padding(horizontal = 8.dp, vertical = 4.dp)
+                    modifier = Modifier
+                        .background(statusColor, RoundedCornerShape(bottomEnd = 8.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Text(text = product.discountTag, color = Color.Red, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(text = submission.status, color = statusTextColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
             Column(modifier = Modifier.padding(8.dp)) {
-                Text(text = product.name, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1)
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "RM${String.format("%.2f", product.price)}", color = Color(0xFFD32F2F), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "RM${String.format("%.2f", product.originalPrice)}", color = Color.Gray, fontSize = 10.sp, textDecoration = TextDecoration.LineThrough)
-                }
+                Text(text = submission.actionType, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(text = submission.stallName, fontSize = 12.sp, color = Color.Gray, maxLines = 1)
             }
         }
     }
