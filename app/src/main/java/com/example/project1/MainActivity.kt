@@ -19,15 +19,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            MaterialTheme {
+            EcoTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = Color.White
                 ) {
-                    EcoTheme{
                         EcoApp()
-                    }
-
                 }
             }
         }
