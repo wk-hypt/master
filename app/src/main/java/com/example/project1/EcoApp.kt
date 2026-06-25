@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.Leaderboard
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -87,11 +88,11 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                         selected = isSelected,
                         alwaysShowLabel = true,
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color.White,
-                            selectedTextColor = Color(0xFF2E7D32),
-                            unselectedIconColor = Color(0xFF7F7F7F),
-                            unselectedTextColor = Color(0xFF7F7F7F),
-                            indicatorColor = Color(0xFF2E7D32)
+                            selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.outline,
+                            unselectedTextColor = MaterialTheme.colorScheme.outline,
+                            indicatorColor = MaterialTheme.colorScheme.primary
                         ),
                         onClick = {
                             if (currentRoute != screen.route) {
