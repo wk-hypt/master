@@ -15,6 +15,8 @@ fun LoginView(
         uiState = viewModel.uiState,
         onIdChange = { viewModel.onStudentIdChange(it) },
         onNameChange = { viewModel.onNameChange(it) },
+        onPasswordChange = { viewModel.onPasswordChange(it) },
+        onToggleMode = { viewModel.toggleMode() },
         onLoginClick = {
             viewModel.login(onSuccess = onLoginSuccess)
         },
