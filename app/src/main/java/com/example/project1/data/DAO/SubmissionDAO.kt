@@ -1,4 +1,4 @@
-package com.example.project1.data
+package com.example.project1.data.DAO
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -6,12 +6,13 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.example.project1.data.entity.EcoSubmissionEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SubmissionDAO {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertSubmission(submission: EcoSubmissionEntity)
 
     @Update

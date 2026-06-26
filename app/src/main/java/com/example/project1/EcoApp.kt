@@ -27,6 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.project1.ui.home.HomeView
+import com.example.project1.ui.login.LoginView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -38,9 +39,10 @@ import androidx.compose.ui.unit.sp
 sealed class Screen(
     val route: String,
     val title: String,
-    val filledIcon: ImageVector,
-    val outlineIcon: ImageVector
+    val filledIcon: ImageVector? = null,
+    val outlineIcon: ImageVector? = null
 ) {
+    object Login : Screen("login", "Login")
     object Home : Screen("home", "Home", Icons.Filled.Home, Icons.Outlined.Home)
     object Leaderboard : Screen("leaderboard", "Leaderboard", Icons.Filled.Leaderboard, Icons.Outlined.Leaderboard)
     object Rewards : Screen("rewards", "Rewards", Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard)
@@ -56,65 +58,76 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
         Screen.Profile
     )
 
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 0.dp,
-                modifier = Modifier
-                    .height(120.dp)
-                    .border(width = 0.5.dp, color = Color(0xFFE5E5E5))
-            ) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
+            if (currentRoute != Screen.Login.route) {
+                NavigationBar(
+                    containerColor = Color.White,
+                    tonalElevation = 0.dp,
+                    modifier = Modifier
+                        .height(120.dp)
+                        .border(width = 0.5.dp, color = Color(0xFFE5E5E5))
+                ) {
+                    items.forEach { screen ->
+                        val isSelected = currentRoute == screen.route
 
-                items.forEach { screen ->
-                    val isSelected = currentRoute == screen.route
-
-                    NavigationBarItem(
-                        icon = {
-                            Icon(
-                                imageVector = if (isSelected) screen.filledIcon else screen.outlineIcon,
-                                contentDescription = screen.title
-                            )
-                        },
-                        label = {
-                            Text(
-                                text = screen.title,
-                                fontSize = 11.sp
-                            )
-                        },
-                        selected = isSelected,
-                        alwaysShowLabel = true,
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            unselectedIconColor = MaterialTheme.colorScheme.outline,
-                            unselectedTextColor = MaterialTheme.colorScheme.outline,
-                            indicatorColor = MaterialTheme.colorScheme.primary
-                        ),
-                        onClick = {
-                            if (currentRoute != screen.route) {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                        NavigationBarItem(
+                            icon = {
+                                Icon(
+                                    imageVector = if (isSelected) screen.filledIcon!! else screen.outlineIcon!!,
+                                    contentDescription = screen.title
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = screen.title,
+                                    fontSize = 11.sp
+                                )
+                            },
+                            selected = isSelected,
+                            alwaysShowLabel = true,
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = MaterialTheme.colorScheme.outline,
+                                unselectedTextColor = MaterialTheme.colorScheme.outline,
+                                indicatorColor = MaterialTheme.colorScheme.primary
+                            ),
+                            onClick = {
+                                if (currentRoute != screen.route) {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route,
+            startDestination = Screen.Login.route,
             modifier = Modifier.padding(innerPadding)
         ) {
+            composable(Screen.Login.route) {
+                LoginView(
+                    onLoginSuccess = { studentId ->
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
             composable(Screen.Home.route) {
                 HomeView()
             }

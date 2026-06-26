@@ -1,5 +1,7 @@
-package com.example.project1.data
+package com.example.project1.data.repository
 
+import com.example.project1.data.DAO.SubmissionDAO
+import com.example.project1.data.entity.EcoSubmissionEntity
 import kotlinx.coroutines.flow.Flow
 
 interface SubmissionRepository {

@@ -1,5 +1,8 @@
-package com.example.project1.data
+package com.example.project1.data.repository
 
+import com.example.project1.data.DAO.EcoAdsDAO
+import com.example.project1.data.entity.EcoBannerEntity
+import com.example.project1.data.entity.EcoFeatureEntity
 import kotlinx.coroutines.flow.Flow
 
 interface EcoAdsRepository {

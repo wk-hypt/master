@@ -1,11 +1,11 @@
-package com.example.project1.data
+package com.example.project1.data.DAO
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.example.project1.data.entity.UserEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -17,15 +17,15 @@ interface UserDAO {
     @Update
     suspend fun updateUser(user: UserEntity)
 
-    @Query("SELECT * FROM users ORDER BY weeklyPoints DESC")
+    @Query("SELECT * FROM users ORDER BY totalPoints DESC")
     fun getWeeklyLeaderboardStream(): Flow<List<UserEntity>>
 
     @Query("SELECT * FROM users ORDER BY plasticsSaved DESC")
     fun getPlasticsLeaderboardStream(): Flow<List<UserEntity>>
 
-    @Query("UPDATE users SET weeklyPoints = 0")
-    suspend fun resetWeeklyPoints()
-
     @Query("SELECT * FROM users WHERE studentId = :studentId")
     fun getUserStream(studentId: String): Flow<UserEntity?>
+
+    @Query("SELECT * FROM users WHERE studentId = :studentId LIMIT 1")
+    suspend fun getUserById(studentId: String): UserEntity?
 }

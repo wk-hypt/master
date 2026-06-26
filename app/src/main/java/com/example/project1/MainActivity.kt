@@ -1,6 +1,5 @@
 package com.example.project1
-//fck tkx
-//hii
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
