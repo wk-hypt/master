@@ -123,9 +123,13 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 LoginView(
                     onLoginSuccess = { studentId ->
                         navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
+                            popUpTo(Screen.Login.route) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
                         }
-                    }
+                    },
+                    onRegisterSuccess = {}
                 )
             }
             composable(Screen.Home.route) {

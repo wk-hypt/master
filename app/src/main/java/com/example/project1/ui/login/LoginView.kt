@@ -8,6 +8,7 @@ import com.example.project1.ui.AppViewModelProvider
 @Composable
 fun LoginView(
     onLoginSuccess: (String) -> Unit,
+    onRegisterSuccess: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
@@ -18,7 +19,14 @@ fun LoginView(
         onPasswordChange = { viewModel.onPasswordChange(it) },
         onToggleMode = { viewModel.toggleMode() },
         onLoginClick = {
-            viewModel.login(onSuccess = onLoginSuccess)
+            if (viewModel.uiState.isRegisterMode) {
+                viewModel.login(onSuccess = {
+                    viewModel.toggleMode()
+                    onRegisterSuccess()
+                })
+            } else {
+                viewModel.login(onSuccess = onLoginSuccess)
+            }
         },
         modifier = modifier
     )
