@@ -69,12 +69,7 @@ class LoginViewModel(private val userRepository: UserRepository) : ViewModel() {
                 if (user != null) {
                     uiState = uiState.copy(errorMessage = "Student ID already exists")
                 } else {
-                    val newUser = UserEntity(
-                        studentId = id,
-                        name = uiState.name.trim(),
-                        password = inputPassword,
-                        faculty = "FOCS"
-                    )
+                    val newUser = UserEntity(studentId = id, name = uiState.name.trim(), password = inputPassword, faculty = "FOCS")
                     userRepository.insertUser(newUser)
                     uiState = uiState.copy(isLoginSuccess = true)
                     onSuccess(newUser.studentId)
@@ -82,12 +77,8 @@ class LoginViewModel(private val userRepository: UserRepository) : ViewModel() {
             } else {
                 if (user != null) {
                     if (user.password == inputPassword) {
-                        if (user.name.equals(uiState.name.trim(), ignoreCase = true)) {
-                            uiState = uiState.copy(isLoginSuccess = true)
-                            onSuccess(user.studentId)
-                        } else {
-                            uiState = uiState.copy(errorMessage = "Name does not match Student ID")
-                        }
+                        uiState = uiState.copy(isLoginSuccess = true)
+                        onSuccess(user.studentId)
                     } else {
                         uiState = uiState.copy(errorMessage = "Incorrect password")
                     }
