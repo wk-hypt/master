@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 data class LoginUiState(
     val studentId: String = "",
     val name: String = "",
+    val password: String = "",
+    val isRegisterMode: Boolean = false,
     val errorMessage: String? = null,
     val isLoginSuccess: Boolean = false
 )
@@ -29,29 +31,69 @@ class LoginViewModel(private val userRepository: UserRepository) : ViewModel() {
         uiState = uiState.copy(name = newName, errorMessage = null)
     }
 
+    fun onPasswordChange(newPassword: String) {
+        uiState = uiState.copy(password = newPassword, errorMessage = null)
+    }
+
+    fun toggleMode() {
+        uiState = uiState.copy(
+            isRegisterMode = !uiState.isRegisterMode,
+            studentId = "",
+            name = "",
+            password = "",
+            errorMessage = null
+        )
+    }
+
     fun login(onSuccess: (String) -> Unit) {
         val id = uiState.studentId.trim()
-        val inputName = uiState.name.trim()
+        val inputPassword = uiState.password.trim()
 
-        if (id.isEmpty() || inputName.isEmpty()) {
-            uiState = uiState.copy(errorMessage = "Please fill in all fields")
-            return
+        if (uiState.isRegisterMode) {
+            val inputName = uiState.name.trim()
+            if (id.isEmpty() || inputName.isEmpty() || inputPassword.isEmpty()) {
+                uiState = uiState.copy(errorMessage = "Please fill in all fields")
+                return
+            }
+        } else {
+            if (id.isEmpty() || inputPassword.isEmpty()) {
+                uiState = uiState.copy(errorMessage = "Please fill in all fields")
+                return
+            }
         }
 
         viewModelScope.launch {
             val user = userRepository.getUserById(id)
-            if (user != null) {
-                if (user.name.equals(inputName, ignoreCase = true)) {
-                    uiState = uiState.copy(isLoginSuccess = true)
-                    onSuccess(user.studentId)
+
+            if (uiState.isRegisterMode) {
+                if (user != null) {
+                    uiState = uiState.copy(errorMessage = "Student ID already exists")
                 } else {
-                    uiState = uiState.copy(errorMessage = "Name does not match Student ID")
+                    val newUser = UserEntity(
+                        studentId = id,
+                        name = uiState.name.trim(),
+                        password = inputPassword,
+                        faculty = "FOCS"
+                    )
+                    userRepository.insertUser(newUser)
+                    uiState = uiState.copy(isLoginSuccess = true)
+                    onSuccess(newUser.studentId)
                 }
             } else {
-                val newUser = UserEntity(studentId = id, name = inputName, faculty = "FOCS")
-                userRepository.insertUser(newUser)
-                uiState = uiState.copy(isLoginSuccess = true)
-                onSuccess(newUser.studentId)
+                if (user != null) {
+                    if (user.password == inputPassword) {
+                        if (user.name.equals(uiState.name.trim(), ignoreCase = true)) {
+                            uiState = uiState.copy(isLoginSuccess = true)
+                            onSuccess(user.studentId)
+                        } else {
+                            uiState = uiState.copy(errorMessage = "Name does not match Student ID")
+                        }
+                    } else {
+                        uiState = uiState.copy(errorMessage = "Incorrect password")
+                    }
+                } else {
+                    uiState = uiState.copy(errorMessage = "Student ID does not exist. Please register first.")
+                }
             }
         }
     }

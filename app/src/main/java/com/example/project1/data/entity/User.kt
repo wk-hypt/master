@@ -8,6 +8,7 @@ data class UserEntity(
     @PrimaryKey
     val studentId: String,
     val name: String,
+    val password: String,
     val faculty: String,
     val totalPoints: Int = 0,
     val plasticsSaved: Int = 0
