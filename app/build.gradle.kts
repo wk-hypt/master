@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.room.ktx)
     implementation(libs.firebase.database)
     implementation(libs.material)
     testImplementation(libs.junit)

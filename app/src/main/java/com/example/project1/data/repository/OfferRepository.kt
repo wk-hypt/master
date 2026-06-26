@@ -1,5 +1,7 @@
-package com.example.project1.data
+package com.example.project1.data.repository
 
+import com.example.project1.data.DAO.OfferDAO
+import com.example.project1.data.entity.VoucherEntity
 import kotlinx.coroutines.flow.Flow
 
 interface OfferRepository {

@@ -17,13 +17,19 @@ fun HomeView(
     val features by viewModel.featuresUiState.collectAsState()
     val submissions by viewModel.submissionsUiState.collectAsState()
 
+    val currentPoints by viewModel.currentPoints.collectAsState()
+    val totalPlasticSaved by viewModel.totalPlasticSaved.collectAsState()
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         HomeFunct(
             banners = banners,
             features = features,
-            submissions = submissions
+            submissions = submissions,
+            currentPoints = currentPoints,
+            totalPlasticSaved = totalPlasticSaved,
+            onUploadClick = { viewModel.simulateUpload() }
         )
     }
 }

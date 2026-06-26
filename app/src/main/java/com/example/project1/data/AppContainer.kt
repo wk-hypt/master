@@ -1,6 +1,14 @@
 package com.example.project1.data
 
 import android.content.Context
+import com.example.project1.data.repository.EcoAdsRepository
+import com.example.project1.data.repository.OfferRepository
+import com.example.project1.data.repository.OfflineEcoAdsRepository
+import com.example.project1.data.repository.OfflineOfferRepository
+import com.example.project1.data.repository.OfflineSubmissionRepository
+import com.example.project1.data.repository.OfflineUserRepository
+import com.example.project1.data.repository.SubmissionRepository
+import com.example.project1.data.repository.UserRepository
 
 interface AppContainer {
     val ecoAdsRepository: EcoAdsRepository

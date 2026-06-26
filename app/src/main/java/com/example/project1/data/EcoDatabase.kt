@@ -4,6 +4,15 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.project1.data.DAO.EcoAdsDAO
+import com.example.project1.data.DAO.OfferDAO
+import com.example.project1.data.DAO.SubmissionDAO
+import com.example.project1.data.DAO.UserDAO
+import com.example.project1.data.entity.EcoBannerEntity
+import com.example.project1.data.entity.EcoFeatureEntity
+import com.example.project1.data.entity.EcoSubmissionEntity
+import com.example.project1.data.entity.UserEntity
+import com.example.project1.data.entity.VoucherEntity
 
 @Database(
     entities = [
@@ -13,7 +22,7 @@ import androidx.room.RoomDatabase
         EcoSubmissionEntity::class,
         UserEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class EcoDatabase : RoomDatabase() {
