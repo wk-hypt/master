@@ -6,14 +6,18 @@ import kotlinx.coroutines.flow.Flow
 
 interface SubmissionRepository {
     fun getAllSubmissionsStream(userId: String): Flow<List<EcoSubmissionEntity>>
+    fun getAllPendingSubmissionsStream(): Flow<List<EcoSubmissionEntity>>
     suspend fun insertSubmission(submission: EcoSubmissionEntity)
     suspend fun deleteSubmission(submission: EcoSubmissionEntity)
     suspend fun updateSubmission(submission: EcoSubmissionEntity)
+    suspend fun updateStatus(submissionId: Int, status: String)
 }
 
 class OfflineSubmissionRepository(private val submissionDAO: SubmissionDAO) : SubmissionRepository {
     override fun getAllSubmissionsStream(userId: String): Flow<List<EcoSubmissionEntity>> = submissionDAO.getAllSubmissionsStream(userId)
+    override fun getAllPendingSubmissionsStream(): Flow<List<EcoSubmissionEntity>> = submissionDAO.getAllPendingSubmissionsStream()
     override suspend fun insertSubmission(submission: EcoSubmissionEntity) = submissionDAO.insertSubmission(submission)
     override suspend fun deleteSubmission(submission: EcoSubmissionEntity) = submissionDAO.deleteSubmission(submission)
     override suspend fun updateSubmission(submission: EcoSubmissionEntity) = submissionDAO.updateSubmission(submission)
+    override suspend fun updateStatus(submissionId: Int, status: String) = submissionDAO.updateStatus(submissionId, status)
 }

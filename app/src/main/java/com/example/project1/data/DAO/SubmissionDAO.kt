@@ -23,4 +23,10 @@ interface SubmissionDAO {
 
     @Query("SELECT * FROM user_submissions WHERE userId = :userId ORDER BY timestamp DESC")
     fun getAllSubmissionsStream(userId: String): Flow<List<EcoSubmissionEntity>>
+
+    @Query("SELECT * FROM user_submissions WHERE status = 'Pending' ORDER BY timestamp DESC")
+    fun getAllPendingSubmissionsStream(): Flow<List<EcoSubmissionEntity>>
+
+    @Query("UPDATE user_submissions SET status = :status WHERE id = :submissionId")
+    suspend fun updateStatus(submissionId: Int, status: String)
 }

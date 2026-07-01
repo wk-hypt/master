@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "project1"
+rootProject.name = "Eco-App-TARUMT(KL)"
 include(":app")

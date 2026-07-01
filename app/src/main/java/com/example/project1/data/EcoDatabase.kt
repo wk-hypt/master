@@ -8,11 +8,7 @@ import com.example.project1.data.DAO.EcoAdsDAO
 import com.example.project1.data.DAO.OfferDAO
 import com.example.project1.data.DAO.SubmissionDAO
 import com.example.project1.data.DAO.UserDAO
-import com.example.project1.data.entity.EcoBannerEntity
-import com.example.project1.data.entity.EcoFeatureEntity
-import com.example.project1.data.entity.EcoSubmissionEntity
-import com.example.project1.data.entity.UserEntity
-import com.example.project1.data.entity.VoucherEntity
+import com.example.project1.data.entity.*
 
 @Database(
     entities = [

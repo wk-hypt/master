@@ -5,8 +5,9 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.project1.EcoApplication
-import com.example.project1.ui.home.HomeViewModel
-import com.example.project1.ui.login.LoginViewModel
+import com.example.project1.ui.admin.AdminHomeViewModel
+import com.example.project1.ui.users.home.HomeViewModel
+import com.example.project1.ui.users.login.LoginViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
@@ -22,6 +23,15 @@ object AppViewModelProvider {
         initializer {
             val app = ecoApplication()
             LoginViewModel(
+                userRepository = app.container.userRepository,
+                adminRepository = app.container.adminRepository
+            )
+        }
+
+        initializer {
+            val app = ecoApplication()
+            AdminHomeViewModel(
+                submissionRepository = app.container.submissionRepository,
                 userRepository = app.container.userRepository
             )
         }
