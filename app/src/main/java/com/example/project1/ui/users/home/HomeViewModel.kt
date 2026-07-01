@@ -1,4 +1,4 @@
-package com.example.project1.ui.home
+package com.example.project1.ui.users.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -26,7 +26,7 @@ class HomeViewModel(
         adsRepository.getAllBannersStream()
             .stateIn(
                 scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
+                started = SharingStarted.Companion.WhileSubscribed(5_000),
                 initialValue = emptyList()
             )
 
@@ -34,7 +34,7 @@ class HomeViewModel(
         adsRepository.getAllFeaturesStream()
             .stateIn(
                 scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
+                started = SharingStarted.Companion.WhileSubscribed(5_000),
                 initialValue = emptyList()
             )
 
@@ -42,7 +42,7 @@ class HomeViewModel(
         submissionRepository.getAllSubmissionsStream(currentStudentId)
             .stateIn(
                 scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
+                started = SharingStarted.Companion.WhileSubscribed(5_000),
                 initialValue = emptyList()
             )
 
@@ -51,7 +51,7 @@ class HomeViewModel(
             .map { user -> user?.totalPoints ?: 0 }
             .stateIn(
                 scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
+                started = SharingStarted.Companion.WhileSubscribed(5_000),
                 initialValue = 0
             )
 
@@ -60,7 +60,7 @@ class HomeViewModel(
             .map { user -> user?.plasticsSaved ?: 0 }
             .stateIn(
                 scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
+                started = SharingStarted.Companion.WhileSubscribed(5_000),
                 initialValue = 0
             )
 

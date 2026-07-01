@@ -1,4 +1,4 @@
-package com.example.project1.ui.home
+package com.example.project1.ui.users.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -20,8 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,13 +53,6 @@ fun HomeFunct(
         )
     } else features
 
-    val displaySubmissions = if (submissions.isEmpty()) {
-        listOf(
-            EcoSubmissionEntity(id = 1, userId = "2400123", actionType = "Tumbler", stallName = "Stall 3 Café", imagePath = "", status = "Approved"),
-            EcoSubmissionEntity(id = 2, userId = "2400123", actionType = "Lunchbox", stallName = "Stall 5 Rice", imagePath = "", status = "Pending")
-        )
-    } else submissions
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -72,8 +67,6 @@ fun HomeFunct(
         Spacer(modifier = Modifier.height(16.dp))
         EcoFeatureGrid(features = displayFeatures)
         Spacer(modifier = Modifier.height(16.dp))
-        EcoSubmissionSection(submissions = displaySubmissions)
-        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
@@ -163,11 +156,11 @@ fun EcoUploadArea(onUploadClick: () -> Unit, modifier: Modifier = Modifier) {
             .drawBehind {
                 drawRoundRect(
                     color = Color(0xFFB0BEC5),
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(
+                    style = Stroke(
                         width = 2.dp.toPx(),
                         pathEffect = stroke
                     ),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(12.dp.toPx())
+                    cornerRadius = CornerRadius(12.dp.toPx())
                 )
             }
             .clickable { onUploadClick() },
@@ -229,25 +222,37 @@ fun EcoBannerSlider(banners: List<EcoBannerEntity>, modifier: Modifier = Modifie
 
 @Composable
 fun EcoFeatureGrid(features: List<EcoFeatureEntity>, modifier: Modifier = Modifier) {
-    Row(
+    Column(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         features.forEach { feature ->
             Card(
-                modifier = Modifier.weight(1f).height(90.dp),
+                modifier = Modifier.fillMaxWidth().height(120.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Color(android.graphics.Color.parseColor(feature.bgColorHex))
                 )
             ) {
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(12.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = feature.title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(
+                        text = feature.title,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                     if (feature.subtitle.isNotEmpty()) {
-                        Text(text = feature.subtitle, fontSize = 11.sp, color = Color.White.copy(alpha = 0.8f))
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = feature.subtitle,
+                            fontSize = 11.sp,
+                            color = Color.White.copy(alpha = 0.8f)
+                        )
                     }
                 }
             }
@@ -255,61 +260,3 @@ fun EcoFeatureGrid(features: List<EcoFeatureEntity>, modifier: Modifier = Modifi
     }
 }
 
-@Composable
-fun EcoSubmissionSection(submissions: List<EcoSubmissionEntity>, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = "Recent History", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-            Text(text = "More", fontSize = 12.sp, color = Color.Gray)
-        }
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(submissions) { submission ->
-                EcoSubmissionCard(submission = submission)
-            }
-        }
-    }
-}
-
-@Composable
-fun EcoSubmissionCard(submission: EcoSubmissionEntity) {
-    val statusColor = when (submission.status) {
-        "Approved" -> Color(0xFFE8F5E9)
-        "Rejected" -> Color(0xFFFFEBEE)
-        else -> Color(0xFFFFF3E0)
-    }
-    val statusTextColor = when (submission.status) {
-        "Approved" -> Color(0xFF2E7D32)
-        "Rejected" -> Color(0xFFC62828)
-        else -> Color(0xFFEF6C00)
-    }
-
-    Card(
-        modifier = Modifier.width(135.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F7F7))
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Box(modifier = Modifier.fillMaxWidth().height(85.dp).background(Color.LightGray)) {
-                Box(
-                    modifier = Modifier
-                        .background(statusColor, RoundedCornerShape(bottomEnd = 8.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(text = submission.status, color = statusTextColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-            Column(modifier = Modifier.padding(8.dp)) {
-                Text(text = submission.actionType, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(text = submission.stallName, fontSize = 11.sp, color = Color.Gray, maxLines = 1)
-            }
-        }
-    }
-}

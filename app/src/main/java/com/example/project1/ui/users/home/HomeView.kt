@@ -1,4 +1,4 @@
-package com.example.project1.ui.home
+package com.example.project1.ui.users.home
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize

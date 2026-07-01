@@ -1,4 +1,4 @@
-package com.example.project1.ui.login
+package com.example.project1.ui.users.login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,14 +34,14 @@ fun LoginFunct(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "TAR UMT Eco Campus",
+            text = "Eco App TARUMT(KL)",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF2E7D32)
         )
         Text(
-            text = if (uiState.isRegisterMode) "Create your account" else "Login with your Student ID",
-            fontSize = 14.sp,
+            text = if (uiState.isRegisterMode) "Create your account" else "Login with Student ID",
+            fontSize = 16.sp,
             color = Color.Gray
         )
 
@@ -51,7 +51,7 @@ fun LoginFunct(
             value = uiState.studentId,
             onValueChange = onIdChange,
             label = { Text("Student ID") },
-            placeholder = { Text("e.g. 2400123") },
+            placeholder = { Text("e.g. 2503994") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             shape = RoundedCornerShape(12.dp)

@@ -26,8 +26,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.project1.ui.home.HomeView
-import com.example.project1.ui.login.LoginView
+import com.example.project1.ui.users.home.HomeView
+import com.example.project1.ui.users.login.LoginView
+import com.example.project1.ui.admin.home.AdminHomeView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -43,6 +44,7 @@ sealed class Screen(
     val outlineIcon: ImageVector? = null
 ) {
     object Login : Screen("login", "Login")
+    object AdminHome : Screen("admin_home", "Admin Home")
     object Home : Screen("home", "Home", Icons.Filled.Home, Icons.Outlined.Home)
     object Leaderboard : Screen("leaderboard", "Leaderboard", Icons.Filled.Leaderboard, Icons.Outlined.Leaderboard)
     object Rewards : Screen("rewards", "Rewards", Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard)
@@ -60,11 +62,12 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val showBottomBar = currentRoute != Screen.Login.route && currentRoute != Screen.AdminHome.route
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            if (currentRoute != Screen.Login.route) {
+            if (showBottomBar) {
                 NavigationBar(
                     containerColor = Color.White,
                     tonalElevation = 0.dp,
@@ -122,11 +125,17 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
             composable(Screen.Login.route) {
                 LoginView(
                     onLoginSuccess = { studentId ->
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Login.route) {
-                                saveState = true
+                        if (studentId.startsWith("admin", ignoreCase = true)) {
+                            navController.navigate(Screen.AdminHome.route) {
+                                popUpTo(Screen.Login.route) { inclusive = true }
                             }
-                            launchSingleTop = true
+                        } else {
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(Screen.Login.route) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                            }
                         }
                     },
                     onRegisterSuccess = {}
@@ -134,6 +143,15 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
             }
             composable(Screen.Home.route) {
                 HomeView()
+            }
+            composable(Screen.AdminHome.route) {
+                AdminHomeView(
+                    onLogout = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.AdminHome.route) { inclusive = true } //stack?
+                        }
+                    }
+                )
             }
             composable(Screen.Leaderboard.route) {
             }
