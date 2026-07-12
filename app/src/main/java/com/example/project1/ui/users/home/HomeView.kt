@@ -7,10 +7,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import com.example.project1.ui.AppViewModelProvider
 
 @Composable
 fun HomeView(
+    navController: NavHostController,
     viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val banners by viewModel.bannersUiState.collectAsState()
@@ -29,7 +32,16 @@ fun HomeView(
             submissions = submissions,
             currentPoints = currentPoints,
             totalPlasticSaved = totalPlasticSaved,
-            onUploadClick = { viewModel.simulateUpload() }
+            onUploadClick = { viewModel.simulateUpload() },
+            onFeatureClick = { route ->
+                navController.navigate(route){
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
         )
     }
 }

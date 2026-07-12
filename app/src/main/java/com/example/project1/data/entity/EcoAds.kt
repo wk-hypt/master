@@ -7,17 +7,15 @@ import androidx.room.PrimaryKey
 data class EcoBannerEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val imageUrl: String,
-    val title: String,
-    val subtitle: String,
-    val targetRoute: String
+    val imageUrl: String
 )
 
 @Entity(tableName = "eco_features")
 data class EcoFeatureEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
+    val imageUrl: String,
     val title: String,
-    val subtitle: String = "",
-    val bgColorHex: String
+    val bgColorHex: String,
+    val targetRoute: String
 )

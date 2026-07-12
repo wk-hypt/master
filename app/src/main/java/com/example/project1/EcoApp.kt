@@ -135,6 +135,7 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                                     saveState = true
                                 }
                                 launchSingleTop = true
+                                restoreState = true
                             }
                         }
                     },
@@ -142,7 +143,7 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 )
             }
             composable(Screen.Home.route) {
-                HomeView()
+                HomeView(navController)
             }
             composable(Screen.AdminHome.route) {
                 AdminHomeView(

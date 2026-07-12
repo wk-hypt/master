@@ -18,7 +18,7 @@ import com.example.project1.data.entity.*
         EcoSubmissionEntity::class,
         UserEntity::class
     ],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 abstract class EcoDatabase : RoomDatabase() {
