@@ -31,7 +31,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 data class EcoLogSubmissionInput(
     val imagePath: String,
     val actionType: String,
-    val stallName: String2
+    val stallName: String
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
