@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -23,6 +26,8 @@ fun HomeView(
     val currentPoints by viewModel.currentPoints.collectAsState()
     val totalPlasticSaved by viewModel.totalPlasticSaved.collectAsState()
 
+    var showUploadDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -32,15 +37,29 @@ fun HomeView(
             submissions = submissions,
             currentPoints = currentPoints,
             totalPlasticSaved = totalPlasticSaved,
-            onUploadClick = { viewModel.simulateUpload() },
+            onUploadClick = { showUploadDialog = true },
             onFeatureClick = { route ->
-                navController.navigate(route){
+                navController.navigate(route) {
                     popUpTo(navController.graph.findStartDestination().id) {
                         saveState = true
                     }
                     launchSingleTop = true
                     restoreState = true
                 }
+            }
+        )
+    }
+
+    if (showUploadDialog) {
+        EcoUploadDialog(
+            onDismiss = { showUploadDialog = false },
+            onSubmit = { submissionInput ->
+                viewModel.submitEcoLog(
+                    imagePath = submissionInput.imagePath,
+                    actionType = submissionInput.actionType,
+                    stallName = submissionInput.stallName
+                )
+                showUploadDialog = false
             }
         )
     }
