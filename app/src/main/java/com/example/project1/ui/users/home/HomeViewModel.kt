@@ -64,8 +64,19 @@ class HomeViewModel(
                 initialValue = 0
             )
 
-    fun simulateUpload() {
+    fun submitEcoLog(imagePath: String, actionType: String, stallName: String) {
         viewModelScope.launch {
+            submissionRepository.insertSubmission(
+                EcoSubmissionEntity(
+                    userId = currentStudentId,
+                    actionType = actionType,
+                    stallName = stallName,
+                    imagePath = imagePath,
+                    status = "Pending",
+                    timestamp = System.currentTimeMillis()
+                )
+            )
         }
     }
+
 }

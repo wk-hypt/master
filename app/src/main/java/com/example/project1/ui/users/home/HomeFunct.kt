@@ -167,7 +167,7 @@ fun EcoUploadArea(onUploadClick: () -> Unit, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .height(110.dp)
+            .height(130.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(Color(0xFFFAFAFA))
             .drawBehind {
