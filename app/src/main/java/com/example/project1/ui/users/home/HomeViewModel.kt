@@ -8,8 +8,11 @@ import com.example.project1.data.entity.EcoSubmissionEntity
 import com.example.project1.data.repository.EcoAdsRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.UserRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -20,63 +23,66 @@ class HomeViewModel(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    private val currentStudentId = "2400123"
+    private val _currentStudentId = MutableStateFlow("")
+    val currentStudentIdFlow: StateFlow<String> = _currentStudentId.asStateFlow()
 
-    val bannersUiState: StateFlow<List<EcoBannerEntity>> =
-        adsRepository.getAllBannersStream()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.Companion.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
-
-    val featuresUiState: StateFlow<List<EcoFeatureEntity>> =
-        adsRepository.getAllFeaturesStream()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.Companion.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
-
-    val submissionsUiState: StateFlow<List<EcoSubmissionEntity>> =
-        submissionRepository.getAllSubmissionsStream(currentStudentId)
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.Companion.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
-
+    fun setCurrentStudent(studentId: String) {
+        _currentStudentId.value = studentId
+    }
     val currentPoints: StateFlow<Int> =
-        userRepository.getUserStream(currentStudentId)
+        _currentStudentId
+            .flatMapLatest { studentId ->
+                if (studentId.isBlank()) {
+                    kotlinx.coroutines.flow.flowOf(null)
+                } else {
+                    userRepository.getUserStream(studentId)
+                }
+            }
             .map { user -> user?.totalPoints ?: 0 }
             .stateIn(
                 scope = viewModelScope,
-                started = SharingStarted.Companion.WhileSubscribed(5_000),
+                started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = 0
             )
 
     val totalPlasticSaved: StateFlow<Int> =
-        userRepository.getUserStream(currentStudentId)
+        _currentStudentId
+            .flatMapLatest { studentId ->
+                if (studentId.isBlank()) {
+                    kotlinx.coroutines.flow.flowOf(null)
+                } else {
+                    userRepository.getUserStream(studentId)
+                }
+            }
             .map { user -> user?.plasticsSaved ?: 0 }
             .stateIn(
                 scope = viewModelScope,
-                started = SharingStarted.Companion.WhileSubscribed(5_000),
+                started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = 0
             )
 
-    fun submitEcoLog(imagePath: String, actionType: String, stallName: String) {
+    fun submitEcoLog(
+        imagePath: String,
+        actionType: String,
+        stallName: String,
+        quantity: Int,
+        description: String,
+        location: String
+    ) {
         viewModelScope.launch {
             submissionRepository.insertSubmission(
                 EcoSubmissionEntity(
-                    userId = currentStudentId,
+                    userId = _currentStudentId.value,
                     actionType = actionType,
                     stallName = stallName,
                     imagePath = imagePath,
                     status = "Pending",
-                    timestamp = System.currentTimeMillis()
+                    timestamp = System.currentTimeMillis(),
+                    quantity = quantity,
+                    description = description.ifBlank { null },
+                    location = location.ifBlank { null }
                 )
             )
         }
     }
-
 }

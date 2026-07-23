@@ -15,6 +15,12 @@ class AdminHomeViewModel(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
+    private var currentAdminId: String = ""
+
+    fun setCurrentAdmin(adminId: String) {
+        currentAdminId = adminId
+    }
+
     val pendingSubmissionsUiState: StateFlow<List<EcoSubmissionEntity>> =
         submissionRepository.getAllPendingSubmissionsStream()
             .stateIn(
@@ -23,13 +29,14 @@ class AdminHomeViewModel(
                 initialValue = emptyList()
             )
 
-    fun approveSubmission(submissionId: Int, studentId: String) {
+    fun approveSubmission(submissionId: Int, studentId: String, points: Int) {
         viewModelScope.launch {
-            submissionRepository.updateStatus(submissionId, "Approved")
+            submissionRepository.approveSubmission(submissionId, adminId = currentAdminId, points = points)
+
             val user = userRepository.getUserById(studentId)
             user?.let {
                 val updatedUser = it.copy(
-                    totalPoints = it.totalPoints + 100,
+                    totalPoints = it.totalPoints + points,
                     plasticsSaved = it.plasticsSaved + 1
                 )
                 userRepository.updateUser(updatedUser)
@@ -37,9 +44,9 @@ class AdminHomeViewModel(
         }
     }
 
-    fun rejectSubmission(submissionId: Int) {
+    fun rejectSubmission(submissionId: Int, feedback: String) {
         viewModelScope.launch {
-            submissionRepository.updateStatus(submissionId, "Rejected")
+            submissionRepository.rejectSubmission(submissionId, adminId = currentAdminId, feedback = feedback)
         }
     }
 }

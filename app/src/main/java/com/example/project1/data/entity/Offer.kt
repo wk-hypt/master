@@ -1,16 +1,24 @@
 package com.example.project1.data.entity
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-@Entity(tableName = "campus_vouchers")
+@Serializable
 data class VoucherEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val merchantName: String,
+    val id: Long? = null,
+    @SerialName("merchant_name") val merchantName: String,
     val title: String,
-    val pointsCost: Int,
+    @SerialName("points_cost") val pointsCost: Int,
     val category: String,
-    val isRedeemed: Boolean = false,
-    val qrCodePayload: String
+    @SerialName("is_redeemed") val isRedeemed: Boolean = false,
+    @SerialName("qr_code_payload") val qrCodePayload: String
+)
+
+@Serializable
+data class NewVoucher(
+    @SerialName("merchant_name") val merchantName: String,
+    val title: String,
+    @SerialName("points_cost") val pointsCost: Int,
+    val category: String,
+    @SerialName("qr_code_payload") val qrCodePayload: String
 )

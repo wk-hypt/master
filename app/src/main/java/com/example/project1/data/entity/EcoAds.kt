@@ -1,21 +1,32 @@
 package com.example.project1.data.entity
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-@Entity(tableName = "eco_banners")
+@Serializable
 data class EcoBannerEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val imageUrl: String
+    val id: Long? = null,
+    @SerialName("image_url") val imageUrl: String
 )
 
-@Entity(tableName = "eco_features")
+@Serializable
+data class NewEcoBanner(
+    @SerialName("image_url") val imageUrl: String
+)
+
+@Serializable
 data class EcoFeatureEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val imageUrl: String,
+    val id: Long? = null,
+    @SerialName("image_url") val imageUrl: String,
     val title: String,
-    val bgColorHex: String,
-    val targetRoute: String
+    @SerialName("bg_color_hex") val bgColorHex: String,
+    @SerialName("target_route") val targetRoute: String
+)
+
+@Serializable
+data class NewEcoFeature(
+    @SerialName("image_url") val imageUrl: String,
+    val title: String,
+    @SerialName("bg_color_hex") val bgColorHex: String,
+    @SerialName("target_route") val targetRoute: String
 )

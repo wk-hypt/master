@@ -1,14 +1,14 @@
 package com.example.project1.data.repository
 
-import com.example.project1.data.datasource.AssetAdminDataSource
 import com.example.project1.data.entity.AdminEntity
+import io.github.jan.supabase.postgrest.Postgrest
 
 interface AdminRepository {
-    fun getAdmins(): List<AdminEntity>
+    suspend fun getAdmins(): List<AdminEntity>
 }
 
-class OfflineAdminRepository(
-    private val adminDataSource: AssetAdminDataSource
-) : AdminRepository {
-    override fun getAdmins(): List<AdminEntity> = adminDataSource.getAdminsFromAssets()
+class SupabaseAdminRepository(private val postgrest: Postgrest) : AdminRepository {
+    override suspend fun getAdmins(): List<AdminEntity> {
+        return postgrest.from("admins").select().decodeList()
+    }
 }

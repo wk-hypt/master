@@ -3,6 +3,7 @@ package com.example.project1.ui.users.home
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,34 +13,40 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import com.example.project1.Screen
 import com.example.project1.ui.AppViewModelProvider
 
 @Composable
 fun HomeView(
     navController: NavHostController,
+    studentId: String,
     viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    val banners by viewModel.bannersUiState.collectAsState()
-    val features by viewModel.featuresUiState.collectAsState()
-    val submissions by viewModel.submissionsUiState.collectAsState()
+    LaunchedEffect(studentId) {
+        viewModel.setCurrentStudent(studentId)
+    }
 
     val currentPoints by viewModel.currentPoints.collectAsState()
     val totalPlasticSaved by viewModel.totalPlasticSaved.collectAsState()
 
     var showUploadDialog by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
         HomeFunct(
-            banners = banners,
-            features = features,
-            submissions = submissions,
             currentPoints = currentPoints,
             totalPlasticSaved = totalPlasticSaved,
             onUploadClick = { showUploadDialog = true },
             onFeatureClick = { route ->
                 navController.navigate(route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
+            onNavigateToRewards = {
+                navController.navigate(Screen.Rewards.route) {
                     popUpTo(navController.graph.findStartDestination().id) {
                         saveState = true
                     }
@@ -57,7 +64,10 @@ fun HomeView(
                 viewModel.submitEcoLog(
                     imagePath = submissionInput.imagePath,
                     actionType = submissionInput.actionType,
-                    stallName = submissionInput.stallName
+                    stallName = submissionInput.stallName,
+                    quantity = submissionInput.quantity,
+                    description = submissionInput.description,
+                    location = submissionInput.location
                 )
                 showUploadDialog = false
             }
