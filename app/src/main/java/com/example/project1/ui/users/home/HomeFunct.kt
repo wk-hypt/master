@@ -15,6 +15,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -39,32 +41,26 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun HomeFunct(
-    banners: List<EcoBannerEntity>,
-    features: List<EcoFeatureEntity>,
-    submissions: List<EcoSubmissionEntity>,
     currentPoints: Int,
     totalPlasticSaved: Int,
     onUploadClick: () -> Unit,
     onFeatureClick: (String) -> Unit,
+    onNavigateToRewards: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val displayBanners = if (banners.isEmpty()) {
-        listOf(
-            EcoBannerEntity(id = 1, imageUrl = "logo"),
-            EcoBannerEntity(id = 2, imageUrl = "zero_plastic"),
-            EcoBannerEntity(id = 3, imageUrl = "green_bazaar"),
-            EcoBannerEntity(id = 4, imageUrl = "eco_recycling"),
-            EcoBannerEntity(id = 5, imageUrl = "green_campus"),
-        )
-    } else banners
+    val displayBanners = listOf(
+        EcoBannerEntity(id = 1, imageUrl = "logo"),
+        EcoBannerEntity(id = 2, imageUrl = "zero_plastic"),
+        EcoBannerEntity(id = 3, imageUrl = "green_bazaar"),
+        EcoBannerEntity(id = 4, imageUrl = "eco_recycling"),
+        EcoBannerEntity(id = 5, imageUrl = "green_campus"),
+    )
 
-    val displayFeatures = if (features.isEmpty()) {
-        listOf(
-            EcoFeatureEntity(id = 1, imageUrl = "leaderbroad", title = "Check Your Ranking", bgColorHex = "#E91E63", targetRoute = "leaderboard"),
-            EcoFeatureEntity(id = 2, imageUrl = "rewards", title = "Redeem Rewards", bgColorHex = "#1565C0", targetRoute = "rewards"),
-            EcoFeatureEntity(id = 3, imageUrl = "history", title = "View Your History", bgColorHex = "#F9A825", targetRoute = "profile")
-        )
-    } else features
+    val displayFeatures = listOf(
+        EcoFeatureEntity(id = 1, imageUrl = "leaderbroad", title = "Check Your Ranking", bgColorHex = "#E91E63", targetRoute = "leaderboard"),
+        EcoFeatureEntity(id = 2, imageUrl = "rewards", title = "Redeem Rewards", bgColorHex = "#1565C0", targetRoute = "rewards"),
+        EcoFeatureEntity(id = 3, imageUrl = "history", title = "View Your History", bgColorHex = "#F9A825", targetRoute = "profile")
+    )
 
     Column(
         modifier = modifier
@@ -78,14 +74,18 @@ fun HomeFunct(
         Spacer(modifier = Modifier.height(16.dp))
         EcoUploadArea(onUploadClick = onUploadClick)
         Spacer(modifier = Modifier.height(16.dp))
-
         EcoFeatureGrid(features = displayFeatures, onFeatureClick = onFeatureClick)
         Spacer(modifier = Modifier.height(16.dp))
-
-        HotRewardsMarket()
+        HotRewardsMarket(onNavigateToRewards = onNavigateToRewards)
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
+
+data class RewardItem(
+    val title: String,
+    val cost: String,
+    val description: String
+)
 
 @Composable
 fun EcoStatsDashboard(points: Int, plasticSaved: Int, modifier: Modifier = Modifier) {
@@ -370,12 +370,29 @@ fun EcoFeatureTile(
 }
 
 @Composable
-fun HotRewardsMarket(modifier: Modifier = Modifier) {
+fun HotRewardsMarket(
+    onNavigateToRewards: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val items = listOf(
-        Pair("TAR UMT Canteen RM2 Voucher", "50 Coins"),
-        Pair("Eco Coffee 10% Off Coupon", "100 Coins"),
-        Pair("Campus Bookstore RM5 Discount", "150 Coins")
+        RewardItem(
+            title = "TAR UMT Canteen RM2 Voucher",
+            cost = "50 Coins",
+            description = "Redeem this voucher at any campus canteen counter for RM2 off your total bill. Valid for one-time use only and cannot be combined with other promotions."
+        ),
+        RewardItem(
+            title = "Eco Coffee 10% Off Coupon",
+            cost = "100 Coins",
+            description = "Enjoy 10% off any drink at Eco Coffee outlets within campus. Show this coupon at checkout before payment is made."
+        ),
+        RewardItem(
+            title = "Campus Bookstore RM5 Discount",
+            cost = "150 Coins",
+            description = "Get RM5 off your next purchase at the campus bookstore. Applicable to stationery, textbooks, and merchandise."
+        )
     )
+
+    var selectedItem by remember { mutableStateOf<RewardItem?>(null) }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -385,40 +402,147 @@ fun HotRewardsMarket(modifier: Modifier = Modifier) {
             color = Color(0xFF2E7D32),
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(items) { item ->
-                Card(
-                    modifier = Modifier
-                        .width(160.dp)
-                        .height(110.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F8E9))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(12.dp),
-                        verticalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = item.first,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black,
-                            maxLines = 2
-                        )
-                        Text(
-                            text = item.second,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color(0xFF2E7D32)
-                        )
-                    }
-                }
+            items.forEach { item ->
+                RewardCard(
+                    item = item,
+                    onClick = { selectedItem = item }
+                )
             }
         }
     }
+
+    selectedItem?.let { item ->
+        RewardDetailDialog(
+            item = item,
+            onDismiss = { selectedItem = null },
+            onGoToRewards = {
+                selectedItem = null
+                onNavigateToRewards()
+            }
+        )
+    }
+}
+
+@Composable
+fun RewardCard(
+    item: RewardItem,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F8E9)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color(0xFF2E7D32)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CardGiftcard,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.title,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    maxLines = 2
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = item.cost,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF2E7D32)
+                )
+            }
+
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "View details",
+                tint = Color(0xFFADB5BD)
+            )
+        }
+    }
+}
+
+@Composable
+fun RewardDetailDialog(
+    item: RewardItem,
+    onDismiss: () -> Unit,
+    onGoToRewards: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color.White,
+        titleContentColor = Color(0xFF212529),
+        textContentColor = Color(0xFF495057),
+        title = {
+            Text(
+                text = item.title,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column {
+                Surface(
+                    color = Color(0xFFE8F5E9),
+                    shape = RoundedCornerShape(6.dp)
+                ) {
+                    Text(
+                        text = item.cost,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2E7D32),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = item.description,
+                    fontSize = 13.sp,
+                    color = Color(0xFF495057),
+                    lineHeight = 19.sp
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onGoToRewards,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+            ) {
+                Text("Go to Rewards")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) { Text("Close") }
+        }
+    )
 }
