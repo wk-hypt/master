@@ -8,6 +8,7 @@ import com.example.project1.EcoApplication
 import com.example.project1.ui.admin.AdminHomeViewModel
 import com.example.project1.ui.users.home.HomeViewModel
 import com.example.project1.ui.users.login.LoginViewModel
+import com.example.project1.ui.users.target.TargetViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
@@ -33,6 +34,13 @@ object AppViewModelProvider {
             AdminHomeViewModel(
                 submissionRepository = app.container.submissionRepository,
                 userRepository = app.container.userRepository
+            )
+        }
+
+        initializer {
+            val app = ecoApplication()
+            TargetViewModel(
+                taskRepository = app.container.taskRepository
             )
         }
     }

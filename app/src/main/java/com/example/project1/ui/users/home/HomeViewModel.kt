@@ -2,9 +2,9 @@ package com.example.project1.ui.users.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.project1.data.entity.EcoBannerEntity
-import com.example.project1.data.entity.EcoFeatureEntity
-import com.example.project1.data.entity.EcoSubmissionEntity
+import com.example.project1.data.model.BannerItem
+import com.example.project1.data.model.EcoSubmissionEntity
+import com.example.project1.data.model.FeatureCardItem
 import com.example.project1.data.repository.EcoAdsRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.UserRepository
@@ -60,6 +60,20 @@ class HomeViewModel(
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = 0
             )
+
+    val banners = adsRepository.getAllBannersStream()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
+
+    val features = adsRepository.getAllFeaturesStream()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
 
     fun submitEcoLog(
         imagePath: String,

@@ -11,12 +11,14 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Task
 import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Leaderboard
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Task
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -44,7 +46,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.project1.ui.admin.home.AdminHomeView
 import com.example.project1.ui.users.home.HomeView
+import com.example.project1.ui.users.leaderbroad.LeaderBoardView
 import com.example.project1.ui.users.login.LoginView
+import com.example.project1.ui.users.target.TargetView
 
 sealed class Screen(
     val route: String,
@@ -56,9 +60,10 @@ sealed class Screen(
     object Home : Screen("home/{studentId}", "Home", Icons.Filled.Home, Icons.Outlined.Home) {
         fun createRoute(studentId: String) = "home/$studentId"
     }
-    object Leaderboard : Screen("leaderboard", "Leaderboard", Icons.Filled.Leaderboard, Icons.Outlined.Leaderboard)
+    object Target : Screen("target", "Target", Icons.Filled.Task, Icons.Outlined.Task)
     object Rewards : Screen("rewards", "Rewards", Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard)
     object Profile : Screen("profile", "Profile", Icons.Filled.Person, Icons.Outlined.Person)
+    object Leaderboard : Screen("leaderboard", "Leaderboard")
 }
 
 sealed class AdminScreen(
@@ -77,7 +82,7 @@ sealed class AdminScreen(
 fun EcoApp(navController: NavHostController = rememberNavController()) {
     val studentItems = listOf(
         Screen.Home,
-        Screen.Leaderboard,
+        Screen.Target,
         Screen.Rewards,
         Screen.Profile
     )
@@ -231,11 +236,17 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 }
                 HomeView(navController = navController, studentId = studentId)
             }
-            composable(Screen.Leaderboard.route) {
+            composable(Screen.Target.route) {
+                TargetView(studentId = loggedInStudentId)
             }
             composable(Screen.Rewards.route) {
             }
             composable(Screen.Profile.route) {
+            }
+            composable (Screen.Leaderboard.route){
+                LeaderBoardView(
+                    onBackClick = { navController.popBackStack() }
+                )
             }
 
             composable(AdminScreen.Approval.route) {
@@ -248,6 +259,7 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                     }
                 )
             }
+
             composable(AdminScreen.Rewards.route) {
             }
             composable(AdminScreen.Report.route) {

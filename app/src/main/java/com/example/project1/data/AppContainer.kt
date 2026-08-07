@@ -6,7 +6,7 @@ import com.example.project1.data.repository.EcoAdsRepository
 import com.example.project1.data.repository.OfferRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.SupabaseAdminRepository
-import com.example.project1.data.repository.SupabaseEcoAdsRepository
+import com.example.project1.data.repository.LocalEcoAdsRepository
 import com.example.project1.data.repository.SupabaseOfferRepository
 import com.example.project1.data.repository.SupabaseSubmissionRepository
 import com.example.project1.data.repository.SupabaseTaskRepository
@@ -29,7 +29,7 @@ class AppDataContainer(private val context: Context) : AppContainer {
     private val postgrest = SupabaseClientProvider.client.postgrest
 
     override val ecoAdsRepository: EcoAdsRepository by lazy {
-        SupabaseEcoAdsRepository(postgrest)
+        LocalEcoAdsRepository()
     }
 
     override val offerRepository: OfferRepository by lazy {

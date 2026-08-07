@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.project1.data.entity.UserEntity
+import com.example.project1.data.model.UserEntity
 import com.example.project1.data.repository.AdminRepository
 import com.example.project1.data.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
