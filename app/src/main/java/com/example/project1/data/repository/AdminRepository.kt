@@ -1,6 +1,6 @@
 package com.example.project1.data.repository
 
-import com.example.project1.data.entity.AdminEntity
+import com.example.project1.data.model.AdminEntity
 import io.github.jan.supabase.postgrest.Postgrest
 
 interface AdminRepository {

@@ -5,7 +5,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -25,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -35,46 +33,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.project1.R
-import com.example.project1.data.entity.*
+import com.example.project1.data.model.BannerItem
+import com.example.project1.data.model.FeatureCardItem
 import kotlinx.coroutines.delay
 
 @Composable
 fun HomeFunct(
     currentPoints: Int,
     totalPlasticSaved: Int,
+    banners: List<BannerItem>,
+    features: List<FeatureCardItem>,
     onUploadClick: () -> Unit,
     onFeatureClick: (String) -> Unit,
     onNavigateToRewards: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val displayBanners = listOf(
-        EcoBannerEntity(id = 1, imageUrl = "logo"),
-        EcoBannerEntity(id = 2, imageUrl = "zero_plastic"),
-        EcoBannerEntity(id = 3, imageUrl = "green_bazaar"),
-        EcoBannerEntity(id = 4, imageUrl = "eco_recycling"),
-        EcoBannerEntity(id = 5, imageUrl = "green_campus"),
-    )
-
-    val displayFeatures = listOf(
-        EcoFeatureEntity(id = 1, imageUrl = "leaderbroad", title = "Check Your Ranking", bgColorHex = "#E91E63", targetRoute = "leaderboard"),
-        EcoFeatureEntity(id = 2, imageUrl = "rewards", title = "Redeem Rewards", bgColorHex = "#1565C0", targetRoute = "rewards"),
-        EcoFeatureEntity(id = 3, imageUrl = "history", title = "View Your History", bgColorHex = "#F9A825", targetRoute = "profile")
-    )
-
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(Color.White)
             .verticalScroll(rememberScrollState())
     ) {
-        EcoBannerSlider(banners = displayBanners)
+        EcoBannerSlider(banners = banners)
         Spacer(modifier = Modifier.height(16.dp))
         EcoStatsDashboard(points = currentPoints, plasticSaved = totalPlasticSaved)
         Spacer(modifier = Modifier.height(16.dp))
         EcoUploadArea(onUploadClick = onUploadClick)
         Spacer(modifier = Modifier.height(16.dp))
-        EcoFeatureGrid(features = displayFeatures, onFeatureClick = onFeatureClick)
+        EcoFeatureGrid(features = features, onFeatureClick = onFeatureClick)
         Spacer(modifier = Modifier.height(16.dp))
         HotRewardsMarket(onNavigateToRewards = onNavigateToRewards)
         Spacer(modifier = Modifier.height(16.dp))
@@ -207,7 +193,7 @@ fun EcoUploadArea(onUploadClick: () -> Unit, modifier: Modifier = Modifier) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EcoBannerSlider(
-    banners: List<EcoBannerEntity>,
+    banners: List<BannerItem>,
     autoScrollDelayMillis: Long = 4000L,
     modifier: Modifier = Modifier
 ) {
@@ -234,29 +220,12 @@ fun EcoBannerSlider(
         HorizontalPager(state = pagerState) { page ->
             val banner = banners[page]
 
-            val imageRes = when (banner.imageUrl) {
-                "logo" -> R.drawable.banner5
-                "zero_plastic" -> R.drawable.banner1
-                "green_bazaar" -> R.drawable.banner2
-                "eco_recycling" -> R.drawable.banner3
-                "green_campus" -> R.drawable.banner4
-                else -> 0
-            }
-
-            if (imageRes != 0) {
-                Image(
-                    painter = painterResource(id = imageRes),
-                    contentDescription = "Eco banner image",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(if (page % 2 == 0) Color(0xFF2E7D32) else Color(0xFF1B5E20))
-                )
-            }
+            Image(
+                painter = painterResource(id = banner.imageResId),
+                contentDescription = banner.title ?: "Eco banner image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
         }
 
         Row(
@@ -275,7 +244,7 @@ fun EcoBannerSlider(
 
 @Composable
 fun EcoFeatureGrid(
-    features: List<EcoFeatureEntity>,
+    features: List<FeatureCardItem>,
     onFeatureClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -301,17 +270,11 @@ fun EcoFeatureGrid(
 
 @Composable
 fun EcoFeatureTile(
-    feature: EcoFeatureEntity,
+    feature: FeatureCardItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val imageRes = when (feature.imageUrl) {
-        "leaderbroad" -> R.drawable.feature1
-        "rewards" -> R.drawable.feature2
-        "history" -> R.drawable.feature3
-        else -> 0
-    }
-    val featureColor = Color(android.graphics.Color.parseColor(feature.bgColorHex))
+    val featureColor = Color(0xFF1565C0)
 
     Column(
         modifier = modifier
@@ -329,21 +292,12 @@ fun EcoFeatureTile(
                 .background(featureColor),
             contentAlignment = Alignment.Center
         ) {
-            if (imageRes != 0) {
-                Image(
-                    painter = painterResource(id = imageRes),
-                    contentDescription = feature.title,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                Text(
-                    text = feature.title.take(1),
-                    color = Color.White,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            Image(
+                painter = painterResource(id = feature.iconResId),
+                contentDescription = feature.title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))

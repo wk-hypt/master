@@ -28,6 +28,8 @@ fun HomeView(
 
     val currentPoints by viewModel.currentPoints.collectAsState()
     val totalPlasticSaved by viewModel.totalPlasticSaved.collectAsState()
+    val banners by viewModel.banners.collectAsState()
+    val features by viewModel.features.collectAsState()
 
     var showUploadDialog by remember { mutableStateOf(false) }
 
@@ -35,6 +37,8 @@ fun HomeView(
         HomeFunct(
             currentPoints = currentPoints,
             totalPlasticSaved = totalPlasticSaved,
+            banners = banners,
+            features = features,
             onUploadClick = { showUploadDialog = true },
             onFeatureClick = { route ->
                 navController.navigate(route) {

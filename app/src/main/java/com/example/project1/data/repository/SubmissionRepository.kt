@@ -1,9 +1,9 @@
 package com.example.project1.data.repository
 
-import com.example.project1.data.entity.EcoSubmissionEntity
-import com.example.project1.data.entity.NewSubmission
-import com.example.project1.data.entity.StatusUpdate
-import com.example.project1.data.entity.SubmissionReviewUpdate
+import com.example.project1.data.model.EcoSubmissionEntity
+import com.example.project1.data.model.NewSubmission
+import com.example.project1.data.model.StatusUpdate
+import com.example.project1.data.model.SubmissionReviewUpdate
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.flow.Flow

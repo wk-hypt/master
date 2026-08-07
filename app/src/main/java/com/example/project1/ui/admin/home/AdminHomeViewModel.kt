@@ -2,7 +2,7 @@ package com.example.project1.ui.admin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.project1.data.entity.EcoSubmissionEntity
+import com.example.project1.data.model.EcoSubmissionEntity
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.UserRepository
 import kotlinx.coroutines.flow.SharingStarted

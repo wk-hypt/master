@@ -1,7 +1,7 @@
 package com.example.project1.data.repository
 
-import com.example.project1.data.entity.NewUser
-import com.example.project1.data.entity.UserEntity
+import com.example.project1.data.model.NewUser
+import com.example.project1.data.model.UserEntity
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.flow.Flow
