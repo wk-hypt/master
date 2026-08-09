@@ -100,7 +100,6 @@ fun TargetFormDialog(
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp)
                 ) {
-                    // 必填红星标题输入框
                     OutlinedTextField(
                         value = title,
                         onValueChange = { title = it },
@@ -138,7 +137,6 @@ fun TargetFormDialog(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // 数量计数器
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -182,7 +180,6 @@ fun TargetFormDialog(
                         Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color(0xFF2E7D32))
                         Spacer(modifier = Modifier.width(8.dp))
 
-                        // 正确格式化非空 Long 类型日期
                         Text(
                             text = dateFormatter.format(Date(deadlineMillis)),
                             color = Color(0xFF212529)

@@ -135,8 +135,6 @@ fun TargetFunct(
             if (filteredTasks.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("🎯", fontSize = 44.sp)
-                        Spacer(modifier = Modifier.height(10.dp))
                         Text(
                             text = if (searchQuery.isNotBlank() || selectedStatusFilter != null)
                                 "No matching targets found"

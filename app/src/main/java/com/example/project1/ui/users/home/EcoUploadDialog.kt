@@ -85,10 +85,10 @@ fun EcoUploadDialog(
         val basePoints = when (actionType) {
             "Bring Own Food Container" -> 20
             "Bring Reusable Water Bottle" -> 10
-            "Refuse Single-Use Plastic / Straw" -> 5
+            "Refuse Single-Use Plastic / Straw" -> 10
             "Bring Shopping Bag" -> 10
             "Recycle Plastic Bottle / Can" -> 15
-            else -> 10
+            else -> 0
         }
         basePoints * quantity
     }
