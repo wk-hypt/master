@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 interface UserRepository {
     fun getWeeklyLeaderboardStream(): Flow<List<UserEntity>>
     fun getPlasticsLeaderboardStream(): Flow<List<UserEntity>>
+    fun getAllUsersStream(): Flow<List<UserEntity>>
     fun getUserStream(studentId: String): Flow<UserEntity?>
     suspend fun insertUser(user: UserEntity)
     suspend fun updateUser(user: UserEntity)
@@ -26,6 +27,12 @@ class SupabaseUserRepository(private val postgrest: Postgrest) : UserRepository 
     override fun getPlasticsLeaderboardStream(): Flow<List<UserEntity>> = pollingFlow {
         postgrest.from("users").select {
             order("plastics_saved", Order.DESCENDING)
+        }.decodeList()
+    }
+
+    override fun getAllUsersStream(): Flow<List<UserEntity>> = pollingFlow {
+        postgrest.from("users").select {
+            order("total_points", Order.DESCENDING)
         }.decodeList()
     }
 

@@ -45,6 +45,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.project1.ui.admin.home.AdminHomeView
+import com.example.project1.ui.admin.report.AdminReportView
 import com.example.project1.ui.users.home.HomeView
 import com.example.project1.ui.users.leaderbroad.LeaderBoardView
 import com.example.project1.ui.users.login.LoginView
@@ -237,16 +238,16 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 HomeView(navController = navController, studentId = studentId)
             }
             composable(Screen.Target.route) {
-                TargetView(studentId = loggedInStudentId)
+                TargetView(studentId = loggedInStudentId, onOpenLeaderboard = {
+                    navController.navigate(Screen.Leaderboard.route)
+                })
             }
             composable(Screen.Rewards.route) {
             }
             composable(Screen.Profile.route) {
             }
             composable (Screen.Leaderboard.route){
-                LeaderBoardView(
-                    onBackClick = { navController.popBackStack() }
-                )
+                LeaderBoardView(onBackClick = { navController.popBackStack() })
             }
 
             composable(AdminScreen.Approval.route) {
@@ -263,6 +264,7 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
             composable(AdminScreen.Rewards.route) {
             }
             composable(AdminScreen.Report.route) {
+                AdminReportView()
             }
             composable(AdminScreen.Profile.route) {
             }

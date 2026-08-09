@@ -28,11 +28,7 @@ class TargetViewModel(
     val myTasksUiState: StateFlow<List<TaskEntity>> =
         _currentStudentId
             .flatMapLatest { studentId ->
-                if (studentId.isBlank()) {
-                    flowOf(emptyList())
-                } else {
-                    taskRepository.getAllTasksStream(studentId)
-                }
+                if (studentId.isBlank()) flowOf(emptyList()) else taskRepository.getAllTasksStream(studentId)
             }
             .stateIn(
                 scope = viewModelScope,
@@ -44,7 +40,7 @@ class TargetViewModel(
         title: String,
         description: String,
         targetQuantity: Int,
-        deadline: Long = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
+        deadline: Long
     ) {
         val studentId = _currentStudentId.value
         if (studentId.isBlank()) {
@@ -71,16 +67,33 @@ class TargetViewModel(
         }
     }
 
-    fun submitTargetEvidence(
-        taskId: Int,
-        imagePath: String
+    fun updateTarget(
+        task: TaskEntity,
+        title: String,
+        description: String,
+        targetQuantity: Int,
+        deadline: Long
     ) {
         viewModelScope.launch {
             try {
-                taskRepository.submitTaskProof(
-                    taskId = taskId,
-                    imagePath = imagePath
+                taskRepository.updateTask(
+                    task.copy(
+                        title = title,
+                        description = description.ifBlank { null },
+                        targetQuantity = targetQuantity,
+                        deadline = deadline
+                    )
                 )
+            } catch (e: Exception) {
+                Log.e("TargetViewModel", "Failed to update target ${task.id}", e)
+            }
+        }
+    }
+
+    fun submitTargetEvidence(taskId: Int, imagePath: String) {
+        viewModelScope.launch {
+            try {
+                taskRepository.submitTaskProof(taskId = taskId, imagePath = imagePath)
             } catch (e: Exception) {
                 Log.e("TargetViewModel", "Failed to submit evidence for task $taskId", e)
             }

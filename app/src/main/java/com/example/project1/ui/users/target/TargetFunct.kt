@@ -1,196 +1,265 @@
 package com.example.project1.ui.users.target
 
-import android.net.Uri
-import android.text.Layout
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.HourglassEmpty
-import androidx.compose.material.icons.filled.UploadFile
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project1.data.model.TaskEntity
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Leaderboard
-import androidx.compose.material3.*
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TargetFunct(
     tasks: List<TaskEntity>,
     onAddClick: () -> Unit,
+    onEditClick: (TaskEntity) -> Unit,
     onDeleteClick: (Int) -> Unit,
     onSubmitEvidence: (taskId: Int, imagePath: String) -> Unit,
     onOpenLeaderboard: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedStatusFilter by remember { mutableStateOf<String?>(null) }
+    var taskToDelete by remember { mutableStateOf<TaskEntity?>(null) }
+
+    val statusOptions = listOf("Not Started", "Pending", "Approved")
+
+    val filteredTasks = remember(tasks, searchQuery, selectedStatusFilter) {
+        tasks.filter { task ->
+            val matchesSearch = task.title.contains(searchQuery, ignoreCase = true) ||
+                    (task.description?.contains(searchQuery, ignoreCase = true) == true)
+            val normalizedStatus = formatStatusText(task.status)
+            val matchesStatus = selectedStatusFilter == null || normalizedStatus.equals(selectedStatusFilter, ignoreCase = true)
+            matchesSearch && matchesStatus
+        }
+    }
+
     Scaffold(
         modifier = modifier,
-        containerColor = Color(0xFFF8F9FA),
+        containerColor = Color(0xFFF4F6F5),
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "My Targets & Goals",
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2E7D32) // 主题绿字
-                    )
+                    Text("My Targets & Goals", fontWeight = FontWeight.Bold, color = Color(0xFF1B5E20))
                 },
                 actions = {
                     IconButton(onClick = onOpenLeaderboard) {
-                        Icon(
-                            imageVector = Icons.Default.Leaderboard,
-                            contentDescription = "Check Ranking",
-                            tint = Color(0xFF2E7D32)
-                        )
+                        Icon(Icons.Default.Leaderboard, contentDescription = "Check Ranking", tint = Color(0xFF2E7D32))
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                ),
-                windowInsets = WindowInsets(0, 20, 0, 0)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
+            ExtendedFloatingActionButton(
                 onClick = onAddClick,
                 containerColor = Color(0xFF2E7D32),
-                contentColor = Color.White
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add Target")
-            }
+                contentColor = Color.White,
+                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                text = { Text("New Target", fontWeight = FontWeight.Bold) }
+            )
         }
     ) { innerPadding ->
-        if (tasks.isEmpty()) {
-            Box(
+        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
-                Text(
-                    text = "No eco targets yet.\nTap '+' to create one!",
-                    color = Color(0xFF6C757D),
-                    fontSize = 16.sp
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Search targets...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(Icons.Default.Close, contentDescription = "Clear search", tint = Color.Gray)
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF2E7D32),
+                        unfocusedBorderColor = Color(0xFFE0E0E0)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
                 )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    item {
+                        FilterChip(
+                            selected = selectedStatusFilter == null,
+                            onClick = { selectedStatusFilter = null },
+                            label = { Text("All") },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Color(0xFF2E7D32),
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                    }
+                    items(statusOptions) { status ->
+                        FilterChip(
+                            selected = selectedStatusFilter == status,
+                            onClick = { selectedStatusFilter = if (selectedStatusFilter == status) null else status },
+                            label = { Text(status) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Color(0xFF2E7D32),
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                    }
+                }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(vertical = 12.dp)
-            ) {
-                items(tasks, key = { it.id }) { task ->
-                    TargetCard(
-                        task = task,
-                        onDeleteClick = { onDeleteClick(task.id) },
-                        onSubmitEvidence = { imagePath -> onSubmitEvidence(task.id, imagePath) }
-                    )
+
+            if (filteredTasks.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("🎯", fontSize = 44.sp)
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = if (searchQuery.isNotBlank() || selectedStatusFilter != null)
+                                "No matching targets found"
+                            else "No eco targets yet",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = Color(0xFF1B1F1C)
+                        )
+                        Text(
+                            text = "Tap \"New Target\" to create one",
+                            fontSize = 13.sp,
+                            color = Color(0xFF8B948E)
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(filteredTasks, key = { it.id }) { task ->
+                        TargetCard(
+                            task = task,
+                            onEditClick = { onEditClick(task) },
+                            onDeleteClick = { taskToDelete = task },
+                            onSubmitEvidence = { imagePath -> onSubmitEvidence(task.id, imagePath) }
+                        )
+                    }
+                    item { Spacer(modifier = Modifier.height(70.dp)) }
                 }
             }
         }
+    }
+
+    taskToDelete?.let { task ->
+        AlertDialog(
+            onDismissRequest = { taskToDelete = null },
+            containerColor = Color.White,
+            title = { Text("Delete Target") },
+            text = { Text("Are you sure you want to delete \"${task.title}\"? This cannot be undone.") },
+            confirmButton = {
+                TextButton(onClick = { onDeleteClick(task.id); taskToDelete = null }) {
+                    Text("Delete", color = Color(0xFFE53935), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { taskToDelete = null }) { Text("Cancel", color = Color.Gray) }
+            }
+        )
     }
 }
 
 @Composable
 fun TargetCard(
     task: TaskEntity,
+    onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onSubmitEvidence: (String) -> Unit
 ) {
-    // Gallery Launcher for uploading proof
-    val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { onSubmitEvidence(it.toString()) }
-    }
+    var showProofDialog by remember { mutableStateOf(false) }
+
+    val progress = if (task.status == "Approved") task.targetQuantity else 0
+    val progressFraction = if (task.targetQuantity > 0) {
+        (progress.toFloat() / task.targetQuantity.toFloat()).coerceIn(0f, 1f)
+    } else 0f
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F9F7)),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(
-            modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-        ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
                 Text(
                     text = task.title,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF212529)
+                    color = Color(0xFF1B1F1C),
+                    modifier = Modifier.weight(1f)
                 )
-
+                Spacer(modifier = Modifier.width(8.dp))
                 StatusBadge(status = task.status)
             }
 
             if (!task.description.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = task.description,
-                    fontSize = 13.sp,
-                    color = Color.Gray
-                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(task.description, fontSize = 13.sp, color = Color(0xFF6C757D), lineHeight = 18.sp)
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Event, contentDescription = null, tint = Color(0xFFADB5BD), modifier = Modifier.size(14.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Due ${formatDate(task.deadline)}", fontSize = 12.sp, color = Color(0xFF8B948E))
             }
 
             Spacer(modifier = Modifier.height(12.dp))
+
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                LinearProgressIndicator(
+                    progress = { progressFraction },
+                    modifier = Modifier.weight(1f).height(8.dp),
+                    color = Color(0xFF2E7D32),
+                    trackColor = Color(0xFFE9ECEB),
+                    strokeCap = StrokeCap.Round
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "$progress/${task.targetQuantity}",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2E7D32)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -199,166 +268,75 @@ fun TargetCard(
             ) {
                 if (task.status != "Approved") {
                     Button(
-                        onClick = { imagePickerLauncher.launch("image/*") },
+                        onClick = { showProofDialog = true },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.UploadFile,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
+                        Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = if (task.status == "Pending") "Re-upload Proof" else "Submit Proof",
-                            fontSize = 12.sp
-                        )
+                        Text(if (task.status == "Pending") "Re-upload" else "Submit Proof", fontSize = 12.sp)
                     }
                 } else {
-                    Spacer(modifier = Modifier.width(1.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = Color(0xFF2E7D32), modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("${task.points} pts earned", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                    }
                 }
 
-                // Delete Button
-                IconButton(onClick = onDeleteClick) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete Target",
-                        tint = Color(0xFFE53935)
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onEditClick) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit Target", tint = Color(0xFF6C757D))
+                    }
+                    IconButton(onClick = onDeleteClick) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete Target", tint = Color(0xFFE53935))
+                    }
                 }
             }
         }
+    }
+
+    if (showProofDialog) {
+        SubmitProofDialog(
+            onDismiss = { showProofDialog = false },
+            onSubmit = { imagePath ->
+                onSubmitEvidence(imagePath)
+                showProofDialog = false
+            }
+        )
     }
 }
 
 @Composable
 fun StatusBadge(status: String) {
-    val (bgColor, textColor, icon) = when (status) {
-        "Approved" -> Triple(Color(0xFFE8F5E9), Color(0xFF2E7D32), Icons.Default.CheckCircle)
-        "Pending" -> Triple(Color(0xFFFFF8E1), Color(0xFFF57F17), Icons.Default.HourglassEmpty)
-        else -> Triple(Color(0xFFECEFF1), Color(0xFF455A64), null)
+    val formatted = formatStatusText(status)
+    val (bg, fg, icon) = when (formatted) {
+        "Approved" -> Triple(Color(0xFFE8F5E9), Color(0xFF1B5E20), Icons.Default.CheckCircle)
+        "Pending" -> Triple(Color(0xFFFFF8E1), Color(0xFF8D6E00), Icons.Default.HourglassEmpty)
+        else -> Triple(Color(0xFFF1F3F5), Color(0xFF6C757D), null)
     }
 
-    Surface(
-        color = bgColor,
-        shape = RoundedCornerShape(16.dp)
-    ) {
+    Surface(color = bg, shape = RoundedCornerShape(20.dp)) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             icon?.let {
-                Icon(
-                    imageVector = it,
-                    contentDescription = null,
-                    tint = textColor,
-                    modifier = Modifier.size(14.dp)
-                )
+                Icon(it, contentDescription = null, tint = fg, modifier = Modifier.size(13.dp))
                 Spacer(modifier = Modifier.width(4.dp))
             }
-            Text(
-                text = status,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = textColor
-            )
+            Text(formatted, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = fg)
         }
     }
 }
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AddTargetDialog(
-    onDismiss: () -> Unit,
-    onSubmit: (title: String, description: String, quantity: Int) -> Unit
-) {
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var quantity by remember { mutableStateOf("1") }
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = Color.White
-        ) {
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = "Create New Target",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
-                            )
-                        },
-                        navigationIcon = {
-                            IconButton(onClick = onDismiss) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Close"
-                                )
-                            }
-                        },
-                        actions = {
-                            TextButton(
-                                onClick = {
-                                    val qtyInt = quantity.toIntOrNull() ?: 1
-                                    if (title.isNotBlank()) {
-                                        onSubmit(title, description, qtyInt)
-                                    }
-                                }
-                            ) {
-                                Text(
-                                    text = "Save",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp
-                                )
-                            }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color(0xFF2E7D32),
-                            titleContentColor = Color.White,
-                            navigationIconContentColor = Color.White
-                        )
-                    )
-                }
-            ) { innerPadding ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    OutlinedTextField(
-                        value = title,
-                        onValueChange = { title = it },
-                        label = { Text("Target Title") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    OutlinedTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = { Text("Description") },
-                        minLines = 3,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    OutlinedTextField(
-                        value = quantity,
-                        onValueChange = { quantity = it },
-                        label = { Text("Target Quantity") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-        }
-    }
+private fun formatStatusText(rawStatus: String): String = when (rawStatus.lowercase().replace(" ", "")) {
+    "notstarted" -> "Not Started"
+    "pending" -> "Pending"
+    "approved" -> "Approved"
+    else -> rawStatus
 }
+
+private fun formatDate(timestamp: Long): String =
+    SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(timestamp))
