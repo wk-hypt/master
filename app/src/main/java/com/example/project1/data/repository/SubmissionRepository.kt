@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 interface SubmissionRepository {
     fun getAllSubmissionsStream(userId: String): Flow<List<EcoSubmissionEntity>>
     fun getAllPendingSubmissionsStream(): Flow<List<EcoSubmissionEntity>>
+    fun getReportSubmissionsStream(): Flow<List<EcoSubmissionEntity>>
     fun getRejectedSubmissionsStream(userId: String): Flow<List<EcoSubmissionEntity>>
     suspend fun insertSubmission(submission: EcoSubmissionEntity)
     suspend fun deleteSubmission(submission: EcoSubmissionEntity)
@@ -33,6 +34,12 @@ class SupabaseSubmissionRepository(private val postgrest: Postgrest) : Submissio
     override fun getAllPendingSubmissionsStream(): Flow<List<EcoSubmissionEntity>> = pollingFlow {
         postgrest.from("user_submissions").select {
             filter { eq("status", "Pending") }
+            order("timestamp", Order.DESCENDING)
+        }.decodeList()
+    }
+
+    override fun getReportSubmissionsStream(): Flow<List<EcoSubmissionEntity>> = pollingFlow {
+        postgrest.from("user_submissions").select {
             order("timestamp", Order.DESCENDING)
         }.decodeList()
     }
