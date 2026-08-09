@@ -13,6 +13,7 @@ interface TaskRepository {
     fun getAllTasksStream(userId: String): Flow<List<TaskEntity>>
     fun getAllPendingTasksStream(): Flow<List<TaskEntity>>
     suspend fun insertTask(task: TaskEntity)
+    suspend fun updateTask(task: TaskEntity)
     suspend fun submitTaskProof(taskId: Int, imagePath: String)
     suspend fun approveTask(taskId: Int, adminId: String, points: Int, plasticSaved: Int)
     suspend fun rejectTask(taskId: Int, adminId: String, feedback: String?)
@@ -62,6 +63,21 @@ class SupabaseTaskRepository(private val postgrest: Postgrest) : TaskRepository 
             Log.d("SupabaseTaskRepository", "Task inserted successfully")
         } catch (e: Exception) {
             Log.e("SupabaseTaskRepository", "Failed to insert task: ${e.message}", e)
+        }
+    }
+
+    override suspend fun updateTask(task: TaskEntity) {
+        postgrest.from("user_tasks").update(
+            NewTask(
+                userId = task.userId,
+                title = task.title,
+                description = task.description,
+                targetQuantity = task.targetQuantity,
+                deadline = task.deadline,
+                timestamp = task.timestamp
+            )
+        ) {
+            filter { eq("id", task.id) }
         }
     }
 

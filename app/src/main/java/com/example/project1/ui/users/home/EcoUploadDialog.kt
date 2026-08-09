@@ -1,11 +1,13 @@
 package com.example.project1.ui.users.home
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,13 +27,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 data class EcoLogSubmissionInput(
     val imagePath: String,
@@ -53,13 +64,38 @@ fun EcoUploadDialog(
     var capturedUri by remember { mutableStateOf<Uri?>(null) }
 
     var actionType by remember { mutableStateOf("") }
+    var isDropdownExpanded by remember { mutableStateOf(false) }
     var stallName by remember { mutableStateOf("") }
-    var quantity by remember { mutableStateOf(1) }
+    var quantity by remember { mutableIntStateOf(1) }
     var description by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
 
     var termsAccepted by remember { mutableStateOf(false) }
     var showTermsDialog by remember { mutableStateOf(false) }
+
+    val actionTypeOptions = listOf(
+        "Bring Own Food Container",
+        "Bring Reusable Water Bottle",
+        "Refuse Single-Use Plastic / Straw",
+        "Bring Shopping Bag",
+        "Recycle Plastic Bottle / Can"
+    )
+
+    val estimatedPoints = remember(actionType, quantity) {
+        val basePoints = when (actionType) {
+            "Bring Own Food Container" -> 20
+            "Bring Reusable Water Bottle" -> 10
+            "Refuse Single-Use Plastic / Straw" -> 10
+            "Bring Shopping Bag" -> 10
+            "Recycle Plastic Bottle / Can" -> 15
+            else -> 0
+        }
+        basePoints * quantity
+    }
+
+    val currentTime = remember {
+        SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())
+    }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
@@ -106,27 +142,50 @@ fun EcoUploadDialog(
             Column(modifier = Modifier.fillMaxSize()) {
 
                 TopAppBar(
-                    title = { Text("New Eco Log Submission") },
+                    title = {
+                        Text(
+                            "New Eco Log Submission",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = onDismiss) {
-                            Icon(Icons.Default.Close, contentDescription = "Close")
+                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFF2E7D32)
+                    )
                 )
 
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Submission Time", fontSize = 12.sp, color = Color.Gray)
+                        Text(currentTime, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
+                    }
 
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(220.dp)
+                            .height(200.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFF0F0F0)),
+                            .background(Color(0xFFF8F9FA))
+                            .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center
                     ) {
                         if (capturedUri != null) {
@@ -136,6 +195,15 @@ fun EcoUploadDialog(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
                             )
+                            IconButton(
+                                onClick = { capturedUri = null },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(8.dp)
+                                    .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(50))
+                            ) {
+                                Icon(Icons.Default.Close, contentDescription = "Remove Photo", tint = Color.White)
+                            }
                         } else {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(
@@ -145,78 +213,113 @@ fun EcoUploadDialog(
                                     modifier = Modifier.size(48.dp)
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text("No photo yet", color = Color.Gray, fontSize = 13.sp)
+                                Text("No photo taking yet", color = Color.Gray, fontSize = 13.sp)
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
                     Button(
                         onClick = { launchCamera() },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                        shape = RoundedCornerShape(24.dp)
                     ) {
                         Icon(Icons.Default.CameraAlt, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(if (capturedUri == null) "Take Photo" else "Retake Photo")
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    OutlinedTextField(
-                        value = actionType,
-                        onValueChange = { actionType = it },
-                        label = { Text("Action Type") },
-                        placeholder = { Text("e.g. Reusable Container / Tumbler") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
+                    ExposedDropdownMenuBox(
+                        expanded = isDropdownExpanded,
+                        onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = actionType,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { RequiredLabel("Action Type") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color(0xFF2E7D32),
+                                focusedLabelColor = Color(0xFF2E7D32)
+                            )
+                        )
+                        ExposedDropdownMenu(
+                            expanded = isDropdownExpanded,
+                            onDismissRequest = { isDropdownExpanded = false }
+                        ) {
+                            actionTypeOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        actionType = option
+                                        isDropdownExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
 
                     OutlinedTextField(
                         value = stallName,
                         onValueChange = { stallName = it },
-                        label = { Text("Stall Name") },
+                        label = { RequiredLabel("Stall Name") },
                         placeholder = { Text("e.g. Canteen Stall 5") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF2E7D32),
+                            focusedLabelColor = Color(0xFF2E7D32)
+                        )
                     )
-
-                    Spacer(modifier = Modifier.height(12.dp))
 
                     OutlinedTextField(
                         value = location,
                         onValueChange = { location = it },
                         label = { Text("Location (optional)") },
                         placeholder = { Text("e.g. Block A Canteen") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF2E7D32),
+                            focusedLabelColor = Color(0xFF2E7D32)
+                        )
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Quantity", fontSize = 14.sp, color = Color(0xFF495057))
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { if (quantity > 1) quantity-- }) {
-                                Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                            Text("Quantity", fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("(pcs/set)", fontSize = 12.sp, color = Color.Gray)
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedButton(
+                                onClick = { if (quantity > 1) quantity-- },
+                                contentPadding = PaddingValues(0.dp),
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(Icons.Default.Remove, contentDescription = "Decrease", modifier = Modifier.size(18.dp))
                             }
                             Text(
                                 text = quantity.toString(),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 8.dp)
+                                modifier = Modifier.padding(horizontal = 12.dp)
                             )
-                            IconButton(onClick = { quantity++ }) {
-                                Icon(Icons.Default.Add, contentDescription = "Increase")
+                            OutlinedButton(
+                                onClick = { quantity++ },
+                                contentPadding = PaddingValues(0.dp),
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = "Increase", modifier = Modifier.size(18.dp))
                             }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
 
                     OutlinedTextField(
                         value = description,
@@ -225,12 +328,35 @@ fun EcoUploadDialog(
                         placeholder = { Text("Any additional notes") },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(100.dp)
+                            .height(90.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF2E7D32),
+                            focusedLabelColor = Color(0xFF2E7D32)
+                        )
                     )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Estimated Reward:", fontSize = 14.sp, color = Color(0xFF2E7D32))
+                            Text(
+                                "+$estimatedPoints Eco Points",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF2E7D32)
+                            )
+                        }
+                    }
 
-                    // Terms & Conditions 勾选行
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -254,8 +380,6 @@ fun EcoUploadDialog(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     Button(
                         onClick = {
                             capturedUri?.let { uri ->
@@ -272,10 +396,16 @@ fun EcoUploadDialog(
                             }
                         },
                         enabled = isFormValid,
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2E7D32),
+                            disabledContainerColor = Color(0xFFE0E0E0)
+                        ),
+                        shape = RoundedCornerShape(25.dp)
                     ) {
-                        Text("Submit", fontWeight = FontWeight.Bold)
+                        Text("Submit", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -289,6 +419,18 @@ fun EcoUploadDialog(
     }
 }
 
+@Composable
+private fun RequiredLabel(labelText: String) {
+    Text(
+        text = buildAnnotatedString {
+            append(labelText)
+            withStyle(style = SpanStyle(color = Color.Red)) {
+                append(" *")
+            }
+        }
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TermsAndConditionsDialog(onDismiss: () -> Unit) {
@@ -299,12 +441,17 @@ fun TermsAndConditionsDialog(onDismiss: () -> Unit) {
         Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
             Column(modifier = Modifier.fillMaxSize()) {
                 TopAppBar(
-                    title = { Text("Terms & Conditions") },
+                    title = {
+                        Text("Terms & Conditions", fontWeight = FontWeight.Bold, color = Color.White)
+                    },
                     navigationIcon = {
                         IconButton(onClick = onDismiss) {
-                            Icon(Icons.Default.Close, contentDescription = "Close")
+                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFF2E7D32)
+                    )
                 )
 
                 Column(
@@ -347,6 +494,20 @@ fun TermsAndConditionsDialog(onDismiss: () -> Unit) {
             }
         }
     }
+}
+
+fun createImageUri(context: Context): Uri {
+    val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+    val imagesDir = File(context.getExternalFilesDir("Pictures"), "")
+    if (!imagesDir.exists()) imagesDir.mkdirs()
+
+    val imageFile = File(imagesDir, "eco_log_$timestamp.jpg")
+
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        imageFile
+    )
 }
 
 @Composable

@@ -9,14 +9,12 @@ import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Task
 import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Leaderboard
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Task
 import androidx.compose.material3.Icon
@@ -47,7 +45,7 @@ import androidx.navigation.navArgument
 import com.example.project1.ui.admin.home.AdminHomeView
 import com.example.project1.ui.admin.report.AdminReportView
 import com.example.project1.ui.users.home.HomeView
-import com.example.project1.ui.users.leaderbroad.LeaderBoardView
+import com.example.project1.ui.users.leaderboard.LeaderboardView
 import com.example.project1.ui.users.login.LoginView
 import com.example.project1.ui.users.target.TargetView
 
@@ -102,8 +100,15 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
     val currentRoute = navBackStackEntry?.destination?.route
 
     val isAdminMode = currentRoute?.startsWith("admin_") == true
-    val isLoginScreen = currentRoute?.startsWith("login") == true
-    val showBottomBar = !isLoginScreen
+
+    val isStudentMainTab = currentRoute?.startsWith("home/") == true ||
+            currentRoute == Screen.Target.route ||
+            currentRoute == Screen.Rewards.route ||
+            currentRoute == Screen.Profile.route
+
+    val isAdminMainTab = currentRoute in adminItems.map { it.route }
+
+    val showBottomBar = isStudentMainTab || isAdminMainTab
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -238,17 +243,17 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 HomeView(navController = navController, studentId = studentId)
             }
             composable(Screen.Target.route) {
-                TargetView(studentId = loggedInStudentId)
+                TargetView(studentId = loggedInStudentId, onOpenLeaderboard = {
+                    navController.navigate(Screen.Leaderboard.route)
+                })
             }
             composable(Screen.Rewards.route) {
 
             }
             composable(Screen.Profile.route) {
             }
-            composable (Screen.Leaderboard.route){
-                LeaderBoardView(
-                    onBackClick = { navController.popBackStack() }
-                )
+            composable(Screen.Leaderboard.route) {
+                LeaderboardView(onBackClick = { navController.popBackStack() })
             }
 
             composable(AdminScreen.Approval.route) {
