@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.project1.EcoApplication
 import com.example.project1.ui.admin.AdminHomeViewModel
+import com.example.project1.ui.admin.report.AdminReportViewModel
 import com.example.project1.ui.users.home.HomeViewModel
 import com.example.project1.ui.users.login.LoginViewModel
 import com.example.project1.ui.users.target.TargetViewModel
@@ -41,6 +42,14 @@ object AppViewModelProvider {
             val app = ecoApplication()
             TargetViewModel(
                 taskRepository = app.container.taskRepository
+            )
+        }
+
+        initializer {
+            val app = ecoApplication()
+            AdminReportViewModel(
+                submissionRepository = app.container.submissionRepository,
+                userRepository = app.container.userRepository
             )
         }
     }
