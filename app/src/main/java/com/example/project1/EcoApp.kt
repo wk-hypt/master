@@ -248,6 +248,7 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 })
             }
             composable(Screen.Rewards.route) {
+
             }
             composable(Screen.Profile.route) {
             }
