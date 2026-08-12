@@ -1,4 +1,4 @@
-package com.example.project1.ui.users.target
+package com.example.project1.ui.users.task
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class TargetViewModel(
+class TaskViewModel(
     private val taskRepository: TaskRepository
 ) : ViewModel() {
 
@@ -36,15 +36,15 @@ class TargetViewModel(
                 initialValue = emptyList()
             )
 
-    fun createNewTarget(
+    fun createNewTask(
         title: String,
         description: String,
-        targetQuantity: Int,
+        taskQuantity: Int,
         deadline: Long
     ) {
         val studentId = _currentStudentId.value
         if (studentId.isBlank()) {
-            Log.e("TargetViewModel", "Cannot create target: Student ID is empty")
+            Log.e("TaskViewModel", "Cannot create task: Student ID is empty")
             return
         }
 
@@ -55,23 +55,23 @@ class TargetViewModel(
                         userId = studentId,
                         title = title,
                         description = description.ifBlank { null },
-                        targetQuantity = targetQuantity,
+                        taskQuantity = taskQuantity,
                         deadline = deadline,
                         status = "NotStarted",
                         timestamp = System.currentTimeMillis()
                     )
                 )
             } catch (e: Exception) {
-                Log.e("TargetViewModel", "Failed to insert target", e)
+                Log.e("TaskViewModel", "Failed to insert task", e)
             }
         }
     }
 
-    fun updateTarget(
+    fun updateTask(
         task: TaskEntity,
         title: String,
         description: String,
-        targetQuantity: Int,
+        taskQuantity: Int,
         deadline: Long
     ) {
         viewModelScope.launch {
@@ -80,32 +80,46 @@ class TargetViewModel(
                     task.copy(
                         title = title,
                         description = description.ifBlank { null },
-                        targetQuantity = targetQuantity,
+                        taskQuantity = taskQuantity,
                         deadline = deadline
                     )
                 )
             } catch (e: Exception) {
-                Log.e("TargetViewModel", "Failed to update target ${task.id}", e)
+                Log.e("TaskViewModel", "Failed to update task ${task.id}", e)
             }
         }
     }
 
-    fun submitTargetEvidence(taskId: Int, imagePath: String) {
+    fun snapPhotoAndUpdateProgress(taskId: Int, imagePath: String) {
         viewModelScope.launch {
             try {
-                taskRepository.submitTaskProof(taskId = taskId, imagePath = imagePath)
+                taskRepository.updateTaskProgress(taskId = taskId, imagePath = imagePath)
             } catch (e: Exception) {
-                Log.e("TargetViewModel", "Failed to submit evidence for task $taskId", e)
+                Log.e("TaskViewModel", "Failed to update progress for task $taskId", e)
             }
         }
     }
 
-    fun deleteTarget(taskId: Int) {
+    fun submitTasktoAdmin(taskId: Int) {
+        viewModelScope.launch {
+            try {
+                taskRepository.submitTaskToAdmin(taskId = taskId)
+
+                val currentId = _currentStudentId.value
+                _currentStudentId.value = ""
+                _currentStudentId.value = currentId
+            } catch (e: Exception) {
+                Log.e("TaskViewModel", "Failed to submit task $taskId to admin", e)
+            }
+        }
+    }
+
+    fun deleteTask(taskId: Int) {
         viewModelScope.launch {
             try {
                 taskRepository.deleteTask(taskId)
             } catch (e: Exception) {
-                Log.e("TargetViewModel", "Failed to delete task $taskId", e)
+                Log.e("TaskViewModel", "Failed to delete task $taskId", e)
             }
         }
     }

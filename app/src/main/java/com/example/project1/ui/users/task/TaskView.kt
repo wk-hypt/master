@@ -1,4 +1,4 @@
-package com.example.project1.ui.users.target
+package com.example.project1.ui.users.task
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
@@ -8,10 +8,10 @@ import com.example.project1.data.model.TaskEntity
 import com.example.project1.ui.AppViewModelProvider
 
 @Composable
-fun TargetView(
+fun TaskView(
     studentId: String,
     onOpenLeaderboard: () -> Unit,
-    viewModel: TargetViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: TaskViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     LaunchedEffect(studentId) {
         viewModel.setCurrentStudent(studentId)
@@ -22,12 +22,17 @@ fun TargetView(
     var showAddDialog by remember { mutableStateOf(false) }
     var taskBeingEdited by remember { mutableStateOf<TaskEntity?>(null) }
 
-    TargetFunct(
+    TaskFunct(
         tasks = myTasks,
         onAddClick = { showAddDialog = true },
         onEditClick = { task -> taskBeingEdited = task },
-        onDeleteClick = { taskId -> viewModel.deleteTarget(taskId) },
-        onSubmitEvidence = { taskId, imagePath -> viewModel.submitTargetEvidence(taskId, imagePath) },
+        onDeleteClick = { taskId -> viewModel.deleteTask(taskId) },
+        onSnapPhoto = { taskId, imagePath ->
+            viewModel.snapPhotoAndUpdateProgress(taskId, imagePath)
+        },
+        onSubmitToAdmin = { taskId ->
+            viewModel.submitTasktoAdmin(taskId)
+        },
         onOpenLeaderboard = onOpenLeaderboard,
         modifier = Modifier.fillMaxSize()
     )
@@ -37,7 +42,7 @@ fun TargetView(
             existingTask = null,
             onDismiss = { showAddDialog = false },
             onConfirm = { title, description, quantity, deadline ->
-                viewModel.createNewTarget(title, description, quantity, deadline)
+                viewModel.createNewTask(title, description, quantity, deadline)
                 showAddDialog = false
             }
         )
@@ -48,7 +53,7 @@ fun TargetView(
             existingTask = task,
             onDismiss = { taskBeingEdited = null },
             onConfirm = { title, description, quantity, deadline ->
-                viewModel.updateTarget(task, title, description, quantity, deadline)
+                viewModel.updateTask(task, title, description, quantity, deadline)
                 taskBeingEdited = null
             }
         )

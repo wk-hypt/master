@@ -47,7 +47,7 @@ import com.example.project1.ui.admin.report.AdminReportView
 import com.example.project1.ui.users.home.HomeView
 import com.example.project1.ui.users.leaderboard.LeaderboardView
 import com.example.project1.ui.users.login.LoginView
-import com.example.project1.ui.users.target.TargetView
+import com.example.project1.ui.users.task.TaskView
 
 sealed class Screen(
     val route: String,
@@ -59,7 +59,7 @@ sealed class Screen(
     object Home : Screen("home/{studentId}", "Home", Icons.Filled.Home, Icons.Outlined.Home) {
         fun createRoute(studentId: String) = "home/$studentId"
     }
-    object Target : Screen("target", "Target", Icons.Filled.Task, Icons.Outlined.Task)
+    object Task : Screen("task", "Task", Icons.Filled.Task, Icons.Outlined.Task)
     object Rewards : Screen("rewards", "Rewards", Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard)
     object Profile : Screen("profile", "Profile", Icons.Filled.Person, Icons.Outlined.Person)
     object Leaderboard : Screen("leaderboard", "Leaderboard")
@@ -81,7 +81,7 @@ sealed class AdminScreen(
 fun EcoApp(navController: NavHostController = rememberNavController()) {
     val studentItems = listOf(
         Screen.Home,
-        Screen.Target,
+        Screen.Task,
         Screen.Rewards,
         Screen.Profile
     )
@@ -102,7 +102,7 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
     val isAdminMode = currentRoute?.startsWith("admin_") == true
 
     val isStudentMainTab = currentRoute?.startsWith("home/") == true ||
-            currentRoute == Screen.Target.route ||
+            currentRoute == Screen.Task.route ||
             currentRoute == Screen.Rewards.route ||
             currentRoute == Screen.Profile.route
 
@@ -155,7 +155,8 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                                 }
                             )
                         }
-                    } else {
+                    }
+                    else {
                         studentItems.forEach { screen ->
                             val isSelected = if (screen == Screen.Home) {
                                 currentRoute?.startsWith("home/") == true
@@ -217,7 +218,8 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                             navController.navigate(AdminScreen.Approval.route) {
                                 popUpTo(Screen.Login.route) { inclusive = true }
                             }
-                        } else {
+                        }
+                        else {
                             loggedInStudentId = loginId
                             navController.navigate(Screen.Home.createRoute(loginId)) {
                                 popUpTo(Screen.Login.route) {
@@ -242,8 +244,8 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 }
                 HomeView(navController = navController, studentId = studentId)
             }
-            composable(Screen.Target.route) {
-                TargetView(studentId = loggedInStudentId, onOpenLeaderboard = {
+            composable(Screen.Task.route) {
+                TaskView(studentId = loggedInStudentId, onOpenLeaderboard = {
                     navController.navigate(Screen.Leaderboard.route)
                 })
             }
@@ -253,7 +255,10 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
             composable(Screen.Profile.route) {
             }
             composable(Screen.Leaderboard.route) {
-                LeaderboardView(onBackClick = { navController.popBackStack() })
+                LeaderboardView(
+                    studentId = loggedInStudentId,
+                    onBackClick = { navController.navigate(Screen.Task.route) }
+                )
             }
 
             composable(AdminScreen.Approval.route) {

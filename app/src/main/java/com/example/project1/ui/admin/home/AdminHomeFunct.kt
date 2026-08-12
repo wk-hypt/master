@@ -27,21 +27,34 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.example.project1.data.model.EcoSubmissionEntity
+import com.example.project1.data.model.TaskEntity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminHomeFunct(
-    pendingList: List<EcoSubmissionEntity>,
+    pendingSubmissions: List<EcoSubmissionEntity>,
+    pendingTasks: List<TaskEntity>,
     onLogout: () -> Unit,
-    onApproveClick: (submissionId: Int, studentId: String, points: Int) -> Unit,
-    onRejectClick: (submissionId: Int, feedback: String) -> Unit,
+    onApproveSubmission: (submissionId: Int, studentId: String, points: Int) -> Unit,
+    onRejectSubmission: (submissionId: Int, feedback: String) -> Unit,
+    onApproveTask: (task: TaskEntity, points: Int) -> Unit,
+    onRejectTask: (task: TaskEntity, feedback: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var selectedTab by remember { mutableIntStateOf(0) }
+
     var selectedSubmission by remember { mutableStateOf<EcoSubmissionEntity?>(null) }
     var approvingSubmission by remember { mutableStateOf<EcoSubmissionEntity?>(null) }
     var rejectingSubmission by remember { mutableStateOf<EcoSubmissionEntity?>(null) }
+
+    var selectedTask by remember { mutableStateOf<TaskEntity?>(null) }
+    var approvingTask by remember { mutableStateOf<TaskEntity?>(null) }
+    var rejectingTask by remember { mutableStateOf<TaskEntity?>(null) }
+
+    val totalPendingCount = pendingSubmissions.size + pendingTasks.size
 
     Column(
         modifier = modifier
@@ -108,13 +121,13 @@ fun AdminHomeFunct(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "${pendingList.size}",
+                            text = "$totalPendingCount",
                             fontSize = 40.sp,
                             fontWeight = FontWeight.Black,
                             color = Color.White
                         )
                         Text(
-                            text = if (pendingList.size == 1) "submission awaiting review" else "submissions awaiting review",
+                            text = "${pendingSubmissions.size} Submissions · ${pendingTasks.size} Tasks",
                             fontSize = 12.sp,
                             color = Color.White.copy(alpha = 0.75f)
                         )
@@ -135,44 +148,72 @@ fun AdminHomeFunct(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = Color.Transparent,
+                contentColor = Color(0xFF2E7D32)
+            ) {
+                Tab(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    text = {
+                        Text(
+                            "Submissions (${pendingSubmissions.size})",
+                            fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                )
+                Tab(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    text = {
+                        Text(
+                            "Task Goals (${pendingTasks.size})",
+                            fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                )
+            }
         }
 
-        if (pendingList.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "✨", fontSize = 40.sp)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "All caught up!",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = Color(0xFF1B1F1C)
-                    )
-                    Text(
-                        text = "No pending reviews right now.",
-                        color = Color(0xFF8B948E),
-                        fontSize = 13.sp
-                    )
+        if (selectedTab == 0) {
+            if (pendingSubmissions.isEmpty()) {
+                EmptyStateView("No pending eco submissions.")
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(pendingSubmissions) { submission ->
+                        SubmissionSummaryCard(
+                            submission = submission,
+                            onClick = { selectedSubmission = submission }
+                        )
+                    }
+                    item { Spacer(modifier = Modifier.height(8.dp)) }
                 }
             }
         } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(pendingList) { submission ->
-                    SubmissionSummaryCard(
-                        submission = submission,
-                        onClick = { selectedSubmission = submission }
-                    )
+            if (pendingTasks.isEmpty()) {
+                EmptyStateView("No pending tasks proofs.")
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(pendingTasks) { task ->
+                        TaskSummaryCard(
+                            task = task,
+                            onClick = { selectedTask = task }
+                        )
+                    }
+                    item { Spacer(modifier = Modifier.height(8.dp)) }
                 }
-                item { Spacer(modifier = Modifier.height(8.dp)) }
             }
         }
     }
@@ -181,23 +222,19 @@ fun AdminHomeFunct(
         SubmissionDetailDialog(
             submission = submission,
             onDismiss = { selectedSubmission = null },
-            onApprove = {
-                approvingSubmission = submission
-                selectedSubmission = null
-            },
-            onReject = {
-                rejectingSubmission = submission
-                selectedSubmission = null
-            }
+            onApprove = { approvingSubmission = submission; selectedSubmission = null },
+            onReject = { rejectingSubmission = submission; selectedSubmission = null }
         )
     }
 
     approvingSubmission?.let { submission ->
         ApprovePointsDialog(
-            submission = submission,
+            title = "Approve Eco Submission",
+            studentId = submission.userId,
+            subtitle = "Action: ${submission.actionType} × ${submission.quantity}",
             onDismiss = { approvingSubmission = null },
             onConfirm = { points ->
-                onApproveClick(submission.id, submission.userId, points)
+                onApproveSubmission(submission.id, submission.userId, points)
                 approvingSubmission = null
             }
         )
@@ -205,14 +242,402 @@ fun AdminHomeFunct(
 
     rejectingSubmission?.let { submission ->
         RejectFeedbackDialog(
-            submission = submission,
+            studentId = submission.userId,
             onDismiss = { rejectingSubmission = null },
             onConfirm = { feedback ->
-                onRejectClick(submission.id, feedback)
+                onRejectSubmission(submission.id, feedback)
                 rejectingSubmission = null
             }
         )
     }
+
+    selectedTask?.let { task ->
+        TaskDetailDialog(
+            task = task,
+            onDismiss = { selectedTask = null },
+            onApprove = { approvingTask = task; selectedTask = null },
+            onReject = { rejectingTask = task; selectedTask = null }
+        )
+    }
+
+    approvingTask?.let { task ->
+        ApprovePointsDialog(
+            title = "Approve Task Goal",
+            studentId = task.userId,
+            subtitle = "Task: ${task.title} (${task.taskQuantity})",
+            onDismiss = { approvingTask = null },
+            onConfirm = { points ->
+                onApproveTask(task, points)
+                approvingTask = null
+            }
+        )
+    }
+
+    rejectingTask?.let { task ->
+        RejectFeedbackDialog(
+            studentId = task.userId,
+            onDismiss = { rejectingTask = null },
+            onConfirm = { feedback ->
+                onRejectTask(task, feedback)
+                rejectingTask = null
+            }
+        )
+    }
+}
+
+@Composable
+fun EmptyStateView(message: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = "✨", fontSize = 40.sp)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "All caught up!",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = Color(0xFF1B1F1C)
+            )
+            Text(
+                text = message,
+                color = Color(0xFF8B948E),
+                fontSize = 13.sp
+            )
+        }
+    }
+}
+
+@Composable
+fun TaskSummaryCard(
+    task: TaskEntity,
+    onClick: () -> Unit
+) {
+    val avatarColor = avatarColorFor(task.userId)
+
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White,
+        shadowElevation = 1.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(CircleShape)
+                    .background(avatarColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = task.userId.take(2).uppercase(),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = task.userId,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = Color(0xFF1B1F1C)
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "${task.title} · Task: ${task.taskQuantity}",
+                    fontSize = 12.sp,
+                    color = Color(0xFF6C757D),
+                    maxLines = 1
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Surface(
+                color = Color(0xFFFFF8E1),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Text(
+                    text = task.status,
+                    color = Color(0xFFB8860B),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(4.dp))
+
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "View details",
+                tint = Color(0xFFCED4DA)
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TaskDetailDialog(
+    task: TaskEntity,
+    onDismiss: () -> Unit,
+    onApprove: () -> Unit,
+    onReject: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
+            Column(modifier = Modifier.fillMaxSize()) {
+
+                TopAppBar(
+                    title = { Text("Task Proof Detail") },
+                    navigationIcon = {
+                        IconButton(onClick = onDismiss) {
+                            Icon(Icons.Default.Close, contentDescription = "Close")
+                        }
+                    }
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(20.dp)
+                ) {
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(avatarColorFor(task.userId)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = task.userId.take(2).uppercase(),
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = task.userId,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = Color(0xFF1B1F1C)
+                            )
+                            Text(
+                                text = "Task Goal Verification",
+                                fontSize = 13.sp,
+                                color = Color(0xFF6C757D)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    DetailRow(label = "Goal Title", value = task.title)
+                    task.description?.takeIf { it.isNotBlank() }?.let {
+                        DetailRow(label = "Description", value = it)
+                    }
+                    DetailRow(label = "Task Qty", value = task.taskQuantity.toString())
+                    DetailRow(label = "Status", value = task.status)
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = onReject,
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFDC3545)),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(52.dp)
+                        ) {
+                            Text("Reject", fontWeight = FontWeight.Medium)
+                        }
+
+                        Button(
+                            onClick = onApprove,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(52.dp)
+                        ) {
+                            Text("Approve", fontWeight = FontWeight.Medium)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ApprovePointsDialog(
+    title: String,
+    studentId: String,
+    subtitle: String,
+    onDismiss: () -> Unit,
+    onConfirm: (points: Int) -> Unit
+) {
+    var pointsInput by remember { mutableStateOf("") }
+    val isValid = pointsInput.toIntOrNull()?.let { it > 0 } ?: false
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color.White,
+        titleContentColor = Color(0xFF1B1F1C),
+        textContentColor = Color(0xFF495057),
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE8F5E9)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("✓", color = Color(0xFF2E7D32), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(title, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+            }
+        },
+        text = {
+            Column {
+                Text(
+                    text = "Student: $studentId",
+                    fontSize = 13.sp,
+                    color = Color(0xFF6C757D)
+                )
+                Text(
+                    text = subtitle,
+                    fontSize = 13.sp,
+                    color = Color(0xFF6C757D)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = pointsInput,
+                    onValueChange = { input -> pointsInput = input.filter { it.isDigit() } },
+                    label = { Text("Points to award") },
+                    placeholder = { Text("e.g. 100") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { pointsInput.toIntOrNull()?.let { onConfirm(it) } },
+                enabled = isValid,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+            ) {
+                Text("Confirm Approve")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(10.dp)
+            ) { Text("Cancel") }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RejectFeedbackDialog(
+    studentId: String,
+    onDismiss: () -> Unit,
+    onConfirm: (feedback: String) -> Unit
+) {
+    var feedbackInput by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color.White,
+        titleContentColor = Color(0xFF1B1F1C),
+        textContentColor = Color(0xFF495057),
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFFDECEA)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("✕", color = Color(0xFFDC3545), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Text("Reject Submission", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+            }
+        },
+        text = {
+            Column {
+                Text(
+                    text = "Student: $studentId",
+                    fontSize = 13.sp,
+                    color = Color(0xFF6C757D)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = feedbackInput,
+                    onValueChange = { feedbackInput = it },
+                    label = { Text("Reason for rejection") },
+                    placeholder = { Text("e.g. Proof incomplete, please resubmit") },
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(feedbackInput) },
+                enabled = feedbackInput.isNotBlank(),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC3545))
+            ) {
+                Text("Confirm Reject")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(10.dp)
+            ) { Text("Cancel") }
+        }
+    )
 }
 
 @Composable
@@ -508,147 +933,4 @@ fun DetailRow(label: String, value: String) {
 fun formatTimestamp(timestamp: Long): String {
     val sdf = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
     return sdf.format(Date(timestamp))
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ApprovePointsDialog(
-    submission: EcoSubmissionEntity,
-    onDismiss: () -> Unit,
-    onConfirm: (points: Int) -> Unit
-) {
-    var pointsInput by remember { mutableStateOf("") }
-    val isValid = pointsInput.toIntOrNull()?.let { it > 0 } ?: false
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Color.White,
-        titleContentColor = Color(0xFF1B1F1C),
-        textContentColor = Color(0xFF495057),
-        shape = RoundedCornerShape(20.dp),
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFE8F5E9)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("✓", color = Color(0xFF2E7D32), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                }
-                Spacer(modifier = Modifier.width(10.dp))
-                Text("Approve Submission", fontWeight = FontWeight.Bold, fontSize = 17.sp)
-            }
-        },
-        text = {
-            Column {
-                Text(
-                    text = "Student: ${submission.userId}",
-                    fontSize = 13.sp,
-                    color = Color(0xFF6C757D)
-                )
-                Text(
-                    text = "Action: ${submission.actionType} × ${submission.quantity}",
-                    fontSize = 13.sp,
-                    color = Color(0xFF6C757D)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = pointsInput,
-                    onValueChange = { input -> pointsInput = input.filter { it.isDigit() } },
-                    label = { Text("Points to award") },
-                    placeholder = { Text("e.g. 100") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { pointsInput.toIntOrNull()?.let { onConfirm(it) } },
-                enabled = isValid,
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
-            ) {
-                Text("Confirm Approve")
-            }
-        },
-        dismissButton = {
-            OutlinedButton(
-                onClick = onDismiss,
-                shape = RoundedCornerShape(10.dp)
-            ) { Text("Cancel") }
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RejectFeedbackDialog(
-    submission: EcoSubmissionEntity,
-    onDismiss: () -> Unit,
-    onConfirm: (feedback: String) -> Unit
-) {
-    var feedbackInput by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Color.White,
-        titleContentColor = Color(0xFF1B1F1C),
-        textContentColor = Color(0xFF495057),
-        shape = RoundedCornerShape(20.dp),
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFFDECEA)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("✕", color = Color(0xFFDC3545), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                }
-                Spacer(modifier = Modifier.width(10.dp))
-                Text("Reject Submission", fontWeight = FontWeight.Bold, fontSize = 17.sp)
-            }
-        },
-        text = {
-            Column {
-                Text(
-                    text = "Student: ${submission.userId}",
-                    fontSize = 13.sp,
-                    color = Color(0xFF6C757D)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = feedbackInput,
-                    onValueChange = { feedbackInput = it },
-                    label = { Text("Reason for rejection") },
-                    placeholder = { Text("e.g. Photo unclear, please retake") },
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onConfirm(feedbackInput) },
-                enabled = feedbackInput.isNotBlank(),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC3545))
-            ) {
-                Text("Confirm Reject")
-            }
-        },
-        dismissButton = {
-            OutlinedButton(
-                onClick = onDismiss,
-                shape = RoundedCornerShape(10.dp)
-            ) { Text("Cancel") }
-        }
-    )
 }
