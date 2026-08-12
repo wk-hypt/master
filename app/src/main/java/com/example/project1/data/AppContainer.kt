@@ -3,10 +3,12 @@ package com.example.project1.data
 import android.content.Context
 import com.example.project1.data.repository.AdminRepository
 import com.example.project1.data.repository.EcoAdsRepository
+import com.example.project1.data.repository.LeaderBoarduiRepository
 import com.example.project1.data.repository.OfferRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.SupabaseAdminRepository
 import com.example.project1.data.repository.LocalEcoAdsRepository
+import com.example.project1.data.repository.SupabaseLeaderboardRepository
 import com.example.project1.data.repository.SupabaseOfferRepository
 import com.example.project1.data.repository.SupabaseSubmissionRepository
 import com.example.project1.data.repository.SupabaseTaskRepository
@@ -22,11 +24,17 @@ interface AppContainer {
     val taskRepository: TaskRepository
     val userRepository: UserRepository
     val adminRepository: AdminRepository
+    val leaderboarduiRepository: LeaderBoarduiRepository
 }
 
 class AppDataContainer(private val context: Context) : AppContainer {
 
     private val postgrest = SupabaseClientProvider.client.postgrest
+    private var loggedInStudentId: String = ""
+
+    fun setCurrentStudentId(studentId: String) {
+        loggedInStudentId = studentId
+    }
 
     override val ecoAdsRepository: EcoAdsRepository by lazy {
         LocalEcoAdsRepository()
@@ -50,5 +58,9 @@ class AppDataContainer(private val context: Context) : AppContainer {
 
     override val adminRepository: AdminRepository by lazy {
         SupabaseAdminRepository(postgrest)
+    }
+
+    override val leaderboarduiRepository: LeaderBoarduiRepository by lazy{
+        SupabaseLeaderboardRepository(postgrest) { loggedInStudentId }
     }
 }

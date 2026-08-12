@@ -20,16 +20,24 @@ fun AdminHomeView(
         viewModel.setCurrentAdmin(adminId)
     }
 
-    val pendingList by viewModel.pendingSubmissionsUiState.collectAsState()
+    val pendingSubmissions by viewModel.pendingSubmissionsUiState.collectAsState()
+    val pendingTasks by viewModel.pendingTasksUiState.collectAsState()
 
     AdminHomeFunct(
-        pendingList = pendingList,
+        pendingSubmissions = pendingSubmissions,
+        pendingTasks = pendingTasks,
         onLogout = onLogout,
-        onApproveClick = { id, studentId, points ->
-            viewModel.approveSubmission(id, studentId, points)
+        onApproveSubmission = { id, studentId, points ->
+            viewModel.approveSubmission(submissionId = id, studentId = studentId, points = points)
         },
-        onRejectClick = { id, feedback ->
+        onRejectSubmission = { id, feedback ->
             viewModel.rejectSubmission(id, feedback)
+        },
+        onApproveTask = { task, points ->
+            viewModel.approveTask(task, points)
+        },
+        onRejectTask = { task, feedback ->
+            viewModel.rejectTask(task, feedback)
         },
         modifier = modifier
     )

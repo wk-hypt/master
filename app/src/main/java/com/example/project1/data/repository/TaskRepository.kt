@@ -3,9 +3,13 @@ package com.example.project1.data.repository
 import android.util.Log
 import com.example.project1.data.model.NewTask
 import com.example.project1.data.model.TaskEntity
-import com.example.project1.data.model.TaskProofUpdate
+import com.example.project1.data.model.TaskProgressUpdate
 import com.example.project1.data.model.TaskReviewUpdate
+import com.example.project1.data.model.TaskStatusUpdate
+import com.example.project1.data.model.UserPointsUpdate
+import com.example.project1.data.model.UserProfile
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.flow.Flow
 
@@ -14,7 +18,8 @@ interface TaskRepository {
     fun getAllPendingTasksStream(): Flow<List<TaskEntity>>
     suspend fun insertTask(task: TaskEntity)
     suspend fun updateTask(task: TaskEntity)
-    suspend fun submitTaskProof(taskId: Int, imagePath: String)
+    suspend fun updateTaskProgress(taskId: Int, imagePath: String)
+    suspend fun submitTaskToAdmin(taskId: Int)
     suspend fun approveTask(taskId: Int, adminId: String, points: Int, plasticSaved: Int)
     suspend fun rejectTask(taskId: Int, adminId: String, feedback: String?)
     suspend fun deleteTask(taskId: Int)
@@ -55,7 +60,8 @@ class SupabaseTaskRepository(private val postgrest: Postgrest) : TaskRepository 
                     title = task.title,
                     description = task.description,
                     status = task.status,
-                    targetQuantity = task.targetQuantity,
+                    currentQuantity = task.currentQuantity,
+                    taskQuantity = task.taskQuantity,
                     deadline = task.deadline,
                     timestamp = task.timestamp
                 )
@@ -67,32 +73,55 @@ class SupabaseTaskRepository(private val postgrest: Postgrest) : TaskRepository 
     }
 
     override suspend fun updateTask(task: TaskEntity) {
-        postgrest.from("user_tasks").update(
-            NewTask(
-                userId = task.userId,
-                title = task.title,
-                description = task.description,
-                targetQuantity = task.targetQuantity,
-                deadline = task.deadline,
-                timestamp = task.timestamp
-            )
-        ) {
-            filter { eq("id", task.id) }
+        try {
+            postgrest.from("user_tasks").update(
+                NewTask(
+                    userId = task.userId,
+                    title = task.title,
+                    description = task.description,
+                    status = task.status,
+                    currentQuantity = task.currentQuantity,
+                    taskQuantity = task.taskQuantity,
+                    deadline = task.deadline,
+                    timestamp = task.timestamp
+                )
+            ) {
+                filter { eq("id", task.id) }
+            }
+        } catch (e: Exception) {
+            Log.e("SupabaseTaskRepository", "Failed to update task: ${e.message}", e)
         }
     }
 
-    override suspend fun submitTaskProof(taskId: Int, imagePath: String) {
+    override suspend fun updateTaskProgress(taskId: Int, imagePath: String) {
         try {
+            val currentTask = getTaskById(taskId) ?: return
+            val newQuantity = currentTask.currentQuantity + 1
+
             postgrest.from("user_tasks").update(
-                TaskProofUpdate(
+                TaskProgressUpdate(
+                    currentQuantity = newQuantity,
                     imagePath = imagePath,
-                    status = "Pending"
+                    status = "InProgress"
                 )
             ) {
                 filter { eq("id", taskId) }
             }
         } catch (e: Exception) {
-            Log.e("SupabaseTaskRepository", "Failed to submit proof: ${e.message}", e)
+            Log.e("SupabaseTaskRepository", "Failed to update task progress: ${e.message}", e)
+        }
+    }
+
+    override suspend fun submitTaskToAdmin(taskId: Int) {
+        try {
+            postgrest.from("user_tasks").update(
+                mapOf("status" to "Pending")
+            ) {
+                filter { eq("id", taskId) }
+            }
+            Log.d("SupabaseTaskRepository", "Successfully updated task #$taskId status to Pending")
+        } catch (e: Exception) {
+            Log.e("SupabaseTaskRepository", "Failed to submit task to admin: ${e.message}", e)
         }
     }
 
@@ -108,6 +137,12 @@ class SupabaseTaskRepository(private val postgrest: Postgrest) : TaskRepository 
 
     override suspend fun approveTask(taskId: Int, adminId: String, points: Int, plasticSaved: Int) {
         try {
+            val task = getTaskById(taskId)
+            if (task == null) {
+                Log.e("SupabaseTaskRepository", "Task not found with ID: $taskId")
+                return
+            }
+
             postgrest.from("user_tasks").update(
                 TaskReviewUpdate(
                     status = "Approved",
@@ -119,6 +154,29 @@ class SupabaseTaskRepository(private val postgrest: Postgrest) : TaskRepository 
             ) {
                 filter { eq("id", taskId) }
             }
+
+            val user = postgrest.from("users")
+                .select(Columns.list("user_id", "total_points", "total_plastic_saved")) {
+                    filter { eq("user_id", task.userId) }
+                }.decodeSingleOrNull<UserProfile>()
+
+            if (user != null) {
+                val newTotalPoints = user.totalPoints + points
+                val newTotalPlastic = user.totalPlasticSaved + plasticSaved
+
+                postgrest.from("users").update(
+                    UserPointsUpdate(
+                        totalPoints = newTotalPoints,
+                        totalPlasticSaved = newTotalPlastic
+                    )
+                ) {
+                    filter { eq("user_id", task.userId) }
+                }
+                Log.d("SupabaseTaskRepository", "Successfully updated points for user ${task.userId}")
+            } else {
+                Log.e("SupabaseTaskRepository", "User record not found in users table for ID: ${task.userId}")
+            }
+
         } catch (e: Exception) {
             Log.e("SupabaseTaskRepository", "Failed to approve task: ${e.message}", e)
         }

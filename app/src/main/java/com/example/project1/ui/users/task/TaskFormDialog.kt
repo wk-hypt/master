@@ -1,4 +1,4 @@
-package com.example.project1.ui.users.target
+package com.example.project1.ui.users.task
 
 import android.app.DatePickerDialog
 import androidx.compose.foundation.layout.*
@@ -45,7 +45,7 @@ fun TargetFormDialog(
 
     var title by remember { mutableStateOf(existingTask?.title ?: "") }
     var description by remember { mutableStateOf(existingTask?.description ?: "") }
-    var quantity by remember { mutableIntStateOf(existingTask?.targetQuantity ?: 1) }
+    var quantity by remember { mutableIntStateOf(existingTask?.taskQuantity ?: 1) }
     var deadlineMillis by remember {
         mutableLongStateOf(existingTask?.deadline ?: (System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000L))
     }
@@ -75,7 +75,6 @@ fun TargetFormDialog(
         Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
             Column(modifier = Modifier.fillMaxSize()) {
 
-                // 统一主题绿 TopAppBar
                 TopAppBar(
                     title = {
                         Text(

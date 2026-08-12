@@ -13,7 +13,8 @@ data class TaskEntity(
     val status: String = "NotStarted",
     val points: Int = 0,
     @SerialName("plastic_saved") val plasticSaved: Int = 0,
-    @SerialName("target_quantity") val targetQuantity: Int = 1,
+    @SerialName("current_quantity") val currentQuantity: Int = 0,
+    @SerialName("target_quantity") val taskQuantity: Int = 1,
     val deadline: Long = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L),
     val timestamp: Long = System.currentTimeMillis(),
     @SerialName("reviewed_by") val reviewedBy: String? = null,
@@ -27,15 +28,22 @@ data class NewTask(
     val title: String,
     val description: String? = null,
     val status: String = "NotStarted",
-    @SerialName("target_quantity") val targetQuantity: Int = 1,
+    @SerialName("current_quantity") val currentQuantity: Int = 0,
+    @SerialName("target_quantity") val taskQuantity: Int = 1,
     val deadline: Long,
     val timestamp: Long
 )
 
 @Serializable
-data class TaskProofUpdate(
+data class TaskProgressUpdate(
+    @SerialName("current_quantity") val currentQuantity: Int,
     @SerialName("image_path") val imagePath: String,
-    val status: String = "Pending"
+    val status: String = "InProgress"
+)
+
+@Serializable
+data class TaskStatusUpdate(
+    @SerialName("status") val status: String
 )
 
 @Serializable
@@ -46,4 +54,17 @@ data class TaskReviewUpdate(
     @SerialName("reviewed_by") val reviewedBy: String,
     @SerialName("admin_feedback") val adminFeedback: String? = null,
     @SerialName("review_timestamp") val reviewTimestamp: Long
+)
+
+@Serializable
+data class UserProfile(
+    @SerialName("user_id") val id: String,
+    @SerialName("total_points") val totalPoints: Int = 0,
+    @SerialName("total_plastic_saved") val totalPlasticSaved: Int = 0
+)
+
+@Serializable
+data class UserPointsUpdate(
+    @SerialName("total_points") val totalPoints: Int,
+    @SerialName("total_plastic_saved") val totalPlasticSaved: Int
 )

@@ -43,5 +43,5 @@ data class SubmissionReviewUpdate(
     val points: Int,
     @SerialName("reviewed_by") val reviewedBy: String,
     @SerialName("admin_feedback") val adminFeedback: String? = null,
-    @SerialName("review_timestamp") val reviewTimestamp: Long
+    @SerialName("review_timestamp") val reviewTimestamp: Long? = null
 )

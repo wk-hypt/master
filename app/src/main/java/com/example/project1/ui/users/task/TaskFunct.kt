@@ -1,4 +1,4 @@
-package com.example.project1.ui.users.target
+package com.example.project1.ui.users.task
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,19 +17,21 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.project1.common.*
 import com.example.project1.data.model.TaskEntity
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+
+private val PrimaryGreen = Color(0xFF2E7D32)
+private val DarkGreen = Color(0xFF1B5E20)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TargetFunct(
+fun TaskFunct(
     tasks: List<TaskEntity>,
     onAddClick: () -> Unit,
     onEditClick: (TaskEntity) -> Unit,
     onDeleteClick: (Int) -> Unit,
-    onSubmitEvidence: (taskId: Int, imagePath: String) -> Unit,
+    onSnapPhoto: (taskId: Int, imagePath: String) -> Unit,
+    onSubmitToAdmin: (taskId: Int) -> Unit,
     onOpenLeaderboard: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -37,14 +39,14 @@ fun TargetFunct(
     var selectedStatusFilter by remember { mutableStateOf<String?>(null) }
     var taskToDelete by remember { mutableStateOf<TaskEntity?>(null) }
 
-    val statusOptions = listOf("Not Started", "Pending", "Approved")
+    val statusOptions = listOf("In Progress", "Pending Approval", "Approved")
 
     val filteredTasks = remember(tasks, searchQuery, selectedStatusFilter) {
         tasks.filter { task ->
             val matchesSearch = task.title.contains(searchQuery, ignoreCase = true) ||
                     (task.description?.contains(searchQuery, ignoreCase = true) == true)
-            val normalizedStatus = formatStatusText(task.status)
-            val matchesStatus = selectedStatusFilter == null || normalizedStatus.equals(selectedStatusFilter, ignoreCase = true)
+            val matchesStatus = selectedStatusFilter == null ||
+                    task.normalizedStatusText().equals(selectedStatusFilter, ignoreCase = true)
             matchesSearch && matchesStatus
         }
     }
@@ -55,11 +57,11 @@ fun TargetFunct(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("My Targets & Goals", fontWeight = FontWeight.Bold, color = Color(0xFF1B5E20))
+                    Text("My Tasks & Goals", fontWeight = FontWeight.Bold, color = DarkGreen)
                 },
                 actions = {
                     IconButton(onClick = onOpenLeaderboard) {
-                        Icon(Icons.Default.Leaderboard, contentDescription = "Check Ranking", tint = Color(0xFF2E7D32))
+                        Icon(Icons.Default.Leaderboard, contentDescription = "Check Ranking", tint = PrimaryGreen)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
@@ -68,10 +70,10 @@ fun TargetFunct(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddClick,
-                containerColor = Color(0xFF2E7D32),
+                containerColor = PrimaryGreen,
                 contentColor = Color.White,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text("New Target", fontWeight = FontWeight.Bold) }
+                text = { Text("New Task", fontWeight = FontWeight.Bold) }
             )
         }
     ) { innerPadding ->
@@ -86,7 +88,7 @@ fun TargetFunct(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search targets...") },
+                    placeholder = { Text("Search tasks...") },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
@@ -98,7 +100,7 @@ fun TargetFunct(
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF2E7D32),
+                        focusedBorderColor = PrimaryGreen,
                         unfocusedBorderColor = Color(0xFFE0E0E0)
                     ),
                     modifier = Modifier.fillMaxWidth()
@@ -113,7 +115,7 @@ fun TargetFunct(
                             onClick = { selectedStatusFilter = null },
                             label = { Text("All") },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Color(0xFF2E7D32),
+                                selectedContainerColor = PrimaryGreen,
                                 selectedLabelColor = Color.White
                             )
                         )
@@ -124,7 +126,7 @@ fun TargetFunct(
                             onClick = { selectedStatusFilter = if (selectedStatusFilter == status) null else status },
                             label = { Text(status) },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Color(0xFF2E7D32),
+                                selectedContainerColor = PrimaryGreen,
                                 selectedLabelColor = Color.White
                             )
                         )
@@ -137,14 +139,14 @@ fun TargetFunct(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = if (searchQuery.isNotBlank() || selectedStatusFilter != null)
-                                "No matching targets found"
-                            else "No eco targets yet",
+                                "No matching tasks found"
+                            else "No eco tasks yet",
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
                             color = Color(0xFF1B1F1C)
                         )
                         Text(
-                            text = "Tap \"New Target\" to create one",
+                            text = "Tap \"New Task\" to create one",
                             fontSize = 13.sp,
                             color = Color(0xFF8B948E)
                         )
@@ -157,11 +159,12 @@ fun TargetFunct(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(filteredTasks, key = { it.id }) { task ->
-                        TargetCard(
+                        TaskCard(
                             task = task,
                             onEditClick = { onEditClick(task) },
                             onDeleteClick = { taskToDelete = task },
-                            onSubmitEvidence = { imagePath -> onSubmitEvidence(task.id, imagePath) }
+                            onSnapPhoto = { imagePath -> onSnapPhoto(task.id, imagePath) },
+                            onSubmitToAdmin = { onSubmitToAdmin(task.id) }
                         )
                     }
                     item { Spacer(modifier = Modifier.height(70.dp)) }
@@ -174,7 +177,7 @@ fun TargetFunct(
         AlertDialog(
             onDismissRequest = { taskToDelete = null },
             containerColor = Color.White,
-            title = { Text("Delete Target") },
+            title = { Text("Delete Task") },
             text = { Text("Are you sure you want to delete \"${task.title}\"? This cannot be undone.") },
             confirmButton = {
                 TextButton(onClick = { onDeleteClick(task.id); taskToDelete = null }) {
@@ -189,17 +192,18 @@ fun TargetFunct(
 }
 
 @Composable
-fun TargetCard(
+fun TaskCard(
     task: TaskEntity,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    onSubmitEvidence: (String) -> Unit
+    onSnapPhoto: (String) -> Unit,
+    onSubmitToAdmin: () -> Unit
 ) {
     var showProofDialog by remember { mutableStateOf(false) }
 
-    val progress = if (task.status == "Approved") task.targetQuantity else 0
-    val progressFraction = if (task.targetQuantity > 0) {
-        (progress.toFloat() / task.targetQuantity.toFloat()).coerceIn(0f, 1f)
+    val currentProgress = task.currentQuantity
+    val progressFraction = if (task.taskQuantity > 0) {
+        (currentProgress.toFloat() / task.taskQuantity.toFloat()).coerceIn(0f, 1f)
     } else 0f
 
     Card(
@@ -209,6 +213,7 @@ fun TargetCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -235,7 +240,7 @@ fun TargetCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Event, contentDescription = null, tint = Color(0xFFADB5BD), modifier = Modifier.size(14.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Due ${formatDate(task.deadline)}", fontSize = 12.sp, color = Color(0xFF8B948E))
+                Text("Due ${task.deadline.toFormattedDate()}", fontSize = 12.sp, color = Color(0xFF8B948E))
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -244,16 +249,16 @@ fun TargetCard(
                 LinearProgressIndicator(
                     progress = { progressFraction },
                     modifier = Modifier.weight(1f).height(8.dp),
-                    color = Color(0xFF2E7D32),
+                    color = PrimaryGreen,
                     trackColor = Color(0xFFE9ECEB),
                     strokeCap = StrokeCap.Round
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "$progress/${task.targetQuantity}",
+                    text = "$currentProgress/${task.taskQuantity}",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2E7D32)
+                    color = PrimaryGreen
                 )
             }
 
@@ -264,31 +269,80 @@ fun TargetCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (task.status != "Approved") {
-                    Button(
-                        onClick = { showProofDialog = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
-                        shape = RoundedCornerShape(10.dp),
-                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
-                    ) {
-                        Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(if (task.status == "Pending") "Re-upload" else "Submit Proof", fontSize = 12.sp)
-                    }
-                } else {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = Color(0xFF2E7D32), modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("${task.points} pts earned", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    when {
+                        task.isApproved -> {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("${task.points} pts earned", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = PrimaryGreen)
+                            }
+                        }
+                        task.isPending -> {
+                            Surface(
+                                color = Color(0xFFFFF8E1),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.HourglassEmpty,
+                                        contentDescription = null,
+                                        tint = Color(0xFF8D6E00),
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Waiting for Admin Approval",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = Color(0xFF8D6E00)
+                                    )
+                                }
+                            }
+                        }
+                        else -> {
+                            Button(
+                                onClick = { showProofDialog = true },
+                                enabled = !task.isTargetReached,
+                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                                shape = RoundedCornerShape(10.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                            ) {
+                                Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Snap Photo", fontSize = 12.sp)
+                            }
+
+                            if (task.isTargetReached) {
+                                Button(
+                                    onClick = onSubmitToAdmin,
+                                    colors = ButtonDefaults.buttonColors(containerColor = DarkGreen),
+                                    shape = RoundedCornerShape(10.dp),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                                ) {
+                                    Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Submit Task", fontSize = 12.sp)
+                                }
+                            }
+                        }
                     }
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onEditClick) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit Target", tint = Color(0xFF6C757D))
+                    if (!task.isApproved && !task.isPending) {
+                        IconButton(onClick = onEditClick) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Task", tint = Color(0xFF6C757D))
+                        }
                     }
                     IconButton(onClick = onDeleteClick) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete Target", tint = Color(0xFFE53935))
+                        Icon(Icons.Default.Delete, contentDescription = "Delete Task", tint = Color(0xFFE53935))
                     }
                 }
             }
@@ -299,42 +353,9 @@ fun TargetCard(
         SubmitProofDialog(
             onDismiss = { showProofDialog = false },
             onSubmit = { imagePath ->
-                onSubmitEvidence(imagePath)
+                onSnapPhoto(imagePath)
                 showProofDialog = false
             }
         )
     }
 }
-
-@Composable
-fun StatusBadge(status: String) {
-    val formatted = formatStatusText(status)
-    val (bg, fg, icon) = when (formatted) {
-        "Approved" -> Triple(Color(0xFFE8F5E9), Color(0xFF1B5E20), Icons.Default.CheckCircle)
-        "Pending" -> Triple(Color(0xFFFFF8E1), Color(0xFF8D6E00), Icons.Default.HourglassEmpty)
-        else -> Triple(Color(0xFFF1F3F5), Color(0xFF6C757D), null)
-    }
-
-    Surface(color = bg, shape = RoundedCornerShape(20.dp)) {
-        Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            icon?.let {
-                Icon(it, contentDescription = null, tint = fg, modifier = Modifier.size(13.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-            }
-            Text(formatted, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = fg)
-        }
-    }
-}
-
-private fun formatStatusText(rawStatus: String): String = when (rawStatus.lowercase().replace(" ", "")) {
-    "notstarted" -> "Not Started"
-    "pending" -> "Pending"
-    "approved" -> "Approved"
-    else -> rawStatus
-}
-
-private fun formatDate(timestamp: Long): String =
-    SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(timestamp))
