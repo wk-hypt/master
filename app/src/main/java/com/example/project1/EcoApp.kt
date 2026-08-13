@@ -44,9 +44,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.project1.ui.admin.home.AdminHomeView
 import com.example.project1.ui.admin.report.AdminReportView
+import com.example.project1.ui.admin.rewards.AdminRewardsView
 import com.example.project1.ui.users.home.HomeView
 import com.example.project1.ui.users.leaderboard.LeaderboardView
 import com.example.project1.ui.users.login.LoginView
+import com.example.project1.ui.users.rewards.RewardsView
 import com.example.project1.ui.users.task.TaskView
 
 sealed class Screen(
@@ -250,7 +252,7 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 })
             }
             composable(Screen.Rewards.route) {
-
+                RewardsView(studentId = loggedInStudentId)
             }
             composable(Screen.Profile.route) {
             }
@@ -273,6 +275,7 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
             }
 
             composable(AdminScreen.Rewards.route) {
+                AdminRewardsView()
             }
             composable(AdminScreen.Report.route) {
                 AdminReportView()

@@ -16,6 +16,7 @@ import com.example.project1.data.repository.SupabaseUserRepository
 import com.example.project1.data.repository.TaskRepository
 import com.example.project1.data.repository.UserRepository
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.storage.storage
 
 interface AppContainer {
     val ecoAdsRepository: EcoAdsRepository
@@ -30,6 +31,7 @@ interface AppContainer {
 class AppDataContainer(private val context: Context) : AppContainer {
 
     private val postgrest = SupabaseClientProvider.client.postgrest
+    private val storage = SupabaseClientProvider.client.storage
     private var loggedInStudentId: String = ""
 
     fun setCurrentStudentId(studentId: String) {
@@ -41,7 +43,7 @@ class AppDataContainer(private val context: Context) : AppContainer {
     }
 
     override val offerRepository: OfferRepository by lazy {
-        SupabaseOfferRepository(postgrest)
+        SupabaseOfferRepository(postgrest, storage)
     }
 
     override val submissionRepository: SubmissionRepository by lazy {
