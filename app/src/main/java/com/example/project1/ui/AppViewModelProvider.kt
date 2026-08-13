@@ -7,9 +7,11 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.project1.EcoApplication
 import com.example.project1.ui.admin.AdminHomeViewModel
 import com.example.project1.ui.admin.report.AdminReportViewModel
+import com.example.project1.ui.admin.rewards.AdminRewardsViewModel
 import com.example.project1.ui.users.home.HomeViewModel
 import com.example.project1.ui.users.leaderboard.LeaderboardViewModel
 import com.example.project1.ui.users.login.LoginViewModel
+import com.example.project1.ui.users.rewards.RewardsViewModel
 import com.example.project1.ui.users.task.TaskViewModel
 
 object AppViewModelProvider {
@@ -62,7 +64,20 @@ object AppViewModelProvider {
             )
         }
 
+        initializer {
+            val app = ecoApplication()
+            RewardsViewModel(
+                offerRepository = app.container.offerRepository,
+                userRepository = app.container.userRepository
+            )
+        }
 
+        initializer {
+            val app = ecoApplication()
+            AdminRewardsViewModel(
+                offerRepository = app.container.offerRepository
+            )
+        }
     }
 }
 
