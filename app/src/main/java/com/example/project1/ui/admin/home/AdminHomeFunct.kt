@@ -34,7 +34,6 @@ import java.util.Locale
 fun AdminHomeFunct(
     pendingSubmissions: List<EcoSubmissionEntity>,
     pendingTasks: List<TaskEntity>,
-    onLogout: () -> Unit,
     onApproveSubmission: (submissionId: Int, studentId: String, points: Int) -> Unit,
     onRejectSubmission: (submissionId: Int, feedback: String) -> Unit,
     onApproveTask: (task: TaskEntity, points: Int) -> Unit,
@@ -61,12 +60,6 @@ fun AdminHomeFunct(
                 Column {
                     Text("Staff Control Desk", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1B1F1C))
                     Text("SDG 12 Verification Portal", fontSize = 13.sp, color = Color(0xFF8B948E))
-                }
-                Surface(onClick = onLogout, shape = RoundedCornerShape(10.dp), color = Color(0xFF1B1F1C)) {
-                    Text(
-                        "Log Out", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
-                    )
                 }
             }
 

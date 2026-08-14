@@ -1,93 +1,144 @@
 package com.example.project1.ui.users.leaderboard
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.example.project1.R
 import com.example.project1.data.model.LeaderboardEntry
 import com.example.project1.data.model.LeaderboardUiState
 
 enum class LeaderboardTimeFrame { MONTHLY, DAILY }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LeaderboardFunct(
     uiState: LeaderboardUiState,
     selectedTimeFrame: LeaderboardTimeFrame,
     onTimeFrameChange: (LeaderboardTimeFrame) -> Unit,
     onRetry: () -> Unit,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color(0xFFF4F9EF))
-    ) {
-        when (uiState) {
-            is LeaderboardUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF2E7D32))
-                }
-            }
+    var showUpgradeDialog by remember { mutableStateOf(false) }
 
-            is LeaderboardUiState.Error -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(text = uiState.message, color = Color.Red)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        OutlinedButton(onClick = onRetry) {
-                            Icon(Icons.Default.Refresh, contentDescription = "Retry")
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Retry")
+    Scaffold(
+        modifier = modifier,
+        containerColor = Color(0xFFF4F9EF),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Eco Leaderboard",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                },
+                actions = {
+                    IconButton(onClick = { showUpgradeDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.WorkspacePremium,
+                            contentDescription = "Upgrade to Pro",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF2E7D32)
+                ),
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(Color(0xFFF4F9EF))
+        ) {
+            when (uiState) {
+                is LeaderboardUiState.Loading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Color(0xFF2E7D32))
+                    }
+                }
+
+                is LeaderboardUiState.Error -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = uiState.message, color = Color.Red)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            OutlinedButton(onClick = onRetry) {
+                                Icon(Icons.Default.Refresh, contentDescription = "Retry")
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Retry")
+                            }
                         }
                     }
                 }
-            }
 
-            is LeaderboardUiState.Success -> {
-                if (uiState.rankings.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No rankings available.", color = Color.Gray)
-                    }
-                } else {
-                    val top3 = uiState.rankings.filter { it.rank in 1..3 }
-                    val podiumSlots = listOf(
-                        top3.find { it.rank == 2 },
-                        top3.find { it.rank == 1 },
-                        top3.find { it.rank == 3 }
-                    )
+                is LeaderboardUiState.Success -> {
+                    if (uiState.rankings.isEmpty()) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("No rankings available.", color = Color.Gray)
+                        }
+                    } else {
+                        val top3 = uiState.rankings.filter { it.rank in 1..3 }
+                        val podiumSlots = listOf(
+                            top3.find { it.rank == 2 },
+                            top3.find { it.rank == 1 },
+                            top3.find { it.rank == 3 }
+                        )
 
-                    PodiumHeader(
-                        podiumSlots = podiumSlots,
-                        selectedTimeFrame = selectedTimeFrame,
-                        onTimeFrameChange = onTimeFrameChange
-                    )
+                        PodiumHeader(
+                            podiumSlots = podiumSlots,
+                            selectedTimeFrame = selectedTimeFrame,
+                            onTimeFrameChange = onTimeFrameChange
+                        )
 
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(uiState.rankings, key = { it.userId }) { entry ->
-                            LeaderboardRowItem(entry = entry)
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(uiState.rankings, key = { it.userId }) { entry ->
+                                LeaderboardRowItem(entry = entry)
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    if (showUpgradeDialog) {
+        UpgradeQrDialog(onDismiss = { showUpgradeDialog = false })
     }
 }
 
@@ -255,6 +306,48 @@ fun LeaderboardRowItem(entry: LeaderboardEntry, modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF33691E)
             )
+        }
+    }
+}
+
+@Composable
+fun UpgradeQrDialog(onDismiss: () -> Unit) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .clickable { onDismiss() },
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.qr_code),
+                    contentDescription = "Payment QR Code",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "Pay Amount: $29.90",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
         }
     }
 }

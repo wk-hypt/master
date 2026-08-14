@@ -50,15 +50,6 @@ class AdminHomeViewModel(
                 initialValue = emptyList()
             )
 
-    fun approveSubmission(submission: EcoSubmissionEntity, points: Int) {
-        approveSubmission(
-            submissionId = submission.id,
-            studentId = submission.userId,
-            points = points,
-            quantity = submission.quantity
-        )
-    }
-
     fun approveSubmission(submissionId: Int, studentId: String, points: Int, quantity: Int = 1) {
         viewModelScope.launch {
             try {
