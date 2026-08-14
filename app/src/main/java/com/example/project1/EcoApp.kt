@@ -289,7 +289,7 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 AdminRewardsView()
             }
             composable(AdminScreen.Report.route) {
-                AdminReportView()
+                AdminReportView(adminId = loggedInAdminId)
             }
             composable(AdminScreen.Profile.route) {
                 AdminProfileView(

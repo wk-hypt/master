@@ -55,7 +55,8 @@ object AppViewModelProvider {
             val app = ecoApplication()
             AdminReportViewModel(
                 submissionRepository = app.container.submissionRepository,
-                userRepository = app.container.userRepository
+                userRepository = app.container.userRepository,
+                reportRepository = app.container.reportRepository
             )
         }
 
