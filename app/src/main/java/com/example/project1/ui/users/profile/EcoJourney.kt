@@ -2,7 +2,7 @@ package com.example.project1.ui.users.profile
 
 data class MemberTier(
     val name: String,
-    val level: Int,
+    val level: Int,//
     val totalLevels: Int = 5,
     val minPoints: Int,
     val nextThreshold: Int?

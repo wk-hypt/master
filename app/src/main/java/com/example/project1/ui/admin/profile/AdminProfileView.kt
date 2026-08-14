@@ -13,7 +13,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project1.ui.AppViewModelProvider
 
 @Composable
-fun AdminProfileView(
+fun AdminProfileView(//
     adminId: String,
     onLogout: () -> Unit,
     viewModel: AdminProfileViewModel = viewModel(factory = AppViewModelProvider.Factory)

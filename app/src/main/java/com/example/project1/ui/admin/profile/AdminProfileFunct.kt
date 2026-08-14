@@ -168,7 +168,7 @@ fun AdminProfileFunct(
 private fun AdminHubPage(
     displayName: String,
     adminId: String,
-    faculty: String,
+    faculty: String,//
     onOpenInfo: () -> Unit,
     onChangePassword: () -> Unit,
     onOpenSupport: () -> Unit,
