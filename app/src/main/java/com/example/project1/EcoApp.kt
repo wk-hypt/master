@@ -43,11 +43,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.project1.ui.admin.home.AdminHomeView
+import com.example.project1.ui.admin.profile.AdminProfileView
 import com.example.project1.ui.admin.report.AdminReportView
 import com.example.project1.ui.admin.rewards.AdminRewardsView
 import com.example.project1.ui.users.home.HomeView
 import com.example.project1.ui.users.leaderboard.LeaderboardView
 import com.example.project1.ui.users.login.LoginView
+import com.example.project1.ui.users.profile.ProfileView
 import com.example.project1.ui.users.rewards.RewardsView
 import com.example.project1.ui.users.task.TaskView
 
@@ -255,6 +257,15 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 RewardsView(studentId = loggedInStudentId)
             }
             composable(Screen.Profile.route) {
+                ProfileView(
+                    studentId = loggedInStudentId,
+                    onLogout = {
+                        loggedInStudentId = ""
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
             }
             composable(Screen.Leaderboard.route) {
                 LeaderboardView(
@@ -281,6 +292,15 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 AdminReportView()
             }
             composable(AdminScreen.Profile.route) {
+                AdminProfileView(
+                    adminId = loggedInAdminId,
+                    onLogout = {
+                        loggedInAdminId = ""
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
             }
         }
     }

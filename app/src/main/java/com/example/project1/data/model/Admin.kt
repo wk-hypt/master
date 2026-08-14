@@ -10,3 +10,14 @@ data class AdminEntity(
     val password: String,
     val faculty: String
 )
+
+@Serializable
+data class AdminProfileInfoUpdate(
+    val name: String,
+    val faculty: String
+)
+
+@Serializable
+data class AdminPasswordUpdate(
+    val password: String
+)

@@ -26,7 +26,6 @@ fun AdminHomeView(
     AdminHomeFunct(
         pendingSubmissions = pendingSubmissions,
         pendingTasks = pendingTasks,
-        onLogout = onLogout,
         onApproveSubmission = { id, studentId, points ->
             viewModel.approveSubmission(submissionId = id, studentId = studentId, points = points)
         },
