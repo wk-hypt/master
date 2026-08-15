@@ -3,6 +3,7 @@ package com.example.project1.ui.users.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.UserEntity
+import com.example.project1.data.repository.AppSettingsRepository
 import com.example.project1.data.repository.UserRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,13 +17,15 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)//
 class ProfileViewModel(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val settingsRepository: AppSettingsRepository
 ) : ViewModel() {
 
     private val _studentId = MutableStateFlow("")
 
     fun setCurrentStudent(id: String) {
         _studentId.value = id
+        _avatarColorIndex.value = settingsRepository.getAvatarColorIndex(id)
     }
 
     val user: StateFlow<UserEntity?> = _studentId
@@ -40,6 +43,22 @@ class ProfileViewModel(
 
     fun clearMessage() {
         _message.value = null
+    }
+
+    // App-wide preferences (device-local)
+    val darkModeEnabled: StateFlow<Boolean> = settingsRepository.darkModeEnabled
+    val notificationsEnabled: StateFlow<Boolean> = settingsRepository.notificationsEnabled
+
+    fun setDarkMode(enabled: Boolean) = settingsRepository.setDarkMode(enabled)
+    fun setNotifications(enabled: Boolean) = settingsRepository.setNotifications(enabled)
+
+    // Avatar color personalization (device-local, per student id)
+    private val _avatarColorIndex = MutableStateFlow(0)
+    val avatarColorIndex: StateFlow<Int> = _avatarColorIndex.asStateFlow()
+
+    fun setAvatarColorIndex(index: Int) {
+        _avatarColorIndex.value = index
+        settingsRepository.setAvatarColorIndex(_studentId.value, index)
     }
 
     fun saveProfileInfo(

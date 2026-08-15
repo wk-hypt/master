@@ -1,6 +1,7 @@
 package com.example.project1
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -116,6 +117,8 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        // No top system-bar padding: screen headers should reach the very top with no blank gap.
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar(

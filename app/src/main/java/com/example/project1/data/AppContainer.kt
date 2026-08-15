@@ -2,12 +2,14 @@ package com.example.project1.data
 
 import android.content.Context
 import com.example.project1.data.repository.AdminRepository
+import com.example.project1.data.repository.AppSettingsRepository
 import com.example.project1.data.repository.EcoAdsRepository
 import com.example.project1.data.repository.LeaderBoarduiRepository
 import com.example.project1.data.repository.OfferRepository
 import com.example.project1.data.repository.ReportRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.SupabaseAdminRepository
+import com.example.project1.data.repository.LocalAppSettingsRepository
 import com.example.project1.data.repository.LocalEcoAdsRepository
 import com.example.project1.data.repository.SupabaseLeaderboardRepository
 import com.example.project1.data.repository.SupabaseOfferRepository
@@ -29,6 +31,7 @@ interface AppContainer {
     val adminRepository: AdminRepository
     val leaderboarduiRepository: LeaderBoarduiRepository
     val reportRepository: ReportRepository
+    val settingsRepository: AppSettingsRepository
 }
 
 class AppDataContainer(private val context: Context) : AppContainer {
@@ -71,5 +74,9 @@ class AppDataContainer(private val context: Context) : AppContainer {
 
     override val reportRepository: ReportRepository by lazy {
         SupabaseReportRepository(postgrest)
+    }
+
+    override val settingsRepository: AppSettingsRepository by lazy {
+        LocalAppSettingsRepository(context)
     }
 }

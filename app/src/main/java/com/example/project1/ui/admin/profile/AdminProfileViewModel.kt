@@ -1,22 +1,33 @@
 package com.example.project1.ui.admin.profile
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.AdminEntity
 import com.example.project1.data.repository.AdminRepository
+import com.example.project1.data.repository.AppSettingsRepository
+import com.example.project1.data.repository.SubmissionRepository
+import com.example.project1.data.repository.TaskRepository
+import com.example.project1.data.repository.UserRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class AdminProfileViewModel(//
-    private val adminRepository: AdminRepository
+class AdminProfileViewModel(
+    private val adminRepository: AdminRepository,
+    private val settingsRepository: AppSettingsRepository,
+    submissionRepository: SubmissionRepository,
+    taskRepository: TaskRepository,
+    userRepository: UserRepository
 ) : ViewModel() {
 
     private val _adminId = MutableStateFlow("")
@@ -40,6 +51,56 @@ class AdminProfileViewModel(//
 
     fun clearMessage() {
         _message.value = null
+    }
+
+    // App-wide preferences (device-local)
+    val darkModeEnabled: StateFlow<Boolean> = settingsRepository.darkModeEnabled
+    val notificationsEnabled: StateFlow<Boolean> = settingsRepository.notificationsEnabled
+
+    fun setDarkMode(enabled: Boolean) = settingsRepository.setDarkMode(enabled)
+    fun setNotifications(enabled: Boolean) = settingsRepository.setNotifications(enabled)
+
+    // Quick campus stats surfaced on the staff hub.
+    val pendingSubmissionsCount: StateFlow<Int> = submissionRepository.getAllPendingSubmissionsStream()
+        .map { it.size }
+        .catch { e ->
+            Log.e("AdminProfileViewModel", "Error streaming pending submissions: ${e.message}")
+            emit(0)
+        }
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = 0)
+
+    val pendingTasksCount: StateFlow<Int> = taskRepository.getAllPendingTasksStream()
+        .map { it.size }
+        .catch { e ->
+            Log.e("AdminProfileViewModel", "Error streaming pending tasks: ${e.message}")
+            emit(0)
+        }
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = 0)
+
+    val totalStudents: StateFlow<Int> = userRepository.getAllUsersStream()
+        .map { it.size }
+        .catch { e ->
+            Log.e("AdminProfileViewModel", "Error streaming students: ${e.message}")
+            emit(0)
+        }
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = 0)
+
+    // Staff directory, loaded on demand when the admin opens that page.
+    private val _staffDirectory = MutableStateFlow<List<AdminEntity>>(emptyList())
+    val staffDirectory: StateFlow<List<AdminEntity>> = _staffDirectory.asStateFlow()
+
+    private val _staffDirectoryLoading = MutableStateFlow(false)
+    val staffDirectoryLoading: StateFlow<Boolean> = _staffDirectoryLoading.asStateFlow()
+
+    fun loadStaffDirectory() = viewModelScope.launch {
+        _staffDirectoryLoading.value = true
+        try {
+            _staffDirectory.value = adminRepository.getAdmins()
+        } catch (e: Exception) {
+            _message.value = e.message ?: "Could not load staff directory"
+        } finally {
+            _staffDirectoryLoading.value = false
+        }
     }
 
     fun saveStaffInfo(name: String, faculty: String) = viewModelScope.launch {

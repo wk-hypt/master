@@ -85,14 +85,19 @@ object AppViewModelProvider {
         initializer {
             val app = ecoApplication()
             ProfileViewModel(
-                userRepository = app.container.userRepository
+                userRepository = app.container.userRepository,
+                settingsRepository = app.container.settingsRepository
             )
         }
 
         initializer {
             val app = ecoApplication()
             AdminProfileViewModel(
-                adminRepository = app.container.adminRepository
+                adminRepository = app.container.adminRepository,
+                settingsRepository = app.container.settingsRepository,
+                submissionRepository = app.container.submissionRepository,
+                taskRepository = app.container.taskRepository,
+                userRepository = app.container.userRepository
             )
         }
     }

@@ -24,6 +24,9 @@ fun ProfileView(//
 
     val user by viewModel.user.collectAsState()
     val message by viewModel.message.collectAsState()
+    val darkModeEnabled by viewModel.darkModeEnabled.collectAsState()
+    val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
+    val avatarColorIndex by viewModel.avatarColorIndex.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(message) {
@@ -34,10 +37,16 @@ fun ProfileView(//
 
     ProfileFunct(
         user = user,
+        darkModeEnabled = darkModeEnabled,
+        notificationsEnabled = notificationsEnabled,
+        avatarColorIndex = avatarColorIndex,
+        onAvatarColorSelected = viewModel::setAvatarColorIndex,
         onSaveProfile = viewModel::saveProfileInfo,
         onChangePassword = viewModel::changePassword,
         onDeleteAccount = { viewModel.deleteAccount(onLogout) },
         onLogout = onLogout,
+        onToggleDarkMode = viewModel::setDarkMode,
+        onToggleNotifications = viewModel::setNotifications,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = Modifier.fillMaxSize()
     )
