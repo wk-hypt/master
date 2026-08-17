@@ -24,6 +24,13 @@ fun AdminProfileView(//
 
     val admin by viewModel.admin.collectAsState()
     val message by viewModel.message.collectAsState()
+    val darkModeEnabled by viewModel.darkModeEnabled.collectAsState()
+    val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
+    val pendingSubmissionsCount by viewModel.pendingSubmissionsCount.collectAsState()
+    val pendingTasksCount by viewModel.pendingTasksCount.collectAsState()
+    val totalStudents by viewModel.totalStudents.collectAsState()
+    val staffDirectory by viewModel.staffDirectory.collectAsState()
+    val staffDirectoryLoading by viewModel.staffDirectoryLoading.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(message) {
@@ -34,8 +41,18 @@ fun AdminProfileView(//
 
     AdminProfileFunct(
         admin = admin,
+        darkModeEnabled = darkModeEnabled,
+        notificationsEnabled = notificationsEnabled,
+        pendingSubmissionsCount = pendingSubmissionsCount,
+        pendingTasksCount = pendingTasksCount,
+        totalStudents = totalStudents,
+        staffDirectory = staffDirectory,
+        staffDirectoryLoading = staffDirectoryLoading,
+        onOpenStaffDirectory = viewModel::loadStaffDirectory,
         onSaveStaffInfo = viewModel::saveStaffInfo,
         onChangePassword = viewModel::changePassword,
+        onToggleDarkMode = viewModel::setDarkMode,
+        onToggleNotifications = viewModel::setNotifications,
         onLogout = onLogout,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = Modifier.fillMaxSize()

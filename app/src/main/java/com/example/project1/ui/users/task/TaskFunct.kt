@@ -5,18 +5,26 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.project1.common.*
 import com.example.project1.data.model.TaskEntity
 
@@ -38,6 +46,7 @@ fun TaskFunct(
     var searchQuery by remember { mutableStateOf("") }
     var selectedStatusFilter by remember { mutableStateOf<String?>(null) }
     var taskToDelete by remember { mutableStateOf<TaskEntity?>(null) }
+    val focusManager = LocalFocusManager.current
 
     val statusOptions = listOf("In Progress", "Pending Approval", "Approved")
 
@@ -99,6 +108,8 @@ fun TaskFunct(
                     },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = PrimaryGreen,
                         unfocusedBorderColor = Color(0xFFE0E0E0)
@@ -114,9 +125,12 @@ fun TaskFunct(
                             selected = selectedStatusFilter == null,
                             onClick = { selectedStatusFilter = null },
                             label = { Text("All") },
+                            shape = RoundedCornerShape(20.dp),
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = PrimaryGreen,
-                                selectedLabelColor = Color.White
+                                selectedLabelColor = Color.White,
+                                containerColor = Color(0xFFF1F3F5),
+                                labelColor = Color(0xFF495057)
                             )
                         )
                     }
@@ -125,18 +139,38 @@ fun TaskFunct(
                             selected = selectedStatusFilter == status,
                             onClick = { selectedStatusFilter = if (selectedStatusFilter == status) null else status },
                             label = { Text(status) },
+                            shape = RoundedCornerShape(20.dp),
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = PrimaryGreen,
-                                selectedLabelColor = Color.White
+                                selectedLabelColor = Color.White,
+                                containerColor = Color(0xFFF1F3F5),
+                                labelColor = Color(0xFF495057)
                             )
                         )
                     }
                 }
             }
 
+            HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+
             if (filteredTasks.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFE8F5E9)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.TaskAlt,
+                                contentDescription = null,
+                                tint = PrimaryGreen,
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = if (searchQuery.isNotBlank() || selectedStatusFilter != null)
                                 "No matching tasks found"
@@ -145,8 +179,11 @@ fun TaskFunct(
                             fontSize = 16.sp,
                             color = Color(0xFF1B1F1C)
                         )
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Tap \"New Task\" to create one",
+                            text = if (searchQuery.isNotBlank() || selectedStatusFilter != null)
+                                "Try adjusting your search or filter options"
+                            else "Tap \"New Task\" to create one",
                             fontSize = 13.sp,
                             color = Color(0xFF8B948E)
                         )
@@ -154,7 +191,7 @@ fun TaskFunct(
                 }
             } else {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -170,6 +207,9 @@ fun TaskFunct(
                     item { Spacer(modifier = Modifier.height(70.dp)) }
                 }
             }
+
+            // 底部导航栏上方的界定分割线
+            HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
         }
     }
 
@@ -177,15 +217,19 @@ fun TaskFunct(
         AlertDialog(
             onDismissRequest = { taskToDelete = null },
             containerColor = Color.White,
-            title = { Text("Delete Task") },
-            text = { Text("Are you sure you want to delete \"${task.title}\"? This cannot be undone.") },
+            shape = RoundedCornerShape(20.dp),
+            title = { Text("Delete Task", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1B1F1C)) },
+            text = { Text("Are you sure you want to delete \"${task.title}\"? This cannot be undone.", fontSize = 14.sp, color = Color(0xFF495057)) },
             confirmButton = {
                 TextButton(onClick = { onDeleteClick(task.id); taskToDelete = null }) {
                     Text("Delete", color = Color(0xFFE53935), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { taskToDelete = null }) { Text("Cancel", color = Color.Gray) }
+                OutlinedButton(
+                    onClick = { taskToDelete = null },
+                    shape = RoundedCornerShape(10.dp)
+                ) { Text("Cancel", color = Color(0xFF6C757D)) }
             }
         )
     }
@@ -216,26 +260,69 @@ fun TaskCard(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = task.title,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1B1F1C),
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                StatusBadge(status = task.status)
+                // 任务图示 / 证明照片缩略图预览区域
+                if (!task.imagePath.isNullOrBlank()) {
+                    AsyncImage(
+                        model = task.imagePath,
+                        contentDescription = "Task photo proof",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFFF1F3F5))
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFFE8F5E9)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Eco,
+                            contentDescription = "Eco Task",
+                            tint = PrimaryGreen,
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = task.title,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1B1F1C),
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        StatusBadge(status = task.status)
+                    }
+
+                    if (!task.description.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = task.description,
+                            fontSize = 12.sp,
+                            color = Color(0xFF6C757D),
+                            maxLines = 2,
+                            lineHeight = 16.sp
+                        )
+                    }
+                }
             }
 
-            if (!task.description.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(task.description, fontSize = 13.sp, color = Color(0xFF6C757D), lineHeight = 18.sp)
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Event, contentDescription = null, tint = Color(0xFFADB5BD), modifier = Modifier.size(14.dp))
@@ -243,7 +330,7 @@ fun TaskCard(
                 Text("Due ${task.deadline.toFormattedDate()}", fontSize = 12.sp, color = Color(0xFF8B948E))
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 LinearProgressIndicator(
@@ -271,14 +358,23 @@ fun TaskCard(
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f, fill = false)
                 ) {
                     when {
                         task.isApproved -> {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("${task.points} pts earned", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = PrimaryGreen)
+                            Surface(
+                                color = Color(0xFFE8F5E9),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                ) {
+                                    Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("${task.points} pts earned", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = PrimaryGreen)
+                                }
                             }
                         }
                         task.isPending -> {

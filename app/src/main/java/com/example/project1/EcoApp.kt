@@ -1,6 +1,7 @@
 package com.example.project1
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -42,6 +43,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.project1.data.SupabaseClientProvider
 import com.example.project1.ui.admin.home.AdminHomeView
 import com.example.project1.ui.admin.profile.AdminProfileView
 import com.example.project1.ui.admin.report.AdminReportView
@@ -116,6 +118,7 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar(
@@ -246,7 +249,11 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 if (loggedInStudentId != studentId) {
                     loggedInStudentId = studentId
                 }
-                HomeView(navController = navController, studentId = studentId)
+                HomeView(
+                    navController = navController,
+                    studentId = studentId,
+                    supabaseClient = SupabaseClientProvider.client
+                )
             }
             composable(Screen.Task.route) {
                 TaskView(studentId = loggedInStudentId, onOpenLeaderboard = {

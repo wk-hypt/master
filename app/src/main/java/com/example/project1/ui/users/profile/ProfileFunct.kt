@@ -1,7 +1,9 @@
 package com.example.project1.ui.users.profile
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,13 +23,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.material.icons.filled.Eco
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Park
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Recycling
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Support
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.AlertDialog
@@ -41,6 +53,8 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -67,15 +81,31 @@ private val DarkGreen = Color(0xFF1B5E20)
 private val Cream = Color(0xFFF6F1E8)
 private val SoftGreen = Color(0xFFE8F5E9)
 
+// Curated avatar color palette the student can personalize their initials badge with.
+private val AvatarPalette = listOf(
+    Color(0xFF2E7D32), // green (default)
+    Color(0xFF1565C0), // blue
+    Color(0xFFEF6C00), // orange
+    Color(0xFF6A1B9A), // purple
+    Color(0xFFC62828), // red
+    Color(0xFF00838F)  // teal
+)
+
 private enum class UserProfilePage { Hub, Info, Achievements, Settings, Faq, Contact, About }
 
 @Composable
 fun ProfileFunct(
     user: UserEntity?,
+    darkModeEnabled: Boolean = false,
+    notificationsEnabled: Boolean = true,
+    avatarColorIndex: Int = 0,
+    onAvatarColorSelected: (Int) -> Unit = {},
     onSaveProfile: (name: String, faculty: String, phone: String, email: String, birthday: String) -> Unit,
     onChangePassword: (current: String, newPassword: String, confirm: String) -> Unit,
     onDeleteAccount: () -> Unit,
     onLogout: () -> Unit,
+    onToggleDarkMode: (Boolean) -> Unit = {},
+    onToggleNotifications: (Boolean) -> Unit = {},
     snackbarHost: @Composable () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -89,6 +119,7 @@ fun ProfileFunct(
     val points = user?.totalPoints ?: 0
     val plastics = user?.plasticsSaved ?: 0
     val tier = memberTierFor(points)
+    val avatarColor = AvatarPalette.getOrElse(avatarColorIndex) { PrimaryGreen }
 
     Scaffold(
         modifier = modifier,
@@ -101,6 +132,9 @@ fun ProfileFunct(
                     displayName = displayName,
                     studentId = studentId,
                     tierName = tier.name,
+                    points = points,
+                    plastics = plastics,
+                    avatarColor = avatarColor,
                     onOpenInfo = { page = UserProfilePage.Info },
                     onOpenAchievements = { page = UserProfilePage.Achievements },
                     onOpenSettings = { page = UserProfilePage.Settings },
@@ -108,6 +142,9 @@ fun ProfileFunct(
                 )
                 UserProfilePage.Info -> ProfileInfoPage(
                     user = user,
+                    avatarColor = avatarColor,
+                    avatarColorIndex = avatarColorIndex,
+                    onAvatarColorSelected = onAvatarColorSelected,
                     onBack = { page = UserProfilePage.Hub },
                     onSave = onSaveProfile
                 )
@@ -115,9 +152,14 @@ fun ProfileFunct(
                     displayName = displayName,
                     points = points,
                     plastics = plastics,
+                    avatarColor = avatarColor,
                     onBack = { page = UserProfilePage.Hub }
                 )
                 UserProfilePage.Settings -> SettingsPage(
+                    darkModeEnabled = darkModeEnabled,
+                    notificationsEnabled = notificationsEnabled,
+                    onToggleDarkMode = onToggleDarkMode,
+                    onToggleNotifications = onToggleNotifications,
                     onBack = { page = UserProfilePage.Hub },
                     onChangePassword = { showPasswordDialog = true },
                     onDeleteAccount = { showDeleteConfirm = true },
@@ -213,6 +255,9 @@ private fun ProfileHubPage(
     displayName: String,
     studentId: String,
     tierName: String,
+    points: Int,
+    plastics: Int,
+    avatarColor: Color,
     onOpenInfo: () -> Unit,
     onOpenAchievements: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -270,7 +315,7 @@ private fun ProfileHubPage(
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                InitialsAvatar(name = displayName)
+                InitialsAvatar(name = displayName, backgroundColor = avatarColor.copy(alpha = 0.14f), textColor = avatarColor)
                 Spacer(modifier = Modifier.width(14.dp))
                 Column {
                     Text(
@@ -288,21 +333,74 @@ private fun ProfileHubPage(
             }
         }
 
+        // Quick-glance impact stats
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .offset(y = (-16).dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            StatChip(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Default.Eco,
+                label = "Points",
+                value = points.toString()
+            )
+            StatChip(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Default.Recycling,
+                label = "Plastics Saved",
+                value = plastics.toString()
+            )
+            StatChip(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Default.EmojiEvents,
+                label = "Tier",
+                value = tierName
+            )
+        }
+
         Card(
             modifier = Modifier
                 .padding(horizontal = 20.dp)
-                .offset(y = (-12).dp)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(2.dp)
         ) {
             Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                MenuRow("PROFILE INFO", onOpenInfo)
-                MenuRow("MY ECO ACHIEVEMENT", onOpenAchievements)
-                MenuRow("SETTING", onOpenSettings)
-                MenuRow("LOG OUT", onLogout)
+                MenuRow("PROFILE INFO", Icons.Default.Person, onOpenInfo)
+                MenuRow("MY ECO ACHIEVEMENT", Icons.Default.EmojiEvents, onOpenAchievements)
+                MenuRow("SETTING", Icons.Default.Settings, onOpenSettings)
+                MenuRow("LOG OUT", Icons.AutoMirrored.Filled.Logout, onLogout, tint = Color(0xFFC62828))
             }
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+}
+
+@Composable
+private fun StatChip(
+    modifier: Modifier = Modifier,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(icon, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(value, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1B1F1C), textAlign = TextAlign.Center)
+            Text(label, fontSize = 10.sp, color = Color(0xFF6B7280), textAlign = TextAlign.Center)
         }
     }
 }
@@ -310,6 +408,9 @@ private fun ProfileHubPage(
 @Composable
 private fun ProfileInfoPage(
     user: UserEntity?,
+    avatarColor: Color,
+    avatarColorIndex: Int,
+    onAvatarColorSelected: (Int) -> Unit,
     onBack: () -> Unit,
     onSave: (name: String, faculty: String, phone: String, email: String, birthday: String) -> Unit
 ) {
@@ -319,6 +420,7 @@ private fun ProfileInfoPage(
     var phone by remember(user?.studentId, user?.phone) { mutableStateOf(user?.phone.orEmpty()) }
     var email by remember(user?.studentId, user?.email) { mutableStateOf(user?.email.orEmpty()) }
     var birthday by remember(user?.studentId, user?.birthday) { mutableStateOf(user?.birthday.orEmpty()) }
+    var showColorPicker by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         SubHeroHeader(title = "PROFILE INFO", onBack = onBack)
@@ -332,23 +434,35 @@ private fun ProfileInfoPage(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
             Box {
-                InitialsAvatar(name = name.ifBlank { "S" }, size = 92)
+                InitialsAvatar(
+                    name = name.ifBlank { "S" },
+                    size = 92,
+                    backgroundColor = avatarColor.copy(alpha = 0.14f),
+                    textColor = avatarColor
+                )
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .size(26.dp)
+                        .size(28.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF2196F3)),
+                        .background(Color(0xFF2196F3))
+                        .clickable { showColorPicker = true },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
+                        imageVector = Icons.Default.Palette,
+                        contentDescription = "Change avatar color",
                         tint = Color.White,
                         modifier = Modifier.size(16.dp)
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Tap the palette to personalize your avatar color",
+                fontSize = 11.sp,
+                color = Color(0xFF9E9E9E)
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
             ProfileField("Name", name) { name = it }
@@ -376,7 +490,7 @@ private fun ProfileInfoPage(
             Spacer(modifier = Modifier.height(24.dp))
             Button(
                 onClick = { onSave(name, faculty, phone, email, birthday) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9E9E9E)),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
                 shape = RoundedCornerShape(24.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -387,6 +501,58 @@ private fun ProfileInfoPage(
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
+
+    if (showColorPicker) {
+        AvatarColorPickerDialog(
+            selectedIndex = avatarColorIndex,
+            onSelect = {
+                onAvatarColorSelected(it)
+                showColorPicker = false
+            },
+            onDismiss = { showColorPicker = false }
+        )
+    }
+}
+
+@Composable
+private fun AvatarColorPickerDialog(
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Choose avatar color", fontWeight = FontWeight.Bold) },
+        text = {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                AvatarPalette.forEachIndexed { index, color ->
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                            .border(
+                                width = if (index == selectedIndex) 3.dp else 0.dp,
+                                color = Color(0xFF1B1F1C),
+                                shape = CircleShape
+                            )
+                            .clickable { onSelect(index) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (index == selectedIndex) {
+                            Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Done") }
+        }
+    )
 }
 
 @Composable
@@ -394,8 +560,10 @@ private fun AchievementsPage(
     displayName: String,
     points: Int,
     plastics: Int,
+    avatarColor: Color,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val tier = memberTierFor(points)
     val badges = badgesFor(points, plastics)
     val milestones = milestonesFor(points, plastics)
@@ -442,7 +610,7 @@ private fun AchievementsPage(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    InitialsAvatar(name = displayName, size = 52)
+                    InitialsAvatar(name = displayName, size = 52, backgroundColor = avatarColor.copy(alpha = 0.14f), textColor = avatarColor)
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
@@ -582,12 +750,35 @@ private fun AchievementsPage(
                 }
                 Spacer(modifier = Modifier.height(10.dp))
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = {
+                    val shareText = "I've earned $points eco points and saved $plastics plastic items " +
+                            "through ECO TARUMT! Currently ranked as a ${tier.name}. Join me in going green 🌱"
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, shareText)
+                    }
+                    context.startActivity(Intent.createChooser(intent, "Share my eco impact"))
+                },
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) {
+                Icon(Icons.Default.Share, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Share my impact", color = PrimaryGreen, fontWeight = FontWeight.Medium)
+            }
         }
     }
 }
 
 @Composable
 private fun SettingsPage(
+    darkModeEnabled: Boolean,
+    notificationsEnabled: Boolean,
+    onToggleDarkMode: (Boolean) -> Unit,
+    onToggleNotifications: (Boolean) -> Unit,
     onBack: () -> Unit,
     onChangePassword: () -> Unit,
     onDeleteAccount: () -> Unit,
@@ -609,6 +800,29 @@ private fun SettingsPage(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+        Text("Preferences", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+        Card(
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column {
+                ToggleRow(
+                    label = "Dark Mode",
+                    icon = Icons.Default.DarkMode,
+                    checked = darkModeEnabled,
+                    onCheckedChange = onToggleDarkMode
+                )
+                ToggleRow(
+                    label = "Notifications",
+                    icon = Icons.Default.Notifications,
+                    checked = notificationsEnabled,
+                    onCheckedChange = onToggleNotifications
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
         Text("Account Security", fontWeight = FontWeight.Bold, fontSize = 16.sp)
         Spacer(modifier = Modifier.height(8.dp))
         Card(
@@ -616,8 +830,8 @@ private fun SettingsPage(
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column {
-                MenuRow("CHANGE PASSWORD", onChangePassword)
-                MenuRow("DELETE ACCOUNT", onDeleteAccount)
+                MenuRow("CHANGE PASSWORD", Icons.Default.Lock, onChangePassword)
+                MenuRow("DELETE ACCOUNT", Icons.Default.Person, onDeleteAccount, tint = Color(0xFFC62828))
             }
         }
 
@@ -629,11 +843,39 @@ private fun SettingsPage(
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column {
-                MenuRow("FAQ", onFaq)
-                MenuRow("CONTACT US", onContact)
-                MenuRow("ABOUT US", onAbout)
+                MenuRow("FAQ", Icons.Default.Info, onFaq)
+                MenuRow("CONTACT US", Icons.Default.Support, onContact)
+                MenuRow("ABOUT US", Icons.Default.Info, onAbout)
             }
         }
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+}
+
+@Composable
+private fun ToggleRow(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF2C2C2C))
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(checkedTrackColor = PrimaryGreen)
+        )
     }
 }
 
@@ -699,7 +941,12 @@ private fun SubHeroHeader(title: String, onBack: () -> Unit) {
 }
 
 @Composable
-private fun MenuRow(label: String, onClick: () -> Unit) {
+private fun MenuRow(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    onClick: () -> Unit,
+    tint: Color = Color(0xFF2C2C2C)
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -708,13 +955,24 @@ private fun MenuRow(label: String, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF2C2C2C))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+            }
+            Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = tint)
+        }
         Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF9E9E9E))
     }
 }
 
 @Composable
-private fun InitialsAvatar(name: String, size: Int = 56) {
+private fun InitialsAvatar(
+    name: String,
+    size: Int = 56,
+    backgroundColor: Color = SoftGreen,
+    textColor: Color = PrimaryGreen
+) {
     val initials = name.trim()
         .split(" ")
         .filter { it.isNotBlank() }
@@ -726,10 +984,10 @@ private fun InitialsAvatar(name: String, size: Int = 56) {
         modifier = Modifier
             .size(size.dp)
             .clip(CircleShape)
-            .background(SoftGreen),
+            .background(backgroundColor),
         contentAlignment = Alignment.Center
     ) {
-        Text(initials, color = PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = (size / 3).sp)
+        Text(initials, color = textColor, fontWeight = FontWeight.Bold, fontSize = (size / 3).sp)
     }
 }
 
