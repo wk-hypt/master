@@ -5,6 +5,7 @@ import com.example.project1.data.repository.AdminRepository
 import com.example.project1.data.repository.AppSettingsRepository
 import com.example.project1.data.repository.EcoAdsRepository
 import com.example.project1.data.repository.LeaderBoarduiRepository
+import com.example.project1.data.repository.LocalAppSettingsRepository
 import com.example.project1.data.repository.OfferRepository
 import com.example.project1.data.repository.ReportRepository
 import com.example.project1.data.repository.SubmissionRepository

@@ -14,8 +14,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -28,17 +28,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+import com.example.project1.R
+import com.example.project1.Screen
 import com.example.project1.data.model.BannerItem
+import com.example.project1.data.model.CampusVoucher
 import com.example.project1.data.model.FeatureCardItem
+import com.example.project1.ui.AppViewModelProvider
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 @Composable
 fun HomeFunct(
+    supabaseClient: SupabaseClient,
+    currentUserId: String,
     currentPoints: Int,
     totalPlasticSaved: Int,
     banners: List<BannerItem>,
@@ -62,16 +77,14 @@ fun HomeFunct(
         Spacer(modifier = Modifier.height(16.dp))
         EcoFeatureGrid(features = features, onFeatureClick = onFeatureClick)
         Spacer(modifier = Modifier.height(16.dp))
-        HotRewardsMarket(onNavigateToRewards = onNavigateToRewards)
+        HotRewardsMarket(
+            supabaseClient = supabaseClient,
+            currentUserId = currentUserId,
+            onNavigateToRewards = onNavigateToRewards
+        )
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
-
-data class RewardItem(
-    val title: String,
-    val cost: String,
-    val description: String
-)
 
 @Composable
 fun EcoStatsDashboard(points: Int, plasticSaved: Int, modifier: Modifier = Modifier) {
@@ -324,60 +337,124 @@ fun EcoFeatureTile(
 }
 
 @Composable
+fun resolveImageModel(imageUrl: String?, defaultPlaceholderRes: Int): Any {
+    val context = LocalContext.current
+    return remember(imageUrl) {
+        when {
+            imageUrl.isNullOrBlank() -> defaultPlaceholderRes
+            imageUrl.startsWith("http://", ignoreCase = true) ||
+                    imageUrl.startsWith("https://", ignoreCase = true) -> imageUrl
+            else -> {
+                val resId = context.resources.getIdentifier(
+                    imageUrl.trim(), "drawable", context.packageName
+                )
+                if (resId != 0) resId else defaultPlaceholderRes
+            }
+        }
+    }
+}
+
+@Composable
 fun HotRewardsMarket(
+    supabaseClient: SupabaseClient,
+    currentUserId: String,
     onNavigateToRewards: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val items = listOf(
-        RewardItem(
-            title = "TAR UMT Canteen RM2 Voucher",
-            cost = "50 Coins",
-            description = "Redeem this voucher at any campus canteen counter for RM2 off your total bill. Valid for one-time use only and cannot be combined with other promotions."
-        ),
-        RewardItem(
-            title = "Eco Coffee 10% Off Coupon",
-            cost = "100 Coins",
-            description = "Enjoy 10% off any drink at Eco Coffee outlets within campus. Show this coupon at checkout before payment is made."
-        ),
-        RewardItem(
-            title = "Campus Bookstore RM5 Discount",
-            cost = "150 Coins",
-            description = "Get RM5 off your next purchase at the campus bookstore. Applicable to stationery, textbooks, and merchandise."
-        )
-    )
+    var marketVouchers by remember { mutableStateOf<List<CampusVoucher>>(emptyList()) }
+    var userHeldCounts by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var selectedVoucher by remember { mutableStateOf<CampusVoucher?>(null) }
 
-    var selectedItem by remember { mutableStateOf<RewardItem?>(null) }
+    LaunchedEffect(currentUserId) {
+        try {
+            isLoading = true
+            withContext(Dispatchers.IO) {
+                val allVouchers = supabaseClient.from("campus_vouchers")
+                    .select()
+                    .decodeList<CampusVoucher>()
+
+                marketVouchers = allVouchers
+                    .distinctBy { it.title }
+                    .takeLast(3)
+
+                val userActiveVouchers = allVouchers.filter {
+                    it.redeemedBy == currentUserId && !it.isRedeemed
+                }
+                userHeldCounts = userActiveVouchers.groupingBy { it.title }.eachCount()
+            }
+        } catch (e: Exception) {
+            errorMessage = e.localizedMessage ?: "Failed to load vouchers"
+        } finally {
+            isLoading = false
+        }
+    }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = "Hot Rewards Market",
+            text = "Hot Campus Vouchers",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF2E7D32),
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items.forEach { item ->
-                RewardCard(
-                    item = item,
-                    onClick = { selectedItem = item }
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF2E7D32))
+                }
+            }
+            errorMessage != null -> {
+                Text(
+                    text = errorMessage ?: "Error loading data",
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
+            }
+            marketVouchers.isEmpty() -> {
+                Text(
+                    text = "No vouchers available at the moment.",
+                    color = Color.Gray,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+            else -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    marketVouchers.forEach { voucher ->
+                        val heldCount = userHeldCounts[voucher.title] ?: 0
+                        VoucherCard(
+                            voucher = voucher,
+                            heldCount = heldCount,
+                            onClick = { selectedVoucher = voucher }
+                        )
+                    }
+                }
             }
         }
     }
 
-    selectedItem?.let { item ->
-        RewardDetailDialog(
-            item = item,
-            onDismiss = { selectedItem = null },
+    selectedVoucher?.let { voucher ->
+        val heldCount = userHeldCounts[voucher.title] ?: 0
+        VoucherDetailDialog(
+            voucher = voucher,
+            heldCount = heldCount,
+            onDismiss = { selectedVoucher = null },
             onGoToRewards = {
-                selectedItem = null
+                selectedVoucher = null
                 onNavigateToRewards()
             }
         )
@@ -385,17 +462,23 @@ fun HotRewardsMarket(
 }
 
 @Composable
-fun RewardCard(
-    item: RewardItem,
+fun VoucherCard(
+    voucher: CampusVoucher,
+    heldCount: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isLimitReached = heldCount >= 3
+    val imageModel = resolveImageModel(voucher.imageUrl, R.drawable.img_placeholder_voucher)
+
     Card(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F8E9)),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isLimitReached) Color(0xFFF5F5F5) else Color(0xFFF1F8E9)
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -406,36 +489,64 @@ fun RewardCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(52.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0xFF2E7D32)),
+                    .background(Color(0xFFE8F5E9)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.CardGiftcard,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+                AsyncImage(
+                    model = imageModel,
+                    contentDescription = voucher.title,
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(R.drawable.img_placeholder_voucher),
+                    error = painterResource(R.drawable.img_placeholder_voucher),
+                    modifier = Modifier.fillMaxSize()
                 )
             }
 
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
+                if (voucher.merchantName.isNotBlank()) {
+                    Text(
+                        text = voucher.merchantName.uppercase(),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF6C757D)
+                    )
+                }
                 Text(
-                    text = item.title,
+                    text = voucher.title,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
-                    maxLines = 2
+                    maxLines = 1
                 )
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = item.cost,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF2E7D32)
-                )
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "${voucher.pointsCost} Coins",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF2E7D32)
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Surface(
+                        color = if (isLimitReached) Color(0xFFFFEBEE) else Color(0xFFE8F5E9),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Text(
+                            text = if (isLimitReached) "Limit Reached ($heldCount/3)" else "Held: $heldCount/3",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isLimitReached) Color(0xFFC62828) else Color(0xFF2E7D32),
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
             }
 
             Icon(
@@ -448,51 +559,128 @@ fun RewardCard(
 }
 
 @Composable
-fun RewardDetailDialog(
-    item: RewardItem,
+fun VoucherDetailDialog(
+    voucher: CampusVoucher,
+    heldCount: Int,
     onDismiss: () -> Unit,
     onGoToRewards: () -> Unit
 ) {
+    val isLimitReached = heldCount >= 3
+    val imageModel = resolveImageModel(voucher.imageUrl, R.drawable.img_placeholder_submission)
+
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Color.White,
         titleContentColor = Color(0xFF212529),
         textContentColor = Color(0xFF495057),
         title = {
-            Text(
-                text = item.title,
-                fontWeight = FontWeight.Bold
-            )
+            Column {
+                if (voucher.merchantName.isNotBlank()) {
+                    Text(
+                        text = voucher.merchantName,
+                        fontSize = 12.sp,
+                        color = Color(0xFF2E7D32),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                Text(
+                    text = voucher.title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            }
         },
         text = {
             Column {
-                Surface(
-                    color = Color(0xFFE8F5E9),
-                    shape = RoundedCornerShape(6.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xFFF1F3F5))
                 ) {
-                    Text(
-                        text = item.cost,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2E7D32),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    AsyncImage(
+                        model = imageModel,
+                        contentDescription = voucher.title,
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.img_placeholder_submission),
+                        error = painterResource(R.drawable.img_placeholder_submission),
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
+
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = item.description,
-                    fontSize = 13.sp,
-                    color = Color(0xFF495057),
-                    lineHeight = 19.sp
-                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
+                        color = Color(0xFFE8F5E9),
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text(
+                            text = "${voucher.pointsCost} Coins",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2E7D32),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
+
+                    Surface(
+                        color = if (isLimitReached) Color(0xFFFFEBEE) else Color(0xFFE3F2FD),
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text(
+                            text = "Holding: $heldCount/3",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isLimitReached) Color(0xFFC62828) else Color(0xFF1565C0),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+
+                if (isLimitReached) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Surface(
+                        color = Color(0xFFFFF3E0),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = Color(0xFFE65100),
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Holding limit reached! You can hold up to 3 active copies of this voucher at once.",
+                                fontSize = 11.sp,
+                                color = Color(0xFFE65100),
+                                lineHeight = 15.sp
+                            )
+                        }
+                    }
+                }
             }
         },
         confirmButton = {
             Button(
                 onClick = onGoToRewards,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+                enabled = !isLimitReached,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF2E7D32),
+                    disabledContainerColor = Color(0xFFBDBDBD)
+                )
             ) {
-                Text("Go to Rewards")
+                Text(if (isLimitReached) "Limit Reached" else "Go to Rewards")
             }
         },
         dismissButton = {

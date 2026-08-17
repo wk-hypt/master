@@ -43,6 +43,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.project1.data.SupabaseClientProvider
 import com.example.project1.ui.admin.home.AdminHomeView
 import com.example.project1.ui.admin.profile.AdminProfileView
 import com.example.project1.ui.admin.report.AdminReportView
@@ -249,7 +250,11 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 if (loggedInStudentId != studentId) {
                     loggedInStudentId = studentId
                 }
-                HomeView(navController = navController, studentId = studentId)
+                HomeView(
+                    navController = navController,
+                    studentId = studentId,
+                    supabaseClient = SupabaseClientProvider.client
+                )
             }
             composable(Screen.Task.route) {
                 TaskView(studentId = loggedInStudentId, onOpenLeaderboard = {

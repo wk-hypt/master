@@ -1,25 +1,20 @@
 package com.example.project1.ui.users.home
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.example.project1.Screen
 import com.example.project1.ui.AppViewModelProvider
+import io.github.jan.supabase.SupabaseClient
 
 @Composable
 fun HomeView(
     navController: NavHostController,
     studentId: String,
+    supabaseClient: SupabaseClient,
     viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     LaunchedEffect(studentId) {
@@ -35,6 +30,8 @@ fun HomeView(
 
     Column(modifier = Modifier.fillMaxSize()) {
         HomeFunct(
+            supabaseClient = supabaseClient,
+            currentUserId = studentId,
             currentPoints = currentPoints,
             totalPlasticSaved = totalPlasticSaved,
             banners = banners,
