@@ -118,6 +118,7 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        // No top system-bar padding: screen headers should reach the very top with no blank gap.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (showBottomBar) {
@@ -296,7 +297,7 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 AdminRewardsView()
             }
             composable(AdminScreen.Report.route) {
-                AdminReportView()
+                AdminReportView(adminId = loggedInAdminId)
             }
             composable(AdminScreen.Profile.route) {
                 AdminProfileView(

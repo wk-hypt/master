@@ -1,26 +1,29 @@
 package com.example.project1.ui.admin.report
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.EcoSubmissionEntity
+import com.example.project1.data.model.NewReport
+import com.example.project1.data.model.ReportEntity
 import com.example.project1.data.model.UserEntity
+import com.example.project1.data.repository.ReportRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.UserRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-/** A single labelled count, used for bar charts / breakdown lists. */
 data class ReportBarItem(
     val label: String,
     val count: Int
 )
 
-/** One day's submission volume, used for the weekly trend chart. */
 data class DayTrendItem(
     val dayLabel: String,
     val count: Int
@@ -45,8 +48,15 @@ data class ReportUiState(
 
 class AdminReportViewModel(
     submissionRepository: SubmissionRepository,
-    userRepository: UserRepository
+    userRepository: UserRepository,
+    private val reportRepository: ReportRepository
 ) : ViewModel() {
+
+    private var currentAdminId: String = ""
+
+    fun setCurrentAdmin(adminId: String) {
+        currentAdminId = adminId
+    }
 
     val reportUiState: StateFlow<ReportUiState> = combine(
         submissionRepository.getReportSubmissionsStream(),
@@ -58,6 +68,58 @@ class AdminReportViewModel(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = ReportUiState()
     )
+
+    val savedReports: StateFlow<List<ReportEntity>> =
+        reportRepository.getAllReportsStream()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+
+    fun saveCurrentReport(title: String, notes: String?) {
+        val snapshot = reportUiState.value
+        viewModelScope.launch {
+            try {
+                reportRepository.insertReport(
+                    NewReport(
+                        title = title,
+                        notes = notes,
+                        createdBy = currentAdminId,
+                        createdAt = System.currentTimeMillis(),
+                        totalSubmissions = snapshot.totalSubmissions,
+                        approvedCount = snapshot.approvedCount,
+                        pendingCount = snapshot.pendingCount,
+                        rejectedCount = snapshot.rejectedCount,
+                        totalPointsAwarded = snapshot.totalPointsAwarded,
+                        totalPlasticsSaved = snapshot.totalPlasticsSaved
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e("AdminReportViewModel", "Failed to save report: ${e.message}")
+            }
+        }
+    }
+
+    fun updateReport(report: ReportEntity, title: String, notes: String?) {
+        viewModelScope.launch {
+            try {
+                reportRepository.updateReport(report.id, title, notes)
+            } catch (e: Exception) {
+                Log.e("AdminReportViewModel", "Failed to update report #${report.id}: ${e.message}")
+            }
+        }
+    }
+
+    fun deleteReport(report: ReportEntity) {
+        viewModelScope.launch {
+            try {
+                reportRepository.deleteReport(report)
+            } catch (e: Exception) {
+                Log.e("AdminReportViewModel", "Failed to delete report #${report.id}: ${e.message}")
+            }
+        }
+    }
 
     private fun buildReportUiState(
         submissions: List<EcoSubmissionEntity>,

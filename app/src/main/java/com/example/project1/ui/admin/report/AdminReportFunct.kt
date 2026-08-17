@@ -10,15 +10,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.PendingActions
 import androidx.compose.material.icons.filled.Recycling
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,7 +33,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.project1.data.model.ReportEntity
 import com.example.project1.data.model.UserEntity
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private val BgColor = Color(0xFFF4F6F5)
 private val TextDark = Color(0xFF1B1F1C)
@@ -44,6 +52,10 @@ private val BlueAccent = Color(0xFF1565C0)
 @Composable
 fun AdminReportFunct(
     uiState: ReportUiState,
+    savedReports: List<ReportEntity> = emptyList(),
+    onSaveReportClick: () -> Unit = {},
+    onEditReportClick: (ReportEntity) -> Unit = {},
+    onDeleteReportClick: (ReportEntity) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -60,7 +72,7 @@ fun AdminReportFunct(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     item { Spacer(modifier = Modifier.height(4.dp)) }
-                    item { ReportHeader() }
+                    item { ReportHeader(onSaveReportClick = onSaveReportClick) }
                     item { ImpactHeroCard(uiState) }
                     item { KpiGrid(uiState) }
                     item { SubmissionStatusCard(uiState) }
@@ -80,6 +92,13 @@ fun AdminReportFunct(
                     }
                     if (uiState.topContributors.isNotEmpty()) {
                         item { TopContributorsCard(uiState.topContributors) }
+                    }
+                    item {
+                        SavedReportsCard(
+                            reports = savedReports,
+                            onEdit = onEditReportClick,
+                            onDelete = onDeleteReportClick
+                        )
                     }
                     item { Spacer(modifier = Modifier.height(8.dp)) }
                 }
@@ -117,7 +136,7 @@ private fun EmptyReportState() {
 }
 
 @Composable
-private fun ReportHeader() {
+private fun ReportHeader(onSaveReportClick: () -> Unit = {}) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -136,19 +155,46 @@ private fun ReportHeader() {
                 color = TextGrey
             )
         }
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(Color(0xFFE8F5E9)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Assessment,
-                contentDescription = null,
-                tint = PrimaryGreen,
-                modifier = Modifier.size(22.dp)
-            )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Surface(
+                onClick = onSaveReportClick,
+                shape = RoundedCornerShape(12.dp),
+                color = PrimaryGreen,
+                modifier = Modifier.padding(end = 10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Save,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Save Report",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFE8F5E9)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Assessment,
+                    contentDescription = null,
+                    tint = PrimaryGreen,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
         }
     }
 }
@@ -525,6 +571,93 @@ private fun ContributorRow(rank: Int, user: UserEntity) {
                 Icon(imageVector = Icons.Filled.Star, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(12.dp))
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(text = "${user.totalPoints}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = PrimaryGreen)
+            }
+        }
+    }
+}
+
+/**
+ * Saved report entity: Read (list), Update (edit icon) and Delete (delete icon) actions.
+ * Create happens via the "Save Report" button in [ReportHeader].
+ */
+@Composable
+private fun SavedReportsCard(
+    reports: List<ReportEntity>,
+    onEdit: (ReportEntity) -> Unit,
+    onDelete: (ReportEntity) -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White
+    ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(imageVector = Icons.Filled.Save, contentDescription = null, tint = BlueAccent, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(text = "Saved Reports", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                    Text(text = "Snapshots you've saved for record-keeping", fontSize = 12.sp, color = TextGrey)
+                }
+            }
+            Spacer(modifier = Modifier.height(14.dp))
+
+            if (reports.isEmpty()) {
+                Text(
+                    text = "No saved reports yet. Tap \"Save Report\" above to archive the current stats.",
+                    fontSize = 12.sp,
+                    color = TextGrey
+                )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    reports.forEach { report ->
+                        SavedReportRow(
+                            report = report,
+                            onEdit = { onEdit(report) },
+                            onDelete = { onDelete(report) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SavedReportRow(
+    report: ReportEntity,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
+    val dateFormat = remember { SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()) }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = BgColor
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = report.title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark, maxLines = 1)
+                Text(
+                    text = "${report.totalSubmissions} submissions · ${report.approvedCount} approved · ${dateFormat.format(Date(report.createdAt))}",
+                    fontSize = 11.sp,
+                    color = TextGrey,
+                    maxLines = 1
+                )
+                if (!report.notes.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(text = report.notes, fontSize = 11.sp, color = TextGrey2, maxLines = 2)
+                }
+            }
+            IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+                Icon(imageVector = Icons.Filled.Edit, contentDescription = "Edit report", tint = BlueAccent, modifier = Modifier.size(18.dp))
+            }
+            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete report", tint = RedRejected, modifier = Modifier.size(18.dp))
             }
         }
     }

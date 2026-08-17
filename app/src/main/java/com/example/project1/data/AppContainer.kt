@@ -7,11 +7,14 @@ import com.example.project1.data.repository.EcoAdsRepository
 import com.example.project1.data.repository.LeaderBoarduiRepository
 import com.example.project1.data.repository.LocalAppSettingsRepository
 import com.example.project1.data.repository.OfferRepository
+import com.example.project1.data.repository.ReportRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.SupabaseAdminRepository
+import com.example.project1.data.repository.LocalAppSettingsRepository
 import com.example.project1.data.repository.LocalEcoAdsRepository
 import com.example.project1.data.repository.SupabaseLeaderboardRepository
 import com.example.project1.data.repository.SupabaseOfferRepository
+import com.example.project1.data.repository.SupabaseReportRepository
 import com.example.project1.data.repository.SupabaseSubmissionRepository
 import com.example.project1.data.repository.SupabaseTaskRepository
 import com.example.project1.data.repository.SupabaseUserRepository
@@ -28,6 +31,7 @@ interface AppContainer {
     val userRepository: UserRepository
     val adminRepository: AdminRepository
     val leaderboarduiRepository: LeaderBoarduiRepository
+    val reportRepository: ReportRepository
     val settingsRepository: AppSettingsRepository
 }
 
@@ -67,6 +71,10 @@ class AppDataContainer(private val context: Context) : AppContainer {
 
     override val leaderboarduiRepository: LeaderBoarduiRepository by lazy{
         SupabaseLeaderboardRepository(postgrest) { loggedInStudentId }
+    }
+
+    override val reportRepository: ReportRepository by lazy {
+        SupabaseReportRepository(postgrest)
     }
 
     override val settingsRepository: AppSettingsRepository by lazy {
