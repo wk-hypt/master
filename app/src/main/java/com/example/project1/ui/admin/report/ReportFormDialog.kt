@@ -33,12 +33,6 @@ import com.example.project1.data.model.ReportEntity
 
 private val PrimaryGreen = Color(0xFF2E7D32)
 
-/**
- * Create/Edit form for a saved report.
- * When [existing] is null this is a "Save current report" (Create) action which
- * snapshots the live stats; when non-null only the title/notes are editable (Update),
- * the stat snapshot itself is left untouched to preserve historical accuracy.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportFormDialog(
