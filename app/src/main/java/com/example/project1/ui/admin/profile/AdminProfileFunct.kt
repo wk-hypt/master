@@ -1,5 +1,9 @@
 package com.example.project1.ui.admin.profile
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,35 +21,39 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.HourglassTop
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Support
-import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ManageAccounts
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -57,35 +65,55 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.project1.data.model.AdminEntity
+import com.example.project1.data.model.UserEntity
+import java.io.File
+
+/** Builds up to 2 initials from a display name, e.g. "Ken Lee" -> "KL". */
+private fun initialsOf(name: String): String {
+    val parts = name.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
+    return when {
+        parts.isEmpty() -> "?"
+        parts.size == 1 -> parts[0].take(1).uppercase()
+        else -> (parts.first().take(1) + parts.last().take(1)).uppercase()
+    }
+}
 
 private val PrimaryGreen = Color(0xFF2E7D32)
 private val DarkGreen = Color(0xFF1B5E20)
 private val PageBg = Color(0xFFF4F6F5)
 private val SoftGreen = Color(0xFFE8F5E9)
 
-private enum class AdminProfilePage { Hub, Info, StaffDirectory, Preferences, Support, Faq, Contact, About }
+private enum class AdminProfilePage { Hub, Info, StaffDirectory, UserManagement }
 
 @Composable
 fun AdminProfileFunct(
     admin: AdminEntity?,
-    darkModeEnabled: Boolean = false,
-    notificationsEnabled: Boolean = true,
+    profilePhotoPath: String? = null,
     pendingSubmissionsCount: Int = 0,
     pendingTasksCount: Int = 0,
     totalStudents: Int = 0,
     staffDirectory: List<AdminEntity> = emptyList(),
     staffDirectoryLoading: Boolean = false,
+    allUsers: List<UserEntity> = emptyList(),
+    verificationCode: String? = null,
     onOpenStaffDirectory: () -> Unit = {},
     onSaveStaffInfo: (name: String, faculty: String) -> Unit,
-    onChangePassword: (current: String, newPassword: String, confirm: String) -> Unit,
-    onToggleDarkMode: (Boolean) -> Unit = {},
-    onToggleNotifications: (Boolean) -> Unit = {},
+    onRequestPasswordChange: (current: String, newPassword: String, confirm: String) -> Unit,
+    onResendVerificationCode: () -> Unit = {},
+    onConfirmPasswordChange: (code: String) -> Unit,
+    onCancelPasswordChange: () -> Unit = {},
+    onDeleteUser: (studentId: String) -> Unit = {},
+    onProfilePhotoPicked: (Uri) -> Unit = {},
+    onRemoveProfilePhoto: () -> Unit = {},
     onLogout: () -> Unit,
     snackbarHost: @Composable () -> Unit = {},
     modifier: Modifier = Modifier
@@ -109,6 +137,7 @@ fun AdminProfileFunct(
                     displayName = displayName,
                     adminId = adminId,
                     faculty = faculty,
+                    profilePhotoPath = profilePhotoPath,
                     pendingSubmissionsCount = pendingSubmissionsCount,
                     pendingTasksCount = pendingTasksCount,
                     totalStudents = totalStudents,
@@ -118,8 +147,9 @@ fun AdminProfileFunct(
                         onOpenStaffDirectory()
                         page = AdminProfilePage.StaffDirectory
                     },
-                    onOpenPreferences = { page = AdminProfilePage.Preferences },
-                    onOpenSupport = { page = AdminProfilePage.Support },
+                    onOpenUserManagement = { page = AdminProfilePage.UserManagement },
+                    onProfilePhotoPicked = onProfilePhotoPicked,
+                    onRemoveProfilePhoto = onRemoveProfilePhoto,
                     onLogout = { showLogoutConfirm = true }
                 )
                 AdminProfilePage.Info -> AdminInfoPage(
@@ -131,49 +161,13 @@ fun AdminProfileFunct(
                     currentAdminId = adminId,
                     staff = staffDirectory,
                     loading = staffDirectoryLoading,
-                    onBack = { page = AdminProfilePage.Hub }
-                )
-                AdminProfilePage.Preferences -> AdminPreferencesPage(
-                    darkModeEnabled = darkModeEnabled,
-                    notificationsEnabled = notificationsEnabled,
-                    onToggleDarkMode = onToggleDarkMode,
-                    onToggleNotifications = onToggleNotifications,
-                    onBack = { page = AdminProfilePage.Hub }
-                )
-                AdminProfilePage.Support -> AdminSupportMenu(
                     onBack = { page = AdminProfilePage.Hub },
-                    onFaq = { page = AdminProfilePage.Faq },
-                    onContact = { page = AdminProfilePage.Contact },
-                    onAbout = { page = AdminProfilePage.About }
+                    onRefresh = onOpenStaffDirectory
                 )
-                AdminProfilePage.Faq -> AdminTextPage(
-                    title = "FAQ",
-                    onBack = { page = AdminProfilePage.Support },
-                    blocks = listOf(
-                        "How do I approve student submissions?" to
-                                "Open the Approval tab, review the photo and details, then award points or reject with feedback.",
-                        "Where can I add campus vouchers?" to
-                                "Use the Rewards tab to create, edit, or remove vouchers in the campus catalog.",
-                        "Where are campus stats?" to
-                                "The Report tab shows submission volume, approval rate, and top contributors."
-                    )
-                )
-                AdminProfilePage.Contact -> AdminTextPage(
-                    title = "Contact Us",
-                    onBack = { page = AdminProfilePage.Support },
-                    blocks = listOf(
-                        "Email" to "ecoapp.support@tarumt.edu.my",
-                        "Office Hours" to "Monday - Friday, 9:00 AM - 5:00 PM",
-                        "Location" to "TAR UMT Kuala Lumpur campus"
-                    )
-                )
-                AdminProfilePage.About -> AdminTextPage(
-                    title = "About Us",
-                    onBack = { page = AdminProfilePage.Support },
-                    blocks = listOf(
-                        "ECO TARUMT Staff Desk" to
-                                "Staff tools for verifying eco actions, managing campus rewards, and tracking SDG 12 impact across TAR UMT."
-                    )
+                AdminProfilePage.UserManagement -> UserManagementPage(
+                    users = allUsers,
+                    onBack = { page = AdminProfilePage.Hub },
+                    onDeleteUser = onDeleteUser
                 )
             }
         }
@@ -181,9 +175,15 @@ fun AdminProfileFunct(
 
     if (showPasswordDialog) {
         AdminPasswordDialog(
-            onDismiss = { showPasswordDialog = false },
-            onConfirm = { current, next, confirm ->
-                onChangePassword(current, next, confirm)
+            verificationCode = verificationCode,
+            onDismiss = {
+                showPasswordDialog = false
+                onCancelPasswordChange()
+            },
+            onSubmitCredentials = onRequestPasswordChange,
+            onResendCode = onResendVerificationCode,
+            onConfirmCode = { code ->
+                onConfirmPasswordChange(code)
                 showPasswordDialog = false
             }
         )
@@ -214,17 +214,23 @@ fun AdminProfileFunct(
 private fun AdminHubPage(
     displayName: String,
     adminId: String,
-    faculty: String,//
+    faculty: String,
+    profilePhotoPath: String?,
     pendingSubmissionsCount: Int,
     pendingTasksCount: Int,
     totalStudents: Int,
     onOpenInfo: () -> Unit,
     onChangePassword: () -> Unit,
     onOpenStaffDirectory: () -> Unit,
-    onOpenPreferences: () -> Unit,
-    onOpenSupport: () -> Unit,
+    onOpenUserManagement: () -> Unit,
+    onProfilePhotoPicked: (Uri) -> Unit,
+    onRemoveProfilePhoto: () -> Unit,
     onLogout: () -> Unit
 ) {
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri -> uri?.let(onProfilePhotoPicked) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -257,24 +263,77 @@ private fun AdminHubPage(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(SoftGreen),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.size(56.dp),
+                    contentAlignment = Alignment.BottomEnd
                 ) {
-                    Icon(Icons.Default.Badge, contentDescription = null, tint = PrimaryGreen)
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(SoftGreen)
+                            .clickable {
+                                photoPickerLauncher.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (profilePhotoPath != null) {
+                            AsyncImage(
+                                model = File(profilePhotoPath),
+                                contentDescription = "Profile photo",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize().clip(CircleShape)
+                            )
+                        } else {
+                            Text(
+                                initialsOf(displayName),
+                                color = DarkGreen,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp
+                            )
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clip(CircleShape)
+                            .background(PrimaryGreen)
+                            .clickable {
+                                photoPickerLauncher.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.CameraAlt,
+                            contentDescription = "Change profile photo",
+                            tint = Color.White,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.width(14.dp))
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(displayName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1B1F1C))
                     Text(adminId, fontSize = 13.sp, color = Color(0xFF6B7280))
                     Text(
-                        "Campus Admin · ${faculty.ifBlank { "Staff" }}",
+                        "Campus Admin \u00b7 ${faculty.ifBlank { "Staff" }}",
                         fontSize = 12.sp,
                         color = PrimaryGreen,
                         fontWeight = FontWeight.Medium
                     )
+                    if (profilePhotoPath != null) {
+                        Text(
+                            "Remove photo",
+                            fontSize = 11.sp,
+                            color = Color(0xFF9E9E9E),
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .clickable(onClick = onRemoveProfilePhoto)
+                        )
+                    }
                 }
             }
         }
@@ -319,8 +378,7 @@ private fun AdminHubPage(
                 AdminMenuRow("STAFF INFO", Icons.Default.Badge, onOpenInfo)
                 AdminMenuRow("CHANGE PASSWORD", Icons.Default.Lock, onChangePassword)
                 AdminMenuRow("STAFF DIRECTORY", Icons.Default.Group, onOpenStaffDirectory)
-                AdminMenuRow("PREFERENCES", Icons.Default.Tune, onOpenPreferences)
-                AdminMenuRow("SUPPORT", Icons.Default.Support, onOpenSupport)
+                AdminMenuRow("USER MANAGEMENT", Icons.Default.ManageAccounts, onOpenUserManagement)
                 AdminMenuRow("LOG OUT", Icons.AutoMirrored.Filled.Logout, onLogout, tint = Color(0xFFC62828))
             }
         }
@@ -359,8 +417,14 @@ private fun AdminInfoPage(
     onBack: () -> Unit,
     onSave: (name: String, faculty: String) -> Unit
 ) {
-    var name by remember(admin?.adminId, admin?.name) { mutableStateOf(admin?.name.orEmpty()) }
-    var faculty by remember(admin?.adminId, admin?.faculty) { mutableStateOf(admin?.faculty.orEmpty()) }
+    val originalName = admin?.name.orEmpty()
+    val originalFaculty = admin?.faculty.orEmpty()
+    var name by remember(admin?.adminId, originalName) { mutableStateOf(originalName) }
+    var faculty by remember(admin?.adminId, originalFaculty) { mutableStateOf(originalFaculty) }
+
+    val isNameBlank = name.isBlank()
+    val hasChanges = name != originalName || faculty != originalFaculty
+    val canSave = hasChanges && !isNameBlank
 
     Column(
         modifier = Modifier
@@ -388,6 +452,10 @@ private fun AdminInfoPage(
             onValueChange = { name = it },
             label = { Text("Name") },
             singleLine = true,
+            isError = isNameBlank,
+            supportingText = {
+                if (isNameBlank) Text("Name cannot be empty", color = Color(0xFFC62828))
+            },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -396,16 +464,32 @@ private fun AdminInfoPage(
             onValueChange = { faculty = it },
             label = { Text("Faculty") },
             singleLine = true,
+            supportingText = { Text("Defaults to \"FOCS\" if left blank") },
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(
-            onClick = { onSave(name, faculty) },
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth().height(48.dp)
-        ) {
-            Text("Save changes")
+        Spacer(modifier = Modifier.height(20.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (hasChanges) {
+                OutlinedButton(
+                    onClick = {
+                        name = originalName
+                        faculty = originalFaculty
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f).height(48.dp)
+                ) {
+                    Text("Discard")
+                }
+            }
+            Button(
+                onClick = { onSave(name.trim(), faculty.trim()) },
+                enabled = canSave,
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.weight(1f).height(48.dp)
+            ) {
+                Text(if (hasChanges) "Save changes" else "No changes")
+            }
         }
     }
 }
@@ -415,8 +499,23 @@ private fun StaffDirectoryPage(
     currentAdminId: String,
     staff: List<AdminEntity>,
     loading: Boolean,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onRefresh: () -> Unit = {}
 ) {
+    var query by remember { mutableStateOf("") }
+
+    val filteredStaff = remember(staff, query) {
+        if (query.isBlank()) {
+            staff
+        } else {
+            staff.filter {
+                it.name.contains(query, ignoreCase = true) ||
+                        it.adminId.contains(query, ignoreCase = true) ||
+                        it.faculty.contains(query, ignoreCase = true)
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -426,13 +525,25 @@ private fun StaffDirectoryPage(
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = PrimaryGreen)
             }
-            Text("Staff Directory", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text("Staff Directory", fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            IconButton(onClick = onRefresh, enabled = !loading) {
+                Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = PrimaryGreen)
+            }
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            "All campus admins with access to the staff desk",
+            "${staff.size} campus admin${if (staff.size == 1) "" else "s"} with access to the staff desk",
             fontSize = 12.sp,
             color = Color(0xFF6B7280)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            singleLine = true,
+            placeholder = { Text("Search by name, ID or faculty") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -442,13 +553,181 @@ private fun StaffDirectoryPage(
             }
         } else if (staff.isEmpty()) {
             Text("No staff records found.", fontSize = 13.sp, color = Color(0xFF6B7280))
+        } else if (filteredStaff.isEmpty()) {
+            Text("No staff match your search.", fontSize = 13.sp, color = Color(0xFF6B7280))
         } else {
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                staff.forEach { colleague ->
+                filteredStaff.forEach { colleague ->
                     val isYou = colleague.adminId == currentAdminId
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isYou) SoftGreen else Color.White
+                        ),
+                        elevation = CardDefaults.cardElevation(1.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp).fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isYou) Color.White else SoftGreen),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    initialsOf(colleague.name),
+                                    color = DarkGreen,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    colleague.name + if (isYou) " (You)" else "",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF1B1F1C)
+                                )
+                                Text(
+                                    "${colleague.adminId} \u00b7 ${colleague.faculty.ifBlank { "Staff" }}",
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF6B7280)
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
+    }
+}
+
+private enum class UserSort(val label: String) {
+    NameAsc("Name (A\u2013Z)"),
+    PointsDesc("Points (high\u2013low)"),
+    PlasticsDesc("Plastics saved (high\u2013low)")
+}
+
+@Composable
+private fun UserManagementPage(
+    users: List<UserEntity>,
+    onBack: () -> Unit,
+    onDeleteUser: (studentId: String) -> Unit
+) {
+    var query by remember { mutableStateOf("") }
+    var pendingDelete by remember { mutableStateOf<UserEntity?>(null) }
+    var sort by remember { mutableStateOf(UserSort.NameAsc) }
+    var sortMenuOpen by remember { mutableStateOf(false) }
+
+    val filteredUsers = remember(users, query, sort) {
+        val base = if (query.isBlank()) {
+            users
+        } else {
+            users.filter {
+                it.name.contains(query, ignoreCase = true) ||
+                        it.studentId.contains(query, ignoreCase = true) ||
+                        it.faculty.contains(query, ignoreCase = true)
+            }
+        }
+        when (sort) {
+            UserSort.NameAsc -> base.sortedBy { it.name.ifBlank { it.studentId }.lowercase() }
+            UserSort.PointsDesc -> base.sortedByDescending { it.totalPoints }
+            UserSort.PlasticsDesc -> base.sortedByDescending { it.plasticsSaved }
+        }
+    }
+
+    val totalPoints = remember(users) { users.sumOf { it.totalPoints } }
+    val totalPlastics = remember(users) { users.sumOf { it.plasticsSaved } }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = PrimaryGreen)
+            }
+            Text("User Management", fontSize = 22.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Box {
+                IconButton(onClick = { sortMenuOpen = true }) {
+                    Icon(Icons.Default.Sort, contentDescription = "Sort students", tint = PrimaryGreen)
+                }
+                DropdownMenu(expanded = sortMenuOpen, onDismissRequest = { sortMenuOpen = false }) {
+                    UserSort.entries.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option.label) },
+                            leadingIcon = {
+                                if (option == sort) {
+                                    Icon(Icons.Default.Check, contentDescription = null, tint = PrimaryGreen)
+                                }
+                            },
+                            onClick = {
+                                sort = option
+                                sortMenuOpen = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            "${users.size} registered student${if (users.size == 1) "" else "s"}",
+            fontSize = 12.sp,
+            color = Color(0xFF6B7280)
+        )
+
+        if (users.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                AdminStatChip(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.Assignment,
+                    label = "Total Points",
+                    value = totalPoints.toString()
+                )
+                AdminStatChip(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.Groups,
+                    label = "Plastics Saved",
+                    value = totalPlastics.toString()
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            singleLine = true,
+            placeholder = { Text("Search by name, ID or faculty") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (filteredUsers.isEmpty()) {
+            Text(
+                if (users.isEmpty()) "No student accounts found." else "No students match your search.",
+                fontSize = 13.sp,
+                color = Color(0xFF6B7280)
+            )
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                filteredUsers.forEach { student ->
                     Card(
                         shape = RoundedCornerShape(14.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -465,21 +744,34 @@ private fun StaffDirectoryPage(
                                     .background(SoftGreen),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.Badge, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                                Text(
+                                    initialsOf(student.name.ifBlank { student.studentId }),
+                                    color = DarkGreen,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    colleague.name + if (isYou) " (You)" else "",
+                                    student.name.ifBlank { "Unnamed student" },
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
                                     color = Color(0xFF1B1F1C)
                                 )
                                 Text(
-                                    "${colleague.adminId} · ${colleague.faculty.ifBlank { "Staff" }}",
+                                    "${student.studentId} \u00b7 ${student.faculty.ifBlank { "Student" }}",
                                     fontSize = 12.sp,
                                     color = Color(0xFF6B7280)
                                 )
+                                Text(
+                                    "${student.totalPoints} pts \u00b7 ${student.plasticsSaved} plastics saved",
+                                    fontSize = 11.sp,
+                                    color = PrimaryGreen
+                                )
+                            }
+                            IconButton(onClick = { pendingDelete = student }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Remove student", tint = Color(0xFFC62828))
                             }
                         }
                     }
@@ -488,145 +780,28 @@ private fun StaffDirectoryPage(
             }
         }
     }
-}
 
-@Composable
-private fun AdminPreferencesPage(
-    darkModeEnabled: Boolean,
-    notificationsEnabled: Boolean,
-    onToggleDarkMode: (Boolean) -> Unit,
-    onToggleNotifications: (Boolean) -> Unit,
-    onBack: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 20.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = PrimaryGreen)
+    val toDelete = pendingDelete
+    if (toDelete != null) {
+        AlertDialog(
+            onDismissRequest = { pendingDelete = null },
+            title = { Text("Remove student account", fontWeight = FontWeight.Bold) },
+            text = {
+                Text("This will permanently remove ${toDelete.name.ifBlank { toDelete.studentId }}'s account. This action cannot be undone.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDeleteUser(toDelete.studentId)
+                        pendingDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC62828))
+                ) { Text("Remove") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }
             }
-            Text("Preferences", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Card(
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
-        ) {
-            Column {
-                AdminToggleRow(
-                    label = "Dark Mode",
-                    icon = Icons.Default.DarkMode,
-                    checked = darkModeEnabled,
-                    onCheckedChange = onToggleDarkMode
-                )
-                AdminToggleRow(
-                    label = "Notifications",
-                    icon = Icons.Default.Notifications,
-                    checked = notificationsEnabled,
-                    onCheckedChange = onToggleNotifications
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AdminToggleRow(
-    label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF2C2C2C))
-        }
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(checkedTrackColor = PrimaryGreen)
         )
-    }
-}
-
-@Composable
-private fun AdminSupportMenu(
-    onBack: () -> Unit,
-    onFaq: () -> Unit,
-    onContact: () -> Unit,
-    onAbout: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 20.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = PrimaryGreen)
-            }
-            Text("Support", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Card(
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
-        ) {
-            Column {
-                AdminMenuRow("FAQ", Icons.Default.Info, onFaq)
-                AdminMenuRow("CONTACT US", Icons.Default.Support, onContact)
-                AdminMenuRow("ABOUT US", Icons.Default.Info, onAbout)
-            }
-        }
-    }
-}
-
-@Composable
-private fun AdminTextPage(
-    title: String,
-    onBack: () -> Unit,
-    blocks: List<Pair<String, String>>
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 20.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = PrimaryGreen)
-            }
-            Text(title, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        Card(
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                blocks.forEach { (heading, body) ->
-                    Text(heading, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(body, fontSize = 13.sp, color = Color(0xFF495057), lineHeight = 19.sp)
-                    Spacer(modifier = Modifier.height(14.dp))
-                }
-            }
-        }
     }
 }
 
@@ -656,52 +831,148 @@ private fun AdminMenuRow(
     }
 }
 
+/**
+ * Two-step ("double security") change-password dialog.
+ * Step 1: the admin must confirm their current password and choose a new one.
+ * Step 2: a one-time verification code is generated on-device and the admin must
+ * re-enter it before the new password is actually saved — so a single compromised
+ * password field isn't enough to change the account's credentials.
+ */
 @Composable
 private fun AdminPasswordDialog(
+    verificationCode: String?,
     onDismiss: () -> Unit,
-    onConfirm: (current: String, newPassword: String, confirm: String) -> Unit
+    onSubmitCredentials: (current: String, newPassword: String, confirm: String) -> Unit,
+    onResendCode: () -> Unit,
+    onConfirmCode: (code: String) -> Unit
 ) {
     var current by remember { mutableStateOf("") }
     var next by remember { mutableStateOf("") }
     var confirm by remember { mutableStateOf("") }
+    var enteredCode by remember { mutableStateOf("") }
+
+    val awaitingVerification = verificationCode != null
+    val newPasswordTooShort = next.isNotEmpty() && next.length < 4
+    val passwordsMismatch = confirm.isNotEmpty() && next != confirm
+    val canSubmitCredentials = current.isNotBlank() && next.isNotBlank() &&
+            next.length >= 4 && next == confirm
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Change password", fontWeight = FontWeight.Bold) },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Shield, contentDescription = null, tint = PrimaryGreen)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    if (awaitingVerification) "Verify it's you" else "Change password",
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = current,
-                    onValueChange = { current = it },
-                    label = { Text("Current password") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = next,
-                    onValueChange = { next = it },
-                    label = { Text("New password") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = confirm,
-                    onValueChange = { confirm = it },
-                    label = { Text("Confirm new password") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
-                )
+            if (!awaitingVerification) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Step 1 of 2 \u2014 confirm your current password and choose a new one.",
+                        fontSize = 12.sp,
+                        color = Color(0xFF6B7280)
+                    )
+                    OutlinedTextField(
+                        value = current,
+                        onValueChange = { current = it },
+                        label = { Text("Current password") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = next,
+                        onValueChange = { next = it },
+                        label = { Text("New password") },
+                        singleLine = true,
+                        isError = newPasswordTooShort,
+                        supportingText = {
+                            if (newPasswordTooShort) {
+                                Text("Must be at least 4 characters", color = Color(0xFFC62828))
+                            }
+                        },
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = confirm,
+                        onValueChange = { confirm = it },
+                        label = { Text("Confirm new password") },
+                        singleLine = true,
+                        isError = passwordsMismatch,
+                        supportingText = {
+                            if (passwordsMismatch) Text("Passwords do not match", color = Color(0xFFC62828))
+                        },
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Step 2 of 2 \u2014 for extra security, enter the verification code below to finish changing your password.",
+                        fontSize = 12.sp,
+                        color = Color(0xFF6B7280)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(SoftGreen)
+                            .padding(vertical = 14.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            verificationCode.orEmpty(),
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = DarkGreen
+                        )
+                    }
+                    OutlinedTextField(
+                        value = enteredCode,
+                        onValueChange = { enteredCode = it },
+                        label = { Text("Enter verification code") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        "Didn't get it? Generate a new code.",
+                        fontSize = 12.sp,
+                        color = PrimaryGreen,
+                        modifier = Modifier.clickable {
+                            enteredCode = ""
+                            onResendCode()
+                        }
+                    )
+                }
             }
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(current, next, confirm) },
+                onClick = {
+                    if (!awaitingVerification) {
+                        onSubmitCredentials(current, next, confirm)
+                    } else {
+                        onConfirmCode(enteredCode)
+                        current = ""; next = ""; confirm = ""; enteredCode = ""
+                    }
+                },
+                enabled = if (!awaitingVerification) canSubmitCredentials else enteredCode.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
-            ) { Text("Save") }
+            ) { Text(if (awaitingVerification) "Confirm" else "Continue") }
         },
-        dismissButton = { OutlinedButton(onClick = onDismiss) { Text("Cancel") } }
+        dismissButton = {
+            OutlinedButton(onClick = {
+                current = ""; next = ""; confirm = ""; enteredCode = ""
+                onDismiss()
+            }) { Text("Cancel") }
+        }
     )
 }

@@ -10,7 +10,6 @@ import com.example.project1.data.repository.OfferRepository
 import com.example.project1.data.repository.ReportRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.SupabaseAdminRepository
-import com.example.project1.data.repository.LocalAppSettingsRepository
 import com.example.project1.data.repository.LocalEcoAdsRepository
 import com.example.project1.data.repository.SupabaseLeaderboardRepository
 import com.example.project1.data.repository.SupabaseOfferRepository

@@ -1,9 +1,11 @@
 package com.example.project1.ui.admin.profile
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.AdminEntity
+import com.example.project1.data.model.UserEntity
 import com.example.project1.data.repository.AdminRepository
 import com.example.project1.data.repository.AppSettingsRepository
 import com.example.project1.data.repository.SubmissionRepository
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AdminProfileViewModel(
@@ -27,13 +30,14 @@ class AdminProfileViewModel(
     private val settingsRepository: AppSettingsRepository,
     submissionRepository: SubmissionRepository,
     taskRepository: TaskRepository,
-    userRepository: UserRepository
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _adminId = MutableStateFlow("")
 
     fun setCurrentAdmin(id: String) {
         _adminId.value = id
+        _profilePhotoPath.value = settingsRepository.getProfilePhotoPath(id)
     }
 
     val admin: StateFlow<AdminEntity?> = _adminId
@@ -53,12 +57,27 @@ class AdminProfileViewModel(
         _message.value = null
     }
 
-    // App-wide preferences (device-local)
-    val darkModeEnabled: StateFlow<Boolean> = settingsRepository.darkModeEnabled
-    val notificationsEnabled: StateFlow<Boolean> = settingsRepository.notificationsEnabled
+    // Profile picture (device-local, per admin account)
+    private val _profilePhotoPath = MutableStateFlow<String?>(null)
+    val profilePhotoPath: StateFlow<String?> = _profilePhotoPath.asStateFlow()
 
-    fun setDarkMode(enabled: Boolean) = settingsRepository.setDarkMode(enabled)
-    fun setNotifications(enabled: Boolean) = settingsRepository.setNotifications(enabled)
+    fun setProfilePhoto(uri: Uri) {
+        val id = _adminId.value
+        if (id.isBlank()) return
+        val savedPath = settingsRepository.saveProfilePhoto(id, uri)
+        if (savedPath != null) {
+            _profilePhotoPath.value = savedPath
+        } else {
+            _message.value = "Could not save profile photo"
+        }
+    }
+
+    fun removeProfilePhoto() {
+        val id = _adminId.value
+        if (id.isBlank()) return
+        settingsRepository.clearProfilePhoto(id)
+        _profilePhotoPath.value = null
+    }
 
     // Quick campus stats surfaced on the staff hub.
     val pendingSubmissionsCount: StateFlow<Int> = submissionRepository.getAllPendingSubmissionsStream()
@@ -103,6 +122,92 @@ class AdminProfileViewModel(
         }
     }
 
+    // ---- User management (students) ----
+    val allUsers: StateFlow<List<UserEntity>> = userRepository.getAllUsersStream()
+        .catch { e ->
+            Log.e("AdminProfileViewModel", "Error streaming users: ${e.message}")
+            emit(emptyList())
+        }
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = emptyList())
+
+    fun deleteUser(studentId: String) = viewModelScope.launch {
+        try {
+            userRepository.deleteUser(studentId)
+            _message.value = "Student account removed"
+        } catch (e: Exception) {
+            _message.value = e.message ?: "Could not remove student"
+        }
+    }
+
+    // ---- Change password: two-step / double security ----
+    // Step 1 verifies the current password. Step 2 requires re-entering a freshly
+    // generated verification code before the new password is actually written,
+    // so a single leaked/guessed password isn't enough on its own.
+    private val _verificationCode = MutableStateFlow<String?>(null)
+    val verificationCode: StateFlow<String?> = _verificationCode.asStateFlow()
+
+    private var pendingNewPassword: String? = null
+
+    fun requestPasswordChange(current: String, newPassword: String, confirm: String) = viewModelScope.launch {
+        val id = _adminId.value
+        val existing = admin.value ?: adminRepository.getAdminById(id)
+        when {
+            existing == null -> _message.value = "Could not verify your account"
+            current.isBlank() || newPassword.isBlank() -> {
+                _message.value = "Please fill in all password fields"
+            }
+            current != existing.password -> {
+                _message.value = "Current password is incorrect"
+            }
+            newPassword.length < 4 -> {
+                _message.value = "New password must be at least 4 characters"
+            }
+            newPassword != confirm -> {
+                _message.value = "New passwords do not match"
+            }
+            else -> {
+                pendingNewPassword = newPassword
+                _verificationCode.value = generateVerificationCode()
+            }
+        }
+    }
+
+    fun regenerateVerificationCode() {
+        if (pendingNewPassword != null) {
+            _verificationCode.value = generateVerificationCode()
+        }
+    }
+
+    fun confirmPasswordChange(enteredCode: String) = viewModelScope.launch {
+        val id = _adminId.value
+        val newPassword = pendingNewPassword
+        val expectedCode = _verificationCode.value
+        if (newPassword == null || expectedCode == null) {
+            _message.value = "Start the password change again"
+            return@launch
+        }
+        if (enteredCode.trim() != expectedCode) {
+            _message.value = "Verification code is incorrect"
+            return@launch
+        }
+        try {
+            adminRepository.updatePassword(id, newPassword)
+            _message.value = "Password updated"
+        } catch (e: Exception) {
+            _message.value = e.message ?: "Could not update password"
+        } finally {
+            cancelPasswordChange()
+        }
+    }
+
+    fun cancelPasswordChange() {
+        pendingNewPassword = null
+        _verificationCode.value = null
+    }
+
+    private fun generateVerificationCode(): String =
+        Random.nextInt(0, 1_000_000).toString().padStart(6, '0')
+
     fun saveStaffInfo(name: String, faculty: String) = viewModelScope.launch {
         val id = _adminId.value
         if (id.isBlank()) return@launch
@@ -119,33 +224,6 @@ class AdminProfileViewModel(
             _message.value = "Staff profile saved"
         } catch (e: Exception) {
             _message.value = e.message ?: "Could not save profile"
-        }
-    }
-
-    fun changePassword(current: String, newPassword: String, confirm: String) = viewModelScope.launch {
-        val id = _adminId.value
-        val existing = admin.value ?: adminRepository.getAdminById(id) ?: return@launch
-        when {
-            current.isBlank() || newPassword.isBlank() -> {
-                _message.value = "Please fill in all password fields"
-            }
-            current != existing.password -> {
-                _message.value = "Current password is incorrect"
-            }
-            newPassword.length < 4 -> {
-                _message.value = "New password must be at least 4 characters"
-            }
-            newPassword != confirm -> {
-                _message.value = "New passwords do not match"
-            }
-            else -> {
-                try {
-                    adminRepository.updatePassword(id, newPassword)
-                    _message.value = "Password updated"
-                } catch (e: Exception) {
-                    _message.value = e.message ?: "Could not update password"
-                }
-            }
         }
     }
 }

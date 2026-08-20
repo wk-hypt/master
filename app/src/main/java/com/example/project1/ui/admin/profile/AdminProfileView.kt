@@ -13,7 +13,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project1.ui.AppViewModelProvider
 
 @Composable
-fun AdminProfileView(//
+fun AdminProfileView(
     adminId: String,
     onLogout: () -> Unit,
     viewModel: AdminProfileViewModel = viewModel(factory = AppViewModelProvider.Factory)
@@ -24,13 +24,14 @@ fun AdminProfileView(//
 
     val admin by viewModel.admin.collectAsState()
     val message by viewModel.message.collectAsState()
-    val darkModeEnabled by viewModel.darkModeEnabled.collectAsState()
-    val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
+    val profilePhotoPath by viewModel.profilePhotoPath.collectAsState()
     val pendingSubmissionsCount by viewModel.pendingSubmissionsCount.collectAsState()
     val pendingTasksCount by viewModel.pendingTasksCount.collectAsState()
     val totalStudents by viewModel.totalStudents.collectAsState()
     val staffDirectory by viewModel.staffDirectory.collectAsState()
     val staffDirectoryLoading by viewModel.staffDirectoryLoading.collectAsState()
+    val allUsers by viewModel.allUsers.collectAsState()
+    val verificationCode by viewModel.verificationCode.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(message) {
@@ -41,18 +42,23 @@ fun AdminProfileView(//
 
     AdminProfileFunct(
         admin = admin,
-        darkModeEnabled = darkModeEnabled,
-        notificationsEnabled = notificationsEnabled,
+        profilePhotoPath = profilePhotoPath,
         pendingSubmissionsCount = pendingSubmissionsCount,
         pendingTasksCount = pendingTasksCount,
         totalStudents = totalStudents,
         staffDirectory = staffDirectory,
         staffDirectoryLoading = staffDirectoryLoading,
+        allUsers = allUsers,
+        verificationCode = verificationCode,
         onOpenStaffDirectory = viewModel::loadStaffDirectory,
         onSaveStaffInfo = viewModel::saveStaffInfo,
-        onChangePassword = viewModel::changePassword,
-        onToggleDarkMode = viewModel::setDarkMode,
-        onToggleNotifications = viewModel::setNotifications,
+        onRequestPasswordChange = viewModel::requestPasswordChange,
+        onResendVerificationCode = viewModel::regenerateVerificationCode,
+        onConfirmPasswordChange = viewModel::confirmPasswordChange,
+        onCancelPasswordChange = viewModel::cancelPasswordChange,
+        onDeleteUser = viewModel::deleteUser,
+        onProfilePhotoPicked = viewModel::setProfilePhoto,
+        onRemoveProfilePhoto = viewModel::removeProfilePhoto,
         onLogout = onLogout,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = Modifier.fillMaxSize()
