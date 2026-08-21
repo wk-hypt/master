@@ -2,6 +2,7 @@ package com.example.project1.data.repository
 
 import com.example.project1.data.model.NewVoucher
 import com.example.project1.data.model.VoucherEntity
+import com.example.project1.data.model.VoucherRules
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.storage.Storage
@@ -73,6 +74,18 @@ class SupabaseOfferRepository(
         val currentVoucher = postgrest.from("campus_vouchers")
             .select { filter { eq("id", voucherId) } }
             .decodeSingle<VoucherEntity>()
+
+        val heldOfType = postgrest.from("campus_vouchers").select {
+            filter {
+                eq("redeemed_by", studentId)
+                eq("is_redeemed", false)
+                eq("title", currentVoucher.title)
+            }
+        }.decodeList<VoucherEntity>()
+
+        if (heldOfType.size >= VoucherRules.MAX_HELD_PER_TYPE) {
+            throw IllegalStateException("You can hold up to ${VoucherRules.MAX_HELD_PER_TYPE} copies of this voucher at once.")
+        }
 
         if (currentVoucher.quantity > 0) {
             postgrest.from("campus_vouchers").update(

@@ -34,16 +34,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.project1.R
-import com.example.project1.Screen
 import com.example.project1.data.model.BannerItem
 import com.example.project1.data.model.CampusVoucher
 import com.example.project1.data.model.FeatureCardItem
-import com.example.project1.ui.AppViewModelProvider
+import com.example.project1.data.model.VoucherRules
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
@@ -67,16 +63,13 @@ fun HomeFunct(
         modifier = modifier
             .fillMaxSize()
             .background(Color.White)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         EcoBannerSlider(banners = banners)
-        Spacer(modifier = Modifier.height(16.dp))
         EcoStatsDashboard(points = currentPoints, plasticSaved = totalPlasticSaved)
-        Spacer(modifier = Modifier.height(16.dp))
         EcoUploadArea(onUploadClick = onUploadClick)
-        Spacer(modifier = Modifier.height(16.dp))
         EcoFeatureGrid(features = features, onFeatureClick = onFeatureClick)
-        Spacer(modifier = Modifier.height(16.dp))
         HotRewardsMarket(
             supabaseClient = supabaseClient,
             currentUserId = currentUserId,
@@ -88,8 +81,8 @@ fun HomeFunct(
 
 @Composable
 fun EcoStatsDashboard(points: Int, plasticSaved: Int, modifier: Modifier = Modifier) {
-    var selectedTab by remember { mutableStateOf(0) }
-    val tabs = listOf("Eco Points", "Plastic Saved")
+    var selectedTab by remember { mutableIntStateOf(0) } // default first tab (Eco Points)
+    val tabs = listOf("Eco Points", "Plastic Saved") //tab name
 
     Card(
         modifier = modifier
@@ -140,7 +133,7 @@ fun EcoStatsDashboard(points: Int, plasticSaved: Int, modifier: Modifier = Modif
                             fontWeight = FontWeight.Black,
                             color = Color(0xFF2E7D32)
                         )
-                        Text(text = "Available Coins to Redeem", fontSize = 12.sp, color = Color.Gray)
+                        Text(text = "Total Points u holding", fontSize = 12.sp, color = Color.Gray)
                     }
                 } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -160,7 +153,6 @@ fun EcoStatsDashboard(points: Int, plasticSaved: Int, modifier: Modifier = Modif
 
 @Composable
 fun EcoUploadArea(onUploadClick: () -> Unit, modifier: Modifier = Modifier) {
-    val stroke = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
 
     Box(
         modifier = modifier
@@ -174,7 +166,7 @@ fun EcoUploadArea(onUploadClick: () -> Unit, modifier: Modifier = Modifier) {
                     color = Color(0xFFB0BEC5),
                     style = Stroke(
                         width = 2.dp.toPx(),
-                        pathEffect = stroke
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f) // the dotted border
                     ),
                     cornerRadius = CornerRadius(12.dp.toPx())
                 )
@@ -203,13 +195,10 @@ fun EcoUploadArea(onUploadClick: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+
+//banner display
 @Composable
-fun EcoBannerSlider(
-    banners: List<BannerItem>,
-    autoScrollDelayMillis: Long = 4000L,
-    modifier: Modifier = Modifier
-) {
+fun EcoBannerSlider(banners: List<BannerItem>, autoScrollDelayMillis: Long = 4000L, modifier: Modifier = Modifier) {
     if (banners.isEmpty()) return
     val pagerState = rememberPagerState(pageCount = { banners.size })
 
@@ -217,8 +206,8 @@ fun EcoBannerSlider(
         while (true) {
             delay(autoScrollDelayMillis)
             if (banners.isNotEmpty()) {
-                val nextPage = (pagerState.currentPage + 1) % banners.size
-                pagerState.animateScrollToPage(nextPage)
+                val nextPage = (pagerState.currentPage + 1) % banners.size //ready for next page
+                pagerState.animateScrollToPage(nextPage) // the scrolling with animation
             }
         }
     }
@@ -230,11 +219,11 @@ fun EcoBannerSlider(
             .height(180.dp)
             .clip(RoundedCornerShape(16.dp))
     ) {
-        HorizontalPager(state = pagerState) { page ->
+        HorizontalPager(state = pagerState) { page -> // just like forEach to for loop out of the banner inside the container
             val banner = banners[page]
 
             Image(
-                painter = painterResource(id = banner.imageResId),
+                painter = painterResource(id = banner.image),
                 contentDescription = banner.title ?: "Eco banner image",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -249,18 +238,14 @@ fun EcoBannerSlider(
         ) {
             repeat(banners.size) { index ->
                 val color = if (pagerState.currentPage == index) Color.White else Color.White.copy(alpha = 0.5f)
-                Box(modifier = Modifier.size(6.dp).background(color, RoundedCornerShape(3.dp)))
+                Box(modifier = Modifier.size(6.dp).background(color, RoundedCornerShape(3.dp))) // the dot under the banner
             }
         }
     }
 }
 
 @Composable
-fun EcoFeatureGrid(
-    features: List<FeatureCardItem>,
-    onFeatureClick: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun EcoFeatureGrid(features: List<FeatureCardItem>, onFeatureClick: (String) -> Unit, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         Text(
             text = "More Information",
@@ -282,12 +267,7 @@ fun EcoFeatureGrid(
 }
 
 @Composable
-fun EcoFeatureTile(
-    feature: FeatureCardItem,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val featureColor = Color(0xFF1565C0)
+fun EcoFeatureTile(feature: FeatureCardItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
 
     Column(
         modifier = modifier
@@ -302,11 +282,11 @@ fun EcoFeatureTile(
                 .width(120.dp)
                 .height(80.dp)
                 .clip(RoundedCornerShape(14.dp))
-                .background(featureColor),
+                .background(Color(0xFF1565C0)),
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = feature.iconResId),
+                painter = painterResource(id = feature.image),
                 contentDescription = feature.title,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -320,7 +300,7 @@ fun EcoFeatureTile(
                 .width(100.dp)
                 .height(50.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .background(featureColor.copy(alpha = 0.15f))
+                .background(Color(0xFF1565C0).copy(alpha = 0.15f))
                 .padding(horizontal = 8.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -328,7 +308,7 @@ fun EcoFeatureTile(
                 text = feature.title,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Medium,
-                color = featureColor,
+                color = Color(0xFF1565C0),
                 textAlign = TextAlign.Center,
                 maxLines = 2
             )
@@ -355,19 +335,14 @@ fun resolveImageModel(imageUrl: String?, defaultPlaceholderRes: Int): Any {
 }
 
 @Composable
-fun HotRewardsMarket(
-    supabaseClient: SupabaseClient,
-    currentUserId: String,
-    onNavigateToRewards: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun HotRewardsMarket(supabaseClient: SupabaseClient, currentUserId: String, onNavigateToRewards: () -> Unit, modifier: Modifier = Modifier) {
     var marketVouchers by remember { mutableStateOf<List<CampusVoucher>>(emptyList()) }
-    var userHeldCounts by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
+    var userHeldCounts by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }// track users hpw many they are holding (max:3)
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var selectedVoucher by remember { mutableStateOf<CampusVoucher?>(null) }
 
-    LaunchedEffect(currentUserId) {
+    LaunchedEffect(currentUserId) {// supabase to load data
         try {
             isLoading = true
             withContext(Dispatchers.IO) {
@@ -375,9 +350,11 @@ fun HotRewardsMarket(
                     .select()
                     .decodeList<CampusVoucher>()
 
-                marketVouchers = allVouchers
-                    .distinctBy { it.title }
-                    .takeLast(3)
+                marketVouchers = VoucherRules.pickFeaturedHomeVouchers(
+                    vouchers = allVouchers,
+                    title = { it.title },
+                    isCatalogStock = { !it.isRedeemed && it.redeemedBy.isNullOrBlank() }
+                )
 
                 val userActiveVouchers = allVouchers.filter {
                     it.redeemedBy == currentUserId && !it.isRedeemed
@@ -447,6 +424,7 @@ fun HotRewardsMarket(
         }
     }
 
+    //call the dialogue function for voucher
     selectedVoucher?.let { voucher ->
         val heldCount = userHeldCounts[voucher.title] ?: 0
         VoucherDetailDialog(
@@ -462,13 +440,8 @@ fun HotRewardsMarket(
 }
 
 @Composable
-fun VoucherCard(
-    voucher: CampusVoucher,
-    heldCount: Int,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val isLimitReached = heldCount >= 3
+fun VoucherCard(voucher: CampusVoucher, heldCount: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val isLimitReached = VoucherRules.isAtHoldLimit(heldCount)
     val imageModel = resolveImageModel(voucher.imageUrl, R.drawable.img_placeholder_voucher)
 
     Card(
@@ -539,7 +512,7 @@ fun VoucherCard(
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Text(
-                            text = if (isLimitReached) "Limit Reached ($heldCount/3)" else "Held: $heldCount/3",
+                            text = if (isLimitReached) "Limit Reached ($heldCount/${VoucherRules.MAX_HELD_PER_TYPE})" else "Held: $heldCount/${VoucherRules.MAX_HELD_PER_TYPE}",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (isLimitReached) Color(0xFFC62828) else Color(0xFF2E7D32),
@@ -559,13 +532,8 @@ fun VoucherCard(
 }
 
 @Composable
-fun VoucherDetailDialog(
-    voucher: CampusVoucher,
-    heldCount: Int,
-    onDismiss: () -> Unit,
-    onGoToRewards: () -> Unit
-) {
-    val isLimitReached = heldCount >= 3
+fun VoucherDetailDialog(voucher: CampusVoucher, heldCount: Int, onDismiss: () -> Unit, onGoToRewards: () -> Unit) {
+    val isLimitReached = VoucherRules.isAtHoldLimit(heldCount)
     val imageModel = resolveImageModel(voucher.imageUrl, R.drawable.img_placeholder_submission)
 
     AlertDialog(
@@ -633,7 +601,7 @@ fun VoucherDetailDialog(
                         shape = RoundedCornerShape(6.dp)
                     ) {
                         Text(
-                            text = "Holding: $heldCount/3",
+                            text = "Holding: $heldCount/${VoucherRules.MAX_HELD_PER_TYPE}",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (isLimitReached) Color(0xFFC62828) else Color(0xFF1565C0),
@@ -661,7 +629,7 @@ fun VoucherDetailDialog(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Holding limit reached! You can hold up to 3 active copies of this voucher at once.",
+                                text = "Holding limit reached! You can hold up to ${VoucherRules.MAX_HELD_PER_TYPE} active copies of this voucher at once.",
                                 fontSize = 11.sp,
                                 color = Color(0xFFE65100),
                                 lineHeight = 15.sp
