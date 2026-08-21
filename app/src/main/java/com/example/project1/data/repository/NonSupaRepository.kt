@@ -13,55 +13,57 @@ interface EcoAdsRepository {
 
 class LocalEcoAdsRepository : EcoAdsRepository {
 
+    // banner images
     override fun getAllBannersStream(): Flow<List<BannerItem>> {
         val banners = listOf(
             BannerItem(
                 id = 1,
-                imageResId = R.drawable.banner5,
+                image = R.drawable.banner5,
                 title = "Eco Logo Banner"
             ),
             BannerItem(
                 id = 2,
-                imageResId = R.drawable.banner1,
+                image = R.drawable.banner1,
                 title = "Zero Plastic Initiative"
             ),
             BannerItem(
                 id = 3,
-                imageResId = R.drawable.banner2,
+                image = R.drawable.banner2,
                 title = "Green Bazaar"
             ),
             BannerItem(
                 id = 4,
-                imageResId = R.drawable.banner3,
+                image = R.drawable.banner3,
                 title = "Eco Recycling Drive"
             ),
             BannerItem(
                 id = 5,
-                imageResId = R.drawable.banner4,
+                image = R.drawable.banner4,
                 title = "Green Campus Campaign"
             )
         )
         return flowOf(banners)
     }
 
+    // feature cards images
     override fun getAllFeaturesStream(): Flow<List<FeatureCardItem>> {
         val features = listOf(
             FeatureCardItem(
                 id = "feature_leaderboard",
                 title = "Check Your Ranking",
-                iconResId = R.drawable.feature1,
+                image = R.drawable.feature1,
                 targetRoute = "Leaderboard"
             ),
             FeatureCardItem(
                 id = "feature_rewards",
                 title = "Redeem Rewards",
-                iconResId = R.drawable.feature2,
+                image = R.drawable.feature2,
                 targetRoute = "Rewards"
             ),
             FeatureCardItem(
                 id = "feature_history",
                 title = "View Your History",
-                iconResId = R.drawable.feature3,
+                image = R.drawable.feature3,
                 targetRoute = "Profile"
             )
         )

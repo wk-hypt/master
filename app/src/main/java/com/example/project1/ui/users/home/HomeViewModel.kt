@@ -2,16 +2,13 @@ package com.example.project1.ui.users.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.project1.data.model.BannerItem
 import com.example.project1.data.model.EcoSubmissionEntity
-import com.example.project1.data.model.FeatureCardItem
 import com.example.project1.data.repository.EcoAdsRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -24,7 +21,6 @@ class HomeViewModel(
 ) : ViewModel() {
 
     private val _currentStudentId = MutableStateFlow("")
-    val currentStudentIdFlow: StateFlow<String> = _currentStudentId.asStateFlow()
 
     fun setCurrentStudent(studentId: String) {
         _currentStudentId.value = studentId
@@ -61,6 +57,7 @@ class HomeViewModel(
                 initialValue = 0
             )
 
+    // for display the banners taht created in NonSupaRepository
     val banners = adsRepository.getAllBannersStream()
         .stateIn(
             scope = viewModelScope,
@@ -68,6 +65,7 @@ class HomeViewModel(
             initialValue = emptyList()
         )
 
+    // for display the feature card taht created in NonSupaRepository
     val features = adsRepository.getAllFeaturesStream()
         .stateIn(
             scope = viewModelScope,
@@ -75,6 +73,7 @@ class HomeViewModel(
             initialValue = emptyList()
         )
 
+    // function that used for submission to insert data into repository
     fun submitEcoLog(
         imagePath: String,
         actionType: String,

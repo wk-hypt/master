@@ -1,6 +1,5 @@
 package com.example.project1.ui.users.login
 
-import android.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -40,8 +39,8 @@ fun LoginFunct(
     onLoginClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var isPasswordVisible by remember { mutableStateOf(false) }
-    var showHelpDialog by remember { mutableStateOf(false) }
+    var isPasswordVisible by remember { mutableStateOf(false) } // used for users to check whether they want to see the password they entered or not
+    var showHelpDialog by remember { mutableStateOf(false) } // show dialogue one
 
     Column(
         modifier = modifier
@@ -79,8 +78,8 @@ fun LoginFunct(
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Gray
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Gray
                 )
             )
 
@@ -107,7 +106,18 @@ fun LoginFunct(
                 onValueChange = onPasswordChange,
                 label = { Text("Password") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,colors = OutlinedTextFieldDefaults.colors(
+                singleLine = true,
+                isError = uiState.errorMessage != null,
+                supportingText = {
+                    if (uiState.errorMessage != null) {
+                        Text(
+                            text = uiState.errorMessage,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 12.sp
+                        )
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Gray
                 ),
@@ -124,17 +134,7 @@ fun LoginFunct(
                 shape = RoundedCornerShape(12.dp)
             )
 
-            if (uiState.errorMessage != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = uiState.errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 12.sp,
-                    modifier = Modifier.align(Alignment.Start)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = onLoginClick,
@@ -142,7 +142,8 @@ fun LoginFunct(
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                enabled = uiState.studentId.isNotBlank() && uiState.password.isNotBlank() || uiState.name.isNotBlank()
             ) {
                 Text(
                     text = if (uiState.isRegisterMode) "Register" else "Login",
@@ -191,6 +192,7 @@ fun LoginFunct(
     }
 }
 
+// dialogue for the help & support
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HelpSupportDialog(onDismiss: () -> Unit) {
@@ -215,12 +217,7 @@ fun HelpSupportDialog(onDismiss: () -> Unit) {
                         .verticalScroll(rememberScrollState())
                         .padding(20.dp)
                 ) {
-                    Text(
-                        text = "Frequently Asked Questions",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF212529)
-                    )
+                    Text(text = "Frequently Asked Questions", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF212529))
                     Spacer(modifier = Modifier.height(16.dp))
 
                     HelpSection(
@@ -242,24 +239,11 @@ fun HelpSupportDialog(onDismiss: () -> Unit) {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Text(
-                        text = "Contact Us",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF212529)
-                    )
+                    Text(text = "Contact Us", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF212529))
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "Email: ecoapp.support@tarumt.edu.my",
-                        fontSize = 14.sp,
-                        color = Color(0xFF495057)
-                    )
+                    Text(text = "Email: ecoapp.support@tarumt.edu.my", fontSize = 14.sp, color = Color(0xFF495057))
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Office Hours: Monday - Friday, 9:00 AM - 5:00 PM",
-                        fontSize = 14.sp,
-                        color = Color(0xFF495057)
-                    )
+                    Text(text = "Office Hours: Monday - Friday, 9:00 AM - 5:00 PM", fontSize = 14.sp, color = Color(0xFF495057))
 
                     Spacer(modifier = Modifier.height(24.dp))
                 }
@@ -268,21 +252,13 @@ fun HelpSupportDialog(onDismiss: () -> Unit) {
     }
 }
 
+
+//reusable function for displaying the help section string
 @Composable
 fun HelpSection(question: String, answer: String) {
     Column(modifier = Modifier.padding(bottom = 16.dp)) {
-        Text(
-            text = question,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF212529)
-        )
+        Text(text = question, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF212529))
         Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = answer,
-            fontSize = 13.sp,
-            color = Color(0xFF495057),
-            lineHeight = 19.sp
-        )
+        Text(text = answer, fontSize = 13.sp, color = Color(0xFF495057), lineHeight = 19.sp)
     }
 }
