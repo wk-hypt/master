@@ -86,7 +86,9 @@ object AppViewModelProvider {
             val app = ecoApplication()
             ProfileViewModel(
                 userRepository = app.container.userRepository,
-                settingsRepository = app.container.settingsRepository
+                settingsRepository = app.container.settingsRepository,
+                submissionRepository = app.container.submissionRepository,
+                taskRepository = app.container.taskRepository
             )
         }
 
