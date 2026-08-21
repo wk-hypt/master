@@ -14,7 +14,7 @@ fun AdminHomeView(
     adminId: String,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: AdminHomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: AdminHomeViewModel = viewModel(key = adminId, factory = AppViewModelProvider.Factory)
 ) {
     LaunchedEffect(adminId) {
         viewModel.setCurrentAdmin(adminId)

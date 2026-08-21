@@ -27,12 +27,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -84,7 +87,17 @@ sealed class AdminScreen(
 }
 
 @Composable
-fun EcoApp(navController: NavHostController = rememberNavController()) {
+fun EcoApp() {
+    var sessionNonce by remember { mutableIntStateOf(0) }
+    key(sessionNonce) {
+        EcoAppContent(onEndSession = { sessionNonce++ })
+    }
+}
+
+@Composable
+private fun EcoAppContent(onEndSession: () -> Unit) {
+    val navController = rememberNavController()
+    val app = LocalContext.current.applicationContext as EcoApplication
     val studentItems = listOf(
         Screen.Home,
         Screen.Task,
@@ -223,18 +236,16 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                     onLoginSuccess = { loginId ->
                         if (loginId.startsWith("admin", ignoreCase = true)) {
                             loggedInAdminId = loginId
+                            app.container.setCurrentStudentId("")
                             navController.navigate(AdminScreen.Approval.route) {
                                 popUpTo(Screen.Login.route) { inclusive = true }
                             }
                         }
                         else {
                             loggedInStudentId = loginId
+                            app.container.setCurrentStudentId(loginId)
                             navController.navigate(Screen.Home.createRoute(loginId)) {
-                                popUpTo(Screen.Login.route) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
+                                popUpTo(Screen.Login.route) { inclusive = true }
                             }
                         }
                     },
@@ -268,10 +279,8 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 ProfileView(
                     studentId = loggedInStudentId,
                     onLogout = {
-                        loggedInStudentId = ""
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(0) { inclusive = true }
-                        }
+                        app.container.setCurrentStudentId("")
+                        onEndSession()
                     }
                 )
             }
@@ -286,9 +295,8 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 AdminHomeView(
                     adminId = loggedInAdminId,
                     onLogout = {
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(0) { inclusive = true }
-                        }
+                        app.container.setCurrentStudentId("")
+                        onEndSession()
                     }
                 )
             }
@@ -303,10 +311,8 @@ fun EcoApp(navController: NavHostController = rememberNavController()) {
                 AdminProfileView(
                     adminId = loggedInAdminId,
                     onLogout = {
-                        loggedInAdminId = ""
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(0) { inclusive = true }
-                        }
+                        app.container.setCurrentStudentId("")
+                        onEndSession()
                     }
                 )
             }

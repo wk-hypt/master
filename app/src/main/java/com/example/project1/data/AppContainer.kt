@@ -32,6 +32,7 @@ interface AppContainer {
     val leaderboarduiRepository: LeaderBoarduiRepository
     val reportRepository: ReportRepository
     val settingsRepository: AppSettingsRepository
+    fun setCurrentStudentId(studentId: String)
 }
 
 class AppDataContainer(private val context: Context) : AppContainer {
@@ -40,7 +41,7 @@ class AppDataContainer(private val context: Context) : AppContainer {
     private val storage = SupabaseClientProvider.client.storage
     private var loggedInStudentId: String = ""
 
-    fun setCurrentStudentId(studentId: String) {
+    override fun setCurrentStudentId(studentId: String) {
         loggedInStudentId = studentId
     }
 

@@ -182,7 +182,7 @@ fun LoginFunct(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { showHelpDialog = true }
-                .padding(bottom = 28.dp, top = 8.dp)
+                .padding(bottom = 48.dp, top = 8.dp)
         )
     }
 

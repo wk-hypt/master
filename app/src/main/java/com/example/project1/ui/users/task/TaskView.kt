@@ -11,7 +11,7 @@ import com.example.project1.ui.AppViewModelProvider
 fun TaskView(
     studentId: String,
     onOpenLeaderboard: () -> Unit,
-    viewModel: TaskViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: TaskViewModel = viewModel(key = studentId, factory = AppViewModelProvider.Factory)
 ) {
     LaunchedEffect(studentId) {
         viewModel.setCurrentStudent(studentId)

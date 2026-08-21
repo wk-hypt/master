@@ -19,7 +19,7 @@ import com.example.project1.ui.AppViewModelProvider
 fun AdminReportView(
     adminId: String,
     modifier: Modifier = Modifier,
-    viewModel: AdminReportViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: AdminReportViewModel = viewModel(key = adminId, factory = AppViewModelProvider.Factory)
 ) {
     LaunchedEffect(adminId) {
         viewModel.setCurrentAdmin(adminId)
