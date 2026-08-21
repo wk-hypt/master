@@ -15,7 +15,7 @@ fun HomeView(
     navController: NavHostController,
     studentId: String,
     supabaseClient: SupabaseClient,
-    viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: HomeViewModel = viewModel(key = studentId, factory = AppViewModelProvider.Factory)
 ) {
     LaunchedEffect(studentId) {
         viewModel.setCurrentStudent(studentId)

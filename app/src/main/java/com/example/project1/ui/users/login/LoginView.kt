@@ -1,6 +1,7 @@
 package com.example.project1.ui.users.login
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project1.ui.AppViewModelProvider
@@ -12,6 +13,10 @@ fun LoginView(
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.reset()
+    }
+
     LoginFunct(
         uiState = viewModel.uiState,
         onIdChange = { viewModel.onStudentIdChange(it) },

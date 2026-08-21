@@ -16,7 +16,7 @@ import com.example.project1.ui.AppViewModelProvider
 fun AdminProfileView(//
     adminId: String,
     onLogout: () -> Unit,
-    viewModel: AdminProfileViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: AdminProfileViewModel = viewModel(key = adminId, factory = AppViewModelProvider.Factory)
 ) {
     LaunchedEffect(adminId) {
         viewModel.setCurrentAdmin(adminId)

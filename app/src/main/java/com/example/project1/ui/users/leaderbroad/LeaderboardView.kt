@@ -11,7 +11,7 @@ import com.example.project1.ui.AppViewModelProvider
 @Composable
 fun LeaderboardView(
     studentId: String,
-    viewModel: LeaderboardViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    viewModel: LeaderboardViewModel = viewModel(key = studentId, factory = AppViewModelProvider.Factory),
     modifier: Modifier = Modifier,
     onBackClick:() -> Unit
 ) {

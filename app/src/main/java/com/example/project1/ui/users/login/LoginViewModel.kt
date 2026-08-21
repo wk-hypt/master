@@ -29,6 +29,10 @@ class LoginViewModel(
     var uiState by mutableStateOf(LoginUiState())
         private set
 
+    fun reset() {
+        uiState = LoginUiState()
+    }
+
     fun onStudentIdChange(newId: String) {
         uiState = uiState.copy(studentId = newId, errorMessage = null)
     }

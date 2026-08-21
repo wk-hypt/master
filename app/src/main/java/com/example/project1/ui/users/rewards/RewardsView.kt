@@ -15,7 +15,7 @@ import com.example.project1.ui.AppViewModelProvider
 @Composable
 fun RewardsView(
     studentId: String,
-    viewModel: RewardsViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: RewardsViewModel = viewModel(key = studentId, factory = AppViewModelProvider.Factory)
 ) {
     LaunchedEffect(studentId) {
         viewModel.setCurrentStudent(studentId)

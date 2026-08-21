@@ -16,7 +16,7 @@ import com.example.project1.ui.AppViewModelProvider
 fun ProfileView(//
     studentId: String,
     onLogout: () -> Unit,
-    viewModel: ProfileViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: ProfileViewModel = viewModel(key = studentId, factory = AppViewModelProvider.Factory)
 ) {
     LaunchedEffect(studentId) {
         viewModel.setCurrentStudent(studentId)

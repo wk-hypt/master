@@ -10,7 +10,6 @@ import com.example.project1.data.repository.OfferRepository
 import com.example.project1.data.repository.ReportRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.SupabaseAdminRepository
-import com.example.project1.data.repository.LocalAppSettingsRepository
 import com.example.project1.data.repository.LocalEcoAdsRepository
 import com.example.project1.data.repository.SupabaseLeaderboardRepository
 import com.example.project1.data.repository.SupabaseOfferRepository
@@ -33,6 +32,7 @@ interface AppContainer {
     val leaderboarduiRepository: LeaderBoarduiRepository
     val reportRepository: ReportRepository
     val settingsRepository: AppSettingsRepository
+    fun setCurrentStudentId(studentId: String)
 }
 
 class AppDataContainer(private val context: Context) : AppContainer {
@@ -41,7 +41,7 @@ class AppDataContainer(private val context: Context) : AppContainer {
     private val storage = SupabaseClientProvider.client.storage
     private var loggedInStudentId: String = ""
 
-    fun setCurrentStudentId(studentId: String) {
+    override fun setCurrentStudentId(studentId: String) {
         loggedInStudentId = studentId
     }
 
