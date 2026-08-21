@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.project1.data.model.VoucherEntity
+import com.example.project1.data.model.VoucherRules
 
 private val PrimaryGreen = Color(0xFF2E7D32)
 private val SoftGreen = Color(0xFFF1F8E9)
@@ -151,6 +152,7 @@ fun RewardsFunct(
                 0 -> MarketList(
                     vouchers = available,
                     points = points,
+                    heldCounts = VoucherRules.heldCountByTitle(wallet),
                     onRedeem = onRedeem
                 )
                 else -> WalletList(redeemedVouchers = wallet)
@@ -163,6 +165,7 @@ fun RewardsFunct(
 private fun MarketList(
     vouchers: List<VoucherEntity>,
     points: Int,
+    heldCounts: Map<String, Int>,
     onRedeem: (VoucherEntity) -> Unit
 ) {
     if (vouchers.isEmpty()) {
@@ -176,9 +179,13 @@ private fun MarketList(
         modifier = Modifier.fillMaxSize()
     ) {
         items(vouchers, key = { it.id ?: it.title }) { voucher ->
+            val heldCount = heldCounts[voucher.title] ?: 0
+            val atHoldLimit = VoucherRules.isAtHoldLimit(heldCount)
             MarketVoucherCard(
                 voucher = voucher,
-                canAfford = points >= voucher.pointsCost && voucher.quantity > 0,
+                heldCount = heldCount,
+                atHoldLimit = atHoldLimit,
+                canRedeem = points >= voucher.pointsCost && voucher.quantity > 0 && !atHoldLimit,
                 onRedeemClick = { onRedeem(voucher) }
             )
         }
@@ -188,7 +195,9 @@ private fun MarketList(
 @Composable
 private fun MarketVoucherCard(
     voucher: VoucherEntity,
-    canAfford: Boolean,
+    heldCount: Int,
+    atHoldLimit: Boolean,
+    canRedeem: Boolean,
     onRedeemClick: () -> Unit
 ) {
     Card(
@@ -260,12 +269,19 @@ private fun MarketVoucherCard(
                         fontWeight = FontWeight.Bold,
                         color = if (voucher.quantity > 0) Color(0xFF1565C0) else Color(0xFFC62828)
                     )
+                    Text(
+                        text = if (atHoldLimit) "Limit ($heldCount/${VoucherRules.MAX_HELD_PER_TYPE})"
+                        else "Held: $heldCount/${VoucherRules.MAX_HELD_PER_TYPE}",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (atHoldLimit) Color(0xFFC62828) else PrimaryGreen
+                    )
                 }
             }
 
             Button(
                 onClick = onRedeemClick,
-                enabled = canAfford,
+                enabled = canRedeem,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = PrimaryGreen,
                     disabledContainerColor = Color(0xFFE0E0E0)
@@ -274,7 +290,11 @@ private fun MarketVoucherCard(
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = if (voucher.quantity <= 0) "Sold Out" else "Redeem",
+                    text = when {
+                        voucher.quantity <= 0 -> "Sold Out"
+                        atHoldLimit -> "Limit"
+                        else -> "Redeem"
+                    },
                     fontSize = 12.sp
                 )
             }

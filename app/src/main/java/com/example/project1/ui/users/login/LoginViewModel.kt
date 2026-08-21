@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+//data class
 data class LoginUiState(
     val studentId: String = "",
     val name: String = "",
@@ -21,6 +22,7 @@ data class LoginUiState(
     val isLoginSuccess: Boolean = false
 )
 
+// concrete class
 class LoginViewModel(
     private val userRepository: UserRepository,
     private val adminRepository: AdminRepository
@@ -33,18 +35,22 @@ class LoginViewModel(
         uiState = LoginUiState()
     }
 
+    // lambda that passed to loginFunct for studentID
     fun onStudentIdChange(newId: String) {
         uiState = uiState.copy(studentId = newId, errorMessage = null)
     }
 
+    // lambda that passed to loginFunct for name
     fun onNameChange(newName: String) {
         uiState = uiState.copy(name = newName, errorMessage = null)
     }
 
+    // lambda that passed to loginFunct for password
     fun onPasswordChange(newPassword: String) {
         uiState = uiState.copy(password = newPassword, errorMessage = null)
     }
 
+    // used to switch the mode between register and login mode
     fun toggleMode() {
         uiState = uiState.copy(
             isRegisterMode = !uiState.isRegisterMode,
@@ -55,6 +61,7 @@ class LoginViewModel(
         )
     }
 
+    // perform validation checking
     fun login(onSuccess: (String) -> Unit) {
         val id = uiState.studentId.trim()
         val inputPassword = uiState.password.trim()
@@ -124,7 +131,7 @@ class LoginViewModel(
                     }
                 }
             } catch (e: Exception) {
-                uiState = uiState.copy(errorMessage = "Crash caught: ${e.localizedMessage ?: e.message}")
+                uiState = uiState.copy(errorMessage = "Network error: Please check your internet connection or try again later.")
             }
         }
     }

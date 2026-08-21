@@ -3,6 +3,7 @@ package com.example.project1.ui.users.rewards
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.VoucherEntity
+import com.example.project1.data.model.VoucherRules
 import com.example.project1.data.repository.OfferRepository
 import com.example.project1.data.repository.UserRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -72,6 +73,12 @@ class RewardsViewModel(
         val user = userRepository.getUserById(id) ?: return@launch
         if (user.totalPoints < voucher.pointsCost) {
             _message.value = "Not enough points"
+            return@launch
+        }
+
+        val heldOfType = wallet.value.count { it.title == voucher.title }
+        if (heldOfType >= VoucherRules.MAX_HELD_PER_TYPE) {
+            _message.value = "You can hold up to ${VoucherRules.MAX_HELD_PER_TYPE} copies of this voucher at once."
             return@launch
         }
 
