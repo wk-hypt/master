@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.example.project1.ui.admin.profile
 
 import android.net.Uri
@@ -25,8 +27,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChevronRight
@@ -40,7 +43,6 @@ import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -97,6 +99,7 @@ private enum class AdminProfilePage { Hub, Info, StaffDirectory, UserManagement 
 @Composable
 fun AdminProfileFunct(
     admin: AdminEntity?,
+    modifier: Modifier = Modifier,
     profilePhotoPath: String? = null,
     pendingSubmissionsCount: Int = 0,
     pendingTasksCount: Int = 0,
@@ -115,8 +118,7 @@ fun AdminProfileFunct(
     onProfilePhotoPicked: (Uri) -> Unit = {},
     onRemoveProfilePhoto: () -> Unit = {},
     onLogout: () -> Unit,
-    snackbarHost: @Composable () -> Unit = {},
-    modifier: Modifier = Modifier
+    snackbarHost: @Composable () -> Unit = {}
 ) {
     var page by remember { mutableStateOf(AdminProfilePage.Hub) }
     var showPasswordDialog by remember { mutableStateOf(false) }
@@ -348,7 +350,7 @@ private fun AdminHubPage(
         ) {
             AdminStatChip(
                 modifier = Modifier.weight(1f),
-                icon = Icons.Default.Assignment,
+                icon = Icons.AutoMirrored.Filled.Assignment,
                 label = "Pending Subs",
                 value = pendingSubmissionsCount.toString()
             )
@@ -659,7 +661,7 @@ private fun UserManagementPage(
             Text("User Management", fontSize = 22.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             Box {
                 IconButton(onClick = { sortMenuOpen = true }) {
-                    Icon(Icons.Default.Sort, contentDescription = "Sort students", tint = PrimaryGreen)
+                    Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Sort students", tint = PrimaryGreen)
                 }
                 DropdownMenu(expanded = sortMenuOpen, onDismissRequest = { sortMenuOpen = false }) {
                     UserSort.entries.forEach { option ->
@@ -691,7 +693,7 @@ private fun UserManagementPage(
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 AdminStatChip(
                     modifier = Modifier.weight(1f),
-                    icon = Icons.Default.Assignment,
+                    icon = Icons.AutoMirrored.Filled.Assignment,
                     label = "Total Points",
                     value = totalPoints.toString()
                 )
@@ -870,7 +872,7 @@ private fun AdminPasswordDialog(
             }
         },
         text = {
-            if (!awaitingVerification) {
+            if (verificationCode == null) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         "Step 1 of 2 \u2014 confirm your current password and choose a new one.",
@@ -928,7 +930,7 @@ private fun AdminPasswordDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            verificationCode.orEmpty(),
+                            verificationCode,
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
                             color = DarkGreen

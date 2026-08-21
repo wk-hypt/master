@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.example.project1.ui.admin.profile
 
 import androidx.compose.foundation.layout.fillMaxSize

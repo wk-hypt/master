@@ -3,6 +3,7 @@ package com.example.project1.data.repository
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
+import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +38,15 @@ interface AppSettingsRepository {
 
     /** Removes the saved profile photo for the given account id. */
     fun clearProfilePhoto(accountId: String)
+
+    /** Returns the local file path of the saved profile background/cover photo for the given account id, if any. */
+    fun getBackgroundPhotoPath(accountId: String): String?
+
+    /** Copies the picked image into local app storage as the profile background/cover photo. Returns the saved path. */
+    fun saveBackgroundPhoto(accountId: String, sourceUri: Uri): String?
+
+    /** Removes the saved profile background/cover photo for the given account id. */
+    fun clearBackgroundPhoto(accountId: String)
 }
 
 class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
@@ -46,60 +56,190 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
     private val prefs: SharedPreferences =
         appContext.getSharedPreferences("eco_app_settings", Context.MODE_PRIVATE)
 
-    private val _darkModeEnabled = MutableStateFlow(prefs.getBoolean(KEY_DARK_MODE, false))
-    override val darkModeEnabled: StateFlow<Boolean> = _darkModeEnabled.asStateFlow()
+    private val _darkModeEnabled =
+        MutableStateFlow(prefs.getBoolean(KEY_DARK_MODE, false))
 
-    private val _notificationsEnabled = MutableStateFlow(prefs.getBoolean(KEY_NOTIFICATIONS, true))
-    override val notificationsEnabled: StateFlow<Boolean> = _notificationsEnabled.asStateFlow()
+    override val darkModeEnabled: StateFlow<Boolean> =
+        _darkModeEnabled.asStateFlow()
+
+    private val _notificationsEnabled =
+        MutableStateFlow(prefs.getBoolean(KEY_NOTIFICATIONS, true))
+
+    override val notificationsEnabled: StateFlow<Boolean> =
+        _notificationsEnabled.asStateFlow()
 
     override fun setDarkMode(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_DARK_MODE, enabled).apply()
+        prefs.edit {
+            putBoolean(KEY_DARK_MODE, enabled)
+        }
+
         _darkModeEnabled.value = enabled
     }
 
     override fun setNotifications(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_NOTIFICATIONS, enabled).apply()
+        prefs.edit {
+            putBoolean(KEY_NOTIFICATIONS, enabled)
+        }
+
         _notificationsEnabled.value = enabled
     }
 
     override fun getAvatarColorIndex(accountId: String): Int {
         if (accountId.isBlank()) return 0
-        return prefs.getInt(KEY_AVATAR_PREFIX + accountId, 0)
+
+        return prefs.getInt(
+            KEY_AVATAR_PREFIX + accountId,
+            0
+        )
     }
 
     override fun setAvatarColorIndex(accountId: String, index: Int) {
         if (accountId.isBlank()) return
-        prefs.edit().putInt(KEY_AVATAR_PREFIX + accountId, index).apply()
+
+        prefs.edit {
+            putInt(
+                KEY_AVATAR_PREFIX + accountId,
+                index
+            )
+        }
     }
 
     override fun getProfilePhotoPath(accountId: String): String? {
         if (accountId.isBlank()) return null
-        val path = prefs.getString(KEY_PROFILE_PHOTO_PREFIX + accountId, null) ?: return null
+
+        val path = prefs.getString(
+            KEY_PROFILE_PHOTO_PREFIX + accountId,
+            null
+        ) ?: return null
+
         return if (File(path).exists()) path else null
     }
 
-    override fun saveProfilePhoto(accountId: String, sourceUri: Uri): String? {
+    override fun saveProfilePhoto(
+        accountId: String,
+        sourceUri: Uri
+    ): String? {
         if (accountId.isBlank()) return null
+
         return try {
-            val dir = File(appContext.filesDir, "profile_photos").apply { mkdirs() }
-            val destFile = File(dir, "$accountId.jpg")
-            appContext.contentResolver.openInputStream(sourceUri)?.use { input ->
-                destFile.outputStream().use { output -> input.copyTo(output) }
+            val dir = File(
+                appContext.filesDir,
+                "profile_photos"
+            ).apply {
+                mkdirs()
             }
-            prefs.edit().putString(KEY_PROFILE_PHOTO_PREFIX + accountId, destFile.absolutePath).apply()
+
+            val destFile = File(
+                dir,
+                "$accountId.jpg"
+            )
+
+            appContext.contentResolver
+                .openInputStream(sourceUri)
+                ?.use { input ->
+                    destFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                ?: return null
+
+            prefs.edit {
+                putString(
+                    KEY_PROFILE_PHOTO_PREFIX + accountId,
+                    destFile.absolutePath
+                )
+            }
+
             destFile.absolutePath
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
 
     override fun clearProfilePhoto(accountId: String) {
         if (accountId.isBlank()) return
-        val path = prefs.getString(KEY_PROFILE_PHOTO_PREFIX + accountId, null)
+
+        val path = prefs.getString(
+            KEY_PROFILE_PHOTO_PREFIX + accountId,
+            null
+        )
+
         if (path != null) {
             File(path).delete()
         }
-        prefs.edit().remove(KEY_PROFILE_PHOTO_PREFIX + accountId).apply()
+
+        prefs.edit {
+            remove(KEY_PROFILE_PHOTO_PREFIX + accountId)
+        }
+    }
+
+    override fun getBackgroundPhotoPath(accountId: String): String? {
+        if (accountId.isBlank()) return null
+
+        val path = prefs.getString(
+            KEY_BACKGROUND_PHOTO_PREFIX + accountId,
+            null
+        ) ?: return null
+
+        return if (File(path).exists()) path else null
+    }
+
+    override fun saveBackgroundPhoto(
+        accountId: String,
+        sourceUri: Uri
+    ): String? {
+        if (accountId.isBlank()) return null
+
+        return try {
+            val dir = File(
+                appContext.filesDir,
+                "background_photos"
+            ).apply {
+                mkdirs()
+            }
+
+            val destFile = File(
+                dir,
+                "$accountId.jpg"
+            )
+
+            appContext.contentResolver
+                .openInputStream(sourceUri)
+                ?.use { input ->
+                    destFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                ?: return null
+
+            prefs.edit {
+                putString(
+                    KEY_BACKGROUND_PHOTO_PREFIX + accountId,
+                    destFile.absolutePath
+                )
+            }
+
+            destFile.absolutePath
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    override fun clearBackgroundPhoto(accountId: String) {
+        if (accountId.isBlank()) return
+
+        val path = prefs.getString(
+            KEY_BACKGROUND_PHOTO_PREFIX + accountId,
+            null
+        )
+
+        if (path != null) {
+            File(path).delete()
+        }
+
+        prefs.edit {
+            remove(KEY_BACKGROUND_PHOTO_PREFIX + accountId)
+        }
     }
 
     private companion object {
@@ -107,5 +247,6 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         const val KEY_NOTIFICATIONS = "notifications_enabled"
         const val KEY_AVATAR_PREFIX = "avatar_color_index_"
         const val KEY_PROFILE_PHOTO_PREFIX = "profile_photo_path_"
+        const val KEY_BACKGROUND_PHOTO_PREFIX = "background_photo_path_"
     }
 }
