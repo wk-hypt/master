@@ -60,17 +60,17 @@ fun EcoUploadDialog(
 ) {
     val context = LocalContext.current
 
-    var pendingUri by remember { mutableStateOf<Uri?>(null) }
-    var capturedUri by remember { mutableStateOf<Uri?>(null) }
+    var pending by remember { mutableStateOf<Uri?>(null) }
+    var captured by remember { mutableStateOf<Uri?>(null) }
 
     var actionType by remember { mutableStateOf("") }
-    var isDropdownExpanded by remember { mutableStateOf(false) }
+    var dropdownExpanded by remember { mutableStateOf(false) }
     var stallName by remember { mutableStateOf("") }
     var quantity by remember { mutableIntStateOf(1) }
     var description by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
 
-    var termsAccepted by remember { mutableStateOf(false) }
+    var terms by remember { mutableStateOf(false) }
     var showTermsDialog by remember { mutableStateOf(false) }
 
     val actionTypeOptions = listOf(
@@ -101,7 +101,7 @@ fun EcoUploadDialog(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
-            capturedUri = pendingUri
+            captured = pending
         }
     }
 
@@ -110,7 +110,7 @@ fun EcoUploadDialog(
     ) { granted ->
         if (granted) {
             val uri = createImageUri(context)
-            pendingUri = uri
+            pending = uri
             cameraLauncher.launch(uri)
         }
     }
@@ -122,17 +122,14 @@ fun EcoUploadDialog(
 
         if (hasPermission) {
             val uri = createImageUri(context)
-            pendingUri = uri
+            pending = uri
             cameraLauncher.launch(uri)
         } else {
             permissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
-    val isFormValid = capturedUri != null &&
-            actionType.isNotBlank() &&
-            stallName.isNotBlank() &&
-            termsAccepted
+    val isFormValid = captured != null && actionType.isNotBlank() && stallName.isNotBlank() && terms
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -188,15 +185,15 @@ fun EcoUploadDialog(
                             .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (capturedUri != null) {
+                        if (captured != null) {
                             AsyncImage(
-                                model = capturedUri,
+                                model = captured,
                                 contentDescription = "Captured photo",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
                             )
                             IconButton(
-                                onClick = { capturedUri = null },
+                                onClick = { captured = null },
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
                                     .padding(8.dp)
@@ -226,19 +223,19 @@ fun EcoUploadDialog(
                     ) {
                         Icon(Icons.Default.CameraAlt, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (capturedUri == null) "Take Photo" else "Retake Photo")
+                        Text(if (captured == null) "Take Photo" else "Retake Photo")
                     }
 
                     ExposedDropdownMenuBox(
-                        expanded = isDropdownExpanded,
-                        onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
+                        expanded = dropdownExpanded,
+                        onExpandedChange = { dropdownExpanded = !dropdownExpanded }
                     ) {
                         OutlinedTextField(
                             value = actionType,
                             onValueChange = {},
                             readOnly = true,
                             label = { RequiredLabel("Action Type") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .menuAnchor(),
@@ -248,15 +245,15 @@ fun EcoUploadDialog(
                             )
                         )
                         ExposedDropdownMenu(
-                            expanded = isDropdownExpanded,
-                            onDismissRequest = { isDropdownExpanded = false }
+                            expanded = dropdownExpanded,
+                            onDismissRequest = { dropdownExpanded = false }
                         ) {
                             actionTypeOptions.forEach { option ->
                                 DropdownMenuItem(
                                     text = { Text(option) },
                                     onClick = {
                                         actionType = option
-                                        isDropdownExpanded = false
+                                        dropdownExpanded = false
                                     }
                                 )
                             }
@@ -267,7 +264,7 @@ fun EcoUploadDialog(
                         value = stallName,
                         onValueChange = { stallName = it },
                         label = { RequiredLabel("Stall Name") },
-                        placeholder = { Text("e.g. Canteen Stall 5") },
+                        placeholder = { Text("e.g. Noodles Yum") },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF2E7D32),
@@ -279,7 +276,7 @@ fun EcoUploadDialog(
                         value = location,
                         onValueChange = { location = it },
                         label = { Text("Location (optional)") },
-                        placeholder = { Text("e.g. Block A Canteen") },
+                        placeholder = { Text("e.g. Yum Yum Canteen") },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF2E7D32),
@@ -362,8 +359,8 @@ fun EcoUploadDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
-                            checked = termsAccepted,
-                            onCheckedChange = { termsAccepted = it },
+                            checked = terms,
+                            onCheckedChange = { terms = it },
                             colors = CheckboxDefaults.colors(checkedColor = Color(0xFF2E7D32))
                         )
                         Text(
@@ -382,7 +379,7 @@ fun EcoUploadDialog(
 
                     Button(
                         onClick = {
-                            capturedUri?.let { uri ->
+                            captured?.let { uri ->
                                 onSubmit(
                                     EcoLogSubmissionInput(
                                         imagePath = uri.toString(),

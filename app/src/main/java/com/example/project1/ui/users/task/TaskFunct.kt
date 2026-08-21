@@ -208,7 +208,6 @@ fun TaskFunct(
                 }
             }
 
-            // 底部导航栏上方的界定分割线
             HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
         }
     }
@@ -262,7 +261,6 @@ fun TaskCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 任务图示 / 证明照片缩略图预览区域
                 if (!task.imagePath.isNullOrBlank()) {
                     AsyncImage(
                         model = task.imagePath,
