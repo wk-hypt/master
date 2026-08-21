@@ -565,32 +565,73 @@ fun SubmissionDetailDialog(submission: EcoSubmissionEntity, onDismiss: () -> Uni
 @Composable
 fun TaskDetailDialog(task: TaskEntity, onDismiss: () -> Unit, onApprove: () -> Unit, onReject: () -> Unit) {
     DetailDialogScaffold("Task Proof Detail", onDismiss, onApprove, onReject) {
-        // No photo evidence for task goals, so the header leans on a soft gradient
-        // icon badge + title/status row instead of an empty placeholder image.
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .shadow(elevation = 3.dp, shape = CardShape, spotColor = Color.Black.copy(alpha = 0.12f))
-                .flatCard()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        val proofImage = task.imagePath?.takeIf { it.isNotBlank() }
+
+        if (proofImage != null) {
+            // Proof photo submitted — same hero treatment as Submission Detail:
+            // full-width image, gradient scrim, status pill floating on top.
             Box(
                 modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Brush.linearGradient(listOf(Color(0xFF43A047), PrimaryGreen))),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .height(250.dp)
+                    .shadow(elevation = 14.dp, shape = RoundedCornerShape(22.dp), spotColor = Color.Black.copy(alpha = 0.25f))
+                    .clip(RoundedCornerShape(22.dp))
             ) {
-                Icon(Icons.Default.PhotoCamera, contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
+                AsyncImage(
+                    model = proofImage,
+                    contentDescription = "Task proof photo from ${task.userId}",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize().background(Color(0xFFF1F3F5))
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color.Transparent, Color.Black.copy(alpha = 0.6f)),
+                                startY = 0f
+                            )
+                        )
+                )
+                StatusPill(
+                    status = task.status,
+                    modifier = Modifier.align(Alignment.TopEnd).padding(12.dp),
+                    onTint = true
+                )
+                Column(modifier = Modifier.align(Alignment.BottomStart).padding(16.dp)) {
+                    Text(task.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text("Task Goal Verification", color = Color.White.copy(alpha = 0.88f), fontSize = 12.sp)
+                }
             }
-            Spacer(modifier = Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(task.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextDark, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Text("Task Goal Verification", fontSize = 12.sp, color = TextGrey2)
+        } else {
+            // No photo evidence submitted yet — icon badge header instead of an
+            // empty image frame.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(elevation = 3.dp, shape = CardShape, spotColor = Color.Black.copy(alpha = 0.12f))
+                    .flatCard()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Brush.linearGradient(listOf(Color(0xFF43A047), PrimaryGreen))),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.PhotoCamera, contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
+                }
+                Spacer(modifier = Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(task.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextDark, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text("Task Goal Verification", fontSize = 12.sp, color = TextGrey2)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                StatusPill(status = task.status)
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            StatusPill(status = task.status)
         }
 
         Spacer(modifier = Modifier.height(20.dp))
