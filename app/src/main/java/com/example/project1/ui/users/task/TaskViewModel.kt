@@ -25,6 +25,8 @@ class TaskViewModel(
         _currentStudentId.value = studentId
     }
 
+    //retrieve the data from database if student id not equal null
+    // crud -> r
     val myTasksUiState: StateFlow<List<TaskEntity>> =
         _currentStudentId
             .flatMapLatest { studentId ->
@@ -36,6 +38,8 @@ class TaskViewModel(
                 initialValue = emptyList()
             )
 
+
+    //crud -> c
     fun createNewTask(
         title: String,
         description: String,
@@ -67,6 +71,7 @@ class TaskViewModel(
         }
     }
 
+    //crud -> u
     fun updateTask(
         task: TaskEntity,
         title: String,
@@ -90,6 +95,7 @@ class TaskViewModel(
         }
     }
 
+    //crud -> u
     fun snapPhotoAndUpdateProgress(taskId: Int, imagePath: String) {
         viewModelScope.launch {
             try {
@@ -100,6 +106,7 @@ class TaskViewModel(
         }
     }
 
+    // submit to admin for checking and redeem points
     fun submitTasktoAdmin(taskId: Int) {
         viewModelScope.launch {
             try {
@@ -114,6 +121,7 @@ class TaskViewModel(
         }
     }
 
+    //crud -> d
     fun deleteTask(taskId: Int) {
         viewModelScope.launch {
             try {
