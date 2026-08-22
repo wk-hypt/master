@@ -54,11 +54,11 @@ class AppDataContainer(private val context: Context) : AppContainer {
     }
 
     override val submissionRepository: SubmissionRepository by lazy {
-        SupabaseSubmissionRepository(postgrest)
+        SupabaseSubmissionRepository(postgrest, storage)
     }
 
     override val taskRepository: TaskRepository by lazy {
-        SupabaseTaskRepository(postgrest)
+        SupabaseTaskRepository(postgrest, storage)
     }
 
     override val userRepository: UserRepository by lazy {
