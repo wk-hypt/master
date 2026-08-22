@@ -1,4 +1,4 @@
-package com.example.project1.ui.users.login
+package com.example.project1.ui.login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

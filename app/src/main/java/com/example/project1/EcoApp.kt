@@ -39,7 +39,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -53,7 +52,7 @@ import com.example.project1.ui.admin.report.AdminReportView
 import com.example.project1.ui.admin.rewards.AdminRewardsView
 import com.example.project1.ui.users.home.HomeView
 import com.example.project1.ui.users.leaderboard.LeaderboardView
-import com.example.project1.ui.users.login.LoginView
+import com.example.project1.ui.login.LoginView
 import com.example.project1.ui.users.profile.ProfileView
 import com.example.project1.ui.users.rewards.RewardsView
 import com.example.project1.ui.users.task.TaskView
@@ -131,7 +130,6 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        // No top system-bar padding: screen headers should reach the very top with no blank gap.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (showBottomBar) {
@@ -290,7 +288,8 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                     onBackClick = { navController.navigate(Screen.Task.route) }
                 )
             }
-
+4
+            //admin page start
             composable(AdminScreen.Approval.route) {
                 AdminHomeView(
                     adminId = loggedInAdminId,

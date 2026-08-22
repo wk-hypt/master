@@ -11,7 +11,7 @@ import com.example.project1.ui.admin.report.AdminReportViewModel
 import com.example.project1.ui.admin.rewards.AdminRewardsViewModel
 import com.example.project1.ui.users.home.HomeViewModel
 import com.example.project1.ui.users.leaderboard.LeaderboardViewModel
-import com.example.project1.ui.users.login.LoginViewModel
+import com.example.project1.ui.login.LoginViewModel
 import com.example.project1.ui.users.profile.ProfileViewModel
 import com.example.project1.ui.users.rewards.RewardsViewModel
 import com.example.project1.ui.users.task.TaskViewModel
