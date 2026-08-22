@@ -1,5 +1,6 @@
 package com.example.project1.ui.users.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.EcoSubmissionEntity
@@ -75,7 +76,7 @@ class HomeViewModel(
 
     // function that used for submission to insert data into repository
     fun submitEcoLog(
-        imagePath: String,
+        imageBytes: ByteArray,
         actionType: String,
         stallName: String,
         quantity: Int,
@@ -83,19 +84,24 @@ class HomeViewModel(
         location: String
     ) {
         viewModelScope.launch {
-            submissionRepository.insertSubmission(
-                EcoSubmissionEntity(
-                    userId = _currentStudentId.value,
-                    actionType = actionType,
-                    stallName = stallName,
-                    imagePath = imagePath,
-                    status = "Pending",
-                    timestamp = System.currentTimeMillis(),
-                    quantity = quantity,
-                    description = description.ifBlank { null },
-                    location = location.ifBlank { null }
+            try {
+                val imageUrl = submissionRepository.uploadProofImage(imageBytes)
+                submissionRepository.insertSubmission(
+                    EcoSubmissionEntity(
+                        userId = _currentStudentId.value,
+                        actionType = actionType,
+                        stallName = stallName,
+                        imagePath = imageUrl,
+                        status = "Pending",
+                        timestamp = System.currentTimeMillis(),
+                        quantity = quantity,
+                        description = description.ifBlank { null },
+                        location = location.ifBlank { null }
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "Failed to submit eco log", e)
+            }
         }
     }
 }

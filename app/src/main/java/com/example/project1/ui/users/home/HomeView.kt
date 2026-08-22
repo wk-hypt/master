@@ -1,8 +1,10 @@
 package com.example.project1.ui.users.home
 
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -21,6 +23,7 @@ fun HomeView(
         viewModel.setCurrentStudent(studentId)
     }
 
+    val context = LocalContext.current
     val currentPoints by viewModel.currentPoints.collectAsState()
     val totalPlasticSaved by viewModel.totalPlasticSaved.collectAsState()
     val banners by viewModel.banners.collectAsState()
@@ -62,14 +65,20 @@ fun HomeView(
         EcoUploadDialog(
             onDismiss = { showUploadDialog = false },
             onSubmit = { submissionInput ->
-                viewModel.submitEcoLog(
-                    imagePath = submissionInput.imagePath,
-                    actionType = submissionInput.actionType,
-                    stallName = submissionInput.stallName,
-                    quantity = submissionInput.quantity,
-                    description = submissionInput.description,
-                    location = submissionInput.location
-                )
+                val imageBytes = context.contentResolver
+                    .openInputStream(Uri.parse(submissionInput.imagePath))
+                    ?.use { it.readBytes() }
+
+                if (imageBytes != null) {
+                    viewModel.submitEcoLog(
+                        imageBytes = imageBytes,
+                        actionType = submissionInput.actionType,
+                        stallName = submissionInput.stallName,
+                        quantity = submissionInput.quantity,
+                        description = submissionInput.description,
+                        location = submissionInput.location
+                    )
+                }
                 showUploadDialog = false
             }
         )

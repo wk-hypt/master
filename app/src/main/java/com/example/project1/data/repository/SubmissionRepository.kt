@@ -7,7 +7,9 @@ import com.example.project1.data.model.StatusUpdate
 import com.example.project1.data.model.SubmissionReviewUpdate
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.query.Order
+import io.github.jan.supabase.storage.Storage
 import kotlinx.coroutines.flow.Flow
+import java.util.UUID
 
 interface SubmissionRepository {
     fun getAllSubmissionsStream(userId: String): Flow<List<EcoSubmissionEntity>>
@@ -21,9 +23,13 @@ interface SubmissionRepository {
     suspend fun approveSubmission(submissionId: Int, adminId: String, points: Int)
     suspend fun rejectSubmission(submissionId: Int, adminId: String, feedback: String?)
     suspend fun getSubmissionById(submissionId: Int): EcoSubmissionEntity?
+    suspend fun uploadProofImage(bytes: ByteArray): String
 }
 
-class SupabaseSubmissionRepository(private val postgrest: Postgrest) : SubmissionRepository {
+class SupabaseSubmissionRepository(
+    private val postgrest: Postgrest,
+    private val storage: Storage
+) : SubmissionRepository {
 
     override fun getAllSubmissionsStream(userId: String): Flow<List<EcoSubmissionEntity>> = pollingFlow {
         try {
@@ -183,5 +189,12 @@ class SupabaseSubmissionRepository(private val postgrest: Postgrest) : Submissio
             Log.e("SubmissionRepository", "Failed to get submission by ID: ${e.message}", e)
             null
         }
+    }
+
+    override suspend fun uploadProofImage(bytes: ByteArray): String {
+        val fileName = "eco-logs/${UUID.randomUUID()}.jpg"
+        val bucket = storage.from("vouchers")
+        bucket.upload(fileName, bytes, upsert = true)
+        return bucket.publicUrl(fileName)
     }
 }

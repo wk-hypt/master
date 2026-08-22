@@ -11,7 +11,9 @@ import com.example.project1.data.model.UserProfile
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
+import io.github.jan.supabase.storage.Storage
 import kotlinx.coroutines.flow.Flow
+import java.util.UUID
 
 interface TaskRepository {
     fun getAllTasksStream(userId: String): Flow<List<TaskEntity>>
@@ -24,9 +26,13 @@ interface TaskRepository {
     suspend fun rejectTask(taskId: Int, adminId: String, feedback: String?)
     suspend fun deleteTask(taskId: Int)
     suspend fun getTaskById(taskId: Int): TaskEntity?
+    suspend fun uploadProofImage(bytes: ByteArray): String
 }
 
-class SupabaseTaskRepository(private val postgrest: Postgrest) : TaskRepository {
+class SupabaseTaskRepository(
+    private val postgrest: Postgrest,
+    private val storage: Storage
+) : TaskRepository {
 
     override fun getAllTasksStream(userId: String): Flow<List<TaskEntity>> = pollingFlow {
         try {
@@ -210,5 +216,12 @@ class SupabaseTaskRepository(private val postgrest: Postgrest) : TaskRepository 
             Log.e("SupabaseTaskRepository", "Failed to get task by ID: ${e.message}", e)
             null
         }
+    }
+
+    override suspend fun uploadProofImage(bytes: ByteArray): String {
+        val fileName = "task-proofs/${UUID.randomUUID()}.jpg"
+        val bucket = storage.from("vouchers")
+        bucket.upload(fileName, bytes, upsert = true)
+        return bucket.publicUrl(fileName)
     }
 }

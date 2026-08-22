@@ -96,10 +96,11 @@ class TaskViewModel(
     }
 
     //crud -> u
-    fun snapPhotoAndUpdateProgress(taskId: Int, imagePath: String) {
+    fun snapPhotoAndUpdateProgress(taskId: Int, imageBytes: ByteArray) {
         viewModelScope.launch {
             try {
-                taskRepository.updateTaskProgress(taskId = taskId, imagePath = imagePath)
+                val imageUrl = taskRepository.uploadProofImage(imageBytes)
+                taskRepository.updateTaskProgress(taskId = taskId, imagePath = imageUrl)
             } catch (e: Exception) {
                 Log.e("TaskViewModel", "Failed to update progress for task $taskId", e)
             }

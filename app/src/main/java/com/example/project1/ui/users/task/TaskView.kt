@@ -1,8 +1,10 @@
 package com.example.project1.ui.users.task
 
+import android.net.Uri
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project1.data.model.TaskEntity
 import com.example.project1.ui.AppViewModelProvider
@@ -18,6 +20,7 @@ fun TaskView(
     }
 
     val myTasks by viewModel.myTasksUiState.collectAsState()
+    val context = LocalContext.current
 
     var showAddDialog by remember { mutableStateOf(false) }
     var taskBeingEdited by remember { mutableStateOf<TaskEntity?>(null) }
@@ -28,7 +31,12 @@ fun TaskView(
         onEditClick = { task -> taskBeingEdited = task },
         onDeleteClick = { taskId -> viewModel.deleteTask(taskId) },
         onSnapPhoto = { taskId, imagePath ->
-            viewModel.snapPhotoAndUpdateProgress(taskId, imagePath)
+            val imageBytes = context.contentResolver
+                .openInputStream(Uri.parse(imagePath))
+                ?.use { it.readBytes() }
+            if (imageBytes != null) {
+                viewModel.snapPhotoAndUpdateProgress(taskId, imageBytes)
+            }
         },
         onSubmitToAdmin = { taskId ->
             viewModel.submitTasktoAdmin(taskId)

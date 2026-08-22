@@ -226,7 +226,7 @@ fun AdminHomeFunct(
                     userId = task.userId,
                     subtitle = "${task.title} \u00b7 Task: ${task.taskQuantity}",
                     status = task.status,
-                    thumbnailUrl = null,
+                    thumbnailUrl = task.imagePath?.takeIf { it.isNotBlank() },
                     onClick = { selectedTask = task }
                 )
             }
