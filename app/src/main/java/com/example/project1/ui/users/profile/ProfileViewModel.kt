@@ -93,10 +93,8 @@ class ProfileViewModel(
         _message.value = null
     }
 
-    val darkModeEnabled: StateFlow<Boolean> = settingsRepository.darkModeEnabled
     val notificationsEnabled: StateFlow<Boolean> = settingsRepository.notificationsEnabled
 
-    fun setDarkMode(enabled: Boolean) = settingsRepository.setDarkMode(enabled)
     fun setNotifications(enabled: Boolean) = settingsRepository.setNotifications(enabled)
 
     private val _avatarColorIndex = MutableStateFlow(0)
@@ -233,6 +231,19 @@ class ProfileViewModel(
 
     private fun generateVerificationCode(): String =
         Random.nextInt(0, 1_000_000).toString().padStart(6, '0')
+
+    fun deleteSubmissions(ids: List<Int>) = viewModelScope.launch {
+        if (ids.isEmpty()) return@launch
+        try {
+            val idSet = ids.toSet()
+            submissions.value.filter { it.id in idSet }.forEach { submission ->
+                submissionRepository.deleteSubmission(submission)
+            }
+            _message.value = if (ids.size == 1) "Submission deleted" else "${ids.size} submissions deleted"
+        } catch (e: Exception) {
+            _message.value = e.message ?: "Could not delete submission(s)"
+        }
+    }
 
     fun deleteAccount(onDeleted: () -> Unit) = viewModelScope.launch {
         val id = _studentId.value

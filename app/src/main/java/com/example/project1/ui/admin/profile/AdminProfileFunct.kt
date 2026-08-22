@@ -24,7 +24,6 @@ private enum class AdminProfilePage { Hub, Info, StaffDirectory, UserManagement 
 fun AdminProfileFunct(
     admin: AdminEntity?,
     modifier: Modifier = Modifier,
-    profilePhotoPath: String? = null,
     pendingSubmissionsCount: Int = 0,
     pendingTasksCount: Int = 0,
     totalStudents: Int = 0,
@@ -39,8 +38,7 @@ fun AdminProfileFunct(
     onConfirmPasswordChange: (code: String) -> Unit,
     onCancelPasswordChange: () -> Unit = {},
     onDeleteUser: (studentId: String) -> Unit = {},
-    onProfilePhotoPicked: (android.net.Uri) -> Unit = {},
-    onRemoveProfilePhoto: () -> Unit = {},
+    onNavigateToApproval: (tab: Int) -> Unit = {},
     onLogout: () -> Unit,
     snackbarHost: @Composable () -> Unit = {}
 ) {
@@ -59,7 +57,6 @@ fun AdminProfileFunct(
                     displayName = admin?.name.orEmpty().ifBlank { "Staff" },
                     adminId = admin?.adminId.orEmpty(),
                     faculty = admin?.faculty.orEmpty(),
-                    profilePhotoPath = profilePhotoPath,
                     pendingSubmissionsCount = pendingSubmissionsCount,
                     pendingTasksCount = pendingTasksCount,
                     totalStudents = totalStudents,
@@ -70,8 +67,7 @@ fun AdminProfileFunct(
                         page = AdminProfilePage.StaffDirectory
                     },
                     onOpenUserManagement = { page = AdminProfilePage.UserManagement },
-                    onProfilePhotoPicked = onProfilePhotoPicked,
-                    onRemoveProfilePhoto = onRemoveProfilePhoto,
+                    onOpenPendingQueue = onNavigateToApproval,
                     onLogout = { showLogoutConfirm = true }
                 )
                 AdminProfilePage.Info -> AdminInfoPage(

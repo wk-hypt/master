@@ -3,7 +3,6 @@
 package com.example.project1.ui.admin.profile
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,7 +59,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project1.data.model.AdminEntity
 import com.example.project1.data.model.UserEntity
-import com.example.project1.ui.common.ProfileCameraBadge
 import com.example.project1.ui.common.ProfileColors
 import com.example.project1.ui.common.ProfileConfirmDialog
 import com.example.project1.ui.common.ProfileMenuRow
@@ -68,15 +66,12 @@ import com.example.project1.ui.common.ProfilePageHeader
 import com.example.project1.ui.common.ProfilePhotoAvatar
 import com.example.project1.ui.common.ProfileStatChip
 import com.example.project1.ui.common.initialsOf
-import com.example.project1.ui.common.launchImagePicker
-import com.example.project1.ui.common.rememberImagePicker
 
 @Composable
 internal fun AdminHubPage(
     displayName: String,
     adminId: String,
     faculty: String,
-    profilePhotoPath: String?,
     pendingSubmissionsCount: Int,
     pendingTasksCount: Int,
     totalStudents: Int,
@@ -84,12 +79,9 @@ internal fun AdminHubPage(
     onChangePassword: () -> Unit,
     onOpenStaffDirectory: () -> Unit,
     onOpenUserManagement: () -> Unit,
-    onProfilePhotoPicked: (android.net.Uri) -> Unit,
-    onRemoveProfilePhoto: () -> Unit,
+    onOpenPendingQueue: (tab: Int) -> Unit,
     onLogout: () -> Unit
 ) {
-    val photoPicker = rememberImagePicker(onProfilePhotoPicked)
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -118,16 +110,12 @@ internal fun AdminHubPage(
             elevation = CardDefaults.cardElevation(4.dp)
         ) {
             Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(56.dp), contentAlignment = Alignment.BottomEnd) {
-                    ProfilePhotoAvatar(
-                        name = displayName,
-                        photoPath = profilePhotoPath,
-                        color = ProfileColors.DarkGreen,
-                        size = 56.dp,
-                        onClick = { launchImagePicker(photoPicker) }
-                    )
-                    ProfileCameraBadge { launchImagePicker(photoPicker) }
-                }
+                ProfilePhotoAvatar(
+                    name = displayName,
+                    photoPath = null,
+                    color = ProfileColors.DarkGreen,
+                    size = 56.dp
+                )
                 Spacer(modifier = Modifier.width(14.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(displayName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = ProfileColors.TextDark)
@@ -138,14 +126,6 @@ internal fun AdminHubPage(
                         color = ProfileColors.PrimaryGreen,
                         fontWeight = FontWeight.Medium
                     )
-                    if (profilePhotoPath != null) {
-                        Text(
-                            "Remove photo",
-                            fontSize = 11.sp,
-                            color = Color(0xFF9E9E9E),
-                            modifier = Modifier.padding(top = 4.dp).clickable(onClick = onRemoveProfilePhoto)
-                        )
-                    }
                 }
             }
         }
@@ -157,9 +137,9 @@ internal fun AdminHubPage(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            ProfileStatChip(Modifier.weight(1f), Icons.AutoMirrored.Filled.Assignment, "Pending Subs", pendingSubmissionsCount.toString())
-            ProfileStatChip(Modifier.weight(1f), Icons.Default.HourglassTop, "Pending Tasks", pendingTasksCount.toString())
-            ProfileStatChip(Modifier.weight(1f), Icons.Default.Groups, "Students", totalStudents.toString())
+            ProfileStatChip(Modifier.weight(1f), Icons.AutoMirrored.Filled.Assignment, "Pending Subs", pendingSubmissionsCount.toString(), onClick = { onOpenPendingQueue(0) })
+            ProfileStatChip(Modifier.weight(1f), Icons.Default.HourglassTop, "Pending Tasks", pendingTasksCount.toString(), onClick = { onOpenPendingQueue(1) })
+            ProfileStatChip(Modifier.weight(1f), Icons.Default.Groups, "Students", totalStudents.toString(), onClick = onOpenUserManagement)
         }
 
         Card(

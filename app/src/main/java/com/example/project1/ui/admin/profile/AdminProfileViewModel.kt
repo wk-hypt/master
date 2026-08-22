@@ -1,6 +1,5 @@
 package com.example.project1.ui.admin.profile
 
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -37,7 +36,6 @@ class AdminProfileViewModel(
 
     fun setCurrentAdmin(id: String) {
         _adminId.value = id
-        _profilePhotoPath.value = settingsRepository.getProfilePhotoPath(id)
     }
 
     val admin: StateFlow<AdminEntity?> = _adminId
@@ -55,28 +53,6 @@ class AdminProfileViewModel(
 
     fun clearMessage() {
         _message.value = null
-    }
-
-    // Profile picture (device-local, per admin account)
-    private val _profilePhotoPath = MutableStateFlow<String?>(null)
-    val profilePhotoPath: StateFlow<String?> = _profilePhotoPath.asStateFlow()
-
-    fun setProfilePhoto(uri: Uri) {
-        val id = _adminId.value
-        if (id.isBlank()) return
-        val savedPath = settingsRepository.saveProfilePhoto(id, uri)
-        if (savedPath != null) {
-            _profilePhotoPath.value = savedPath
-        } else {
-            _message.value = "Could not save profile photo"
-        }
-    }
-
-    fun removeProfilePhoto() {
-        val id = _adminId.value
-        if (id.isBlank()) return
-        settingsRepository.clearProfilePhoto(id)
-        _profilePhotoPath.value = null
     }
 
     // Quick campus stats surfaced on the staff hub.

@@ -23,14 +23,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -50,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.project1.ui.common.ProfileColors
+import com.example.project1.ui.common.ProfileConfirmDialog
 import com.example.project1.ui.common.ProfilePageHeader
 
 private enum class HistoryFilter(val label: String) {
@@ -62,10 +67,14 @@ private enum class HistoryFilter(val label: String) {
 @Composable
 internal fun ProfileHistoryPage(
     submissions: List<EcoSubmissionEntity>,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onDeleteSubmissions: (List<Int>) -> Unit = {}
 ) {
     var filter by remember { mutableStateOf(HistoryFilter.All) }
     var selected by remember { mutableStateOf<EcoSubmissionEntity?>(null) }
+    var selectionMode by remember { mutableStateOf(false) }
+    var selectedIds by remember { mutableStateOf(setOf<Int>()) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     val filtered = remember(submissions, filter) {
         when (filter) {
@@ -79,7 +88,26 @@ internal fun ProfileHistoryPage(
     val rejected = submissions.count { it.status.equals("Rejected", ignoreCase = true) }
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
-        ProfilePageHeader(title = "Submission history", onBack = onBack)
+        ProfilePageHeader(title = "Submission history", onBack = onBack) {
+            if (selectionMode) {
+                IconButton(
+                    onClick = { showDeleteConfirm = true },
+                    enabled = selectedIds.isNotEmpty()
+                ) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Delete selected submissions",
+                        tint = if (selectedIds.isNotEmpty()) ProfileColors.Danger else Color(0xFFBDBDBD)
+                    )
+                }
+                TextButton(onClick = {
+                    selectionMode = false
+                    selectedIds = emptySet()
+                }) { Text("Cancel") }
+            } else if (filtered.isNotEmpty()) {
+                TextButton(onClick = { selectionMode = true }) { Text("Select") }
+            }
+        }
         Text(
             "${submissions.size} eco log${if (submissions.size == 1) "" else "s"} · $pending pending · $approved approved · $rejected rejected",
             fontSize = 12.sp,
@@ -131,7 +159,25 @@ internal fun ProfileHistoryPage(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(filtered, key = { it.id }) { submission ->
-                    HistoryCard(submission) { selected = submission }
+                    HistoryCard(
+                        submission = submission,
+                        selectionMode = selectionMode,
+                        checked = submission.id in selectedIds,
+                        onCheckedChange = { checked ->
+                            selectedIds = if (checked) selectedIds + submission.id else selectedIds - submission.id
+                        },
+                        onClick = {
+                            if (selectionMode) {
+                                selectedIds = if (submission.id in selectedIds) {
+                                    selectedIds - submission.id
+                                } else {
+                                    selectedIds + submission.id
+                                }
+                            } else {
+                                selected = submission
+                            }
+                        }
+                    )
                 }
             }
         }
@@ -140,23 +186,53 @@ internal fun ProfileHistoryPage(
     selected?.let { submission ->
         HistoryDetailDialog(submission) { selected = null }
     }
+
+    if (showDeleteConfirm) {
+        val count = selectedIds.size
+        ProfileConfirmDialog(
+            title = if (count == 1) "Delete submission" else "Delete $count submissions",
+            body = "This will permanently remove the selected submission${if (count == 1) "" else "s"} from your history. This action cannot be undone.",
+            confirmLabel = "Delete",
+            destructive = true,
+            onDismiss = { showDeleteConfirm = false },
+            onConfirm = {
+                onDeleteSubmissions(selectedIds.toList())
+                showDeleteConfirm = false
+                selectionMode = false
+                selectedIds = emptySet()
+            }
+        )
+    }
 }
 
 @Composable
 private fun HistoryCard(
     submission: EcoSubmissionEntity,
+    selectionMode: Boolean = false,
+    checked: Boolean = false,
+    onCheckedChange: (Boolean) -> Unit = {},
     onClick: () -> Unit
 ) {
     Card(
         onClick = onClick,
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(
+            containerColor = if (selectionMode && checked) ProfileColors.SoftGreen else Color.White
+        ),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Row(
             modifier = Modifier.padding(12.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (selectionMode) {
+                Checkbox(
+                    checked = checked,
+                    onCheckedChange = onCheckedChange,
+                    colors = CheckboxDefaults.colors(checkedColor = ProfileColors.PrimaryGreen)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
             Box(
                 modifier = Modifier
                     .size(56.dp)

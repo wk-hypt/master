@@ -27,7 +27,6 @@ fun ProfileFunct(
     modifier: Modifier = Modifier,
     ecoStats: EcoProfileStats = EcoProfileStats(),
     submissions: List<EcoSubmissionEntity> = emptyList(),
-    darkModeEnabled: Boolean = false,
     notificationsEnabled: Boolean = true,
     avatarColorIndex: Int = 0,
     onAvatarColorSelected: (Int) -> Unit = {},
@@ -44,8 +43,8 @@ fun ProfileFunct(
     onConfirmPasswordChange: (code: String) -> Unit,
     onCancelPasswordChange: () -> Unit = {},
     onDeleteAccount: () -> Unit,
+    onDeleteSubmissions: (List<Int>) -> Unit = {},
     onLogout: () -> Unit,
-    onToggleDarkMode: (Boolean) -> Unit = {},
     onToggleNotifications: (Boolean) -> Unit = {},
     snackbarHost: @Composable () -> Unit = {}
 ) {
@@ -101,7 +100,8 @@ fun ProfileFunct(
                 )
                 UserProfilePage.History -> ProfileHistoryPage(
                     submissions = submissions,
-                    onBack = { page = UserProfilePage.Hub }
+                    onBack = { page = UserProfilePage.Hub },
+                    onDeleteSubmissions = onDeleteSubmissions
                 )
                 UserProfilePage.Achievements -> AchievementsPage(
                     displayName = displayName,
@@ -113,9 +113,7 @@ fun ProfileFunct(
                     onBack = { page = UserProfilePage.Hub }
                 )
                 UserProfilePage.Settings -> SettingsPage(
-                    darkModeEnabled = darkModeEnabled,
                     notificationsEnabled = notificationsEnabled,
-                    onToggleDarkMode = onToggleDarkMode,
                     onToggleNotifications = onToggleNotifications,
                     onBack = { page = UserProfilePage.Hub },
                     onChangePassword = { showPasswordDialog = true },
