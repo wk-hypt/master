@@ -210,7 +210,7 @@ internal fun profileCompleteness(user: UserEntity?): Float {
         user.phone.orEmpty(),
         user.email.orEmpty(),
         user.birthday.orEmpty(),
-        user.faculty//
+        user.faculty
     )
     return fields.count { it.isNotBlank() }.toFloat() / fields.size
 }
