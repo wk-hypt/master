@@ -21,7 +21,7 @@ object VoucherRules {
 
     private val featuredMatchers: List<(String) -> Boolean> = listOf(
         { t -> t.contains("rm2") },
-        { t -> t.contains("10%") },
+        { t -> t.contains("bingxue") },
         { t -> t.contains("rm5") }
     )
 }
