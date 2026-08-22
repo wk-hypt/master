@@ -1,4 +1,4 @@
-package com.example.project1.ui.users.login
+package com.example.project1.ui.login
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
