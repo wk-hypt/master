@@ -26,6 +26,7 @@ fun ProfileView(
 
     val user by viewModel.user.collectAsState()
     val ecoStats by viewModel.ecoStats.collectAsState()
+    val submissions by viewModel.submissions.collectAsState()
     val message by viewModel.message.collectAsState()
     val darkModeEnabled by viewModel.darkModeEnabled.collectAsState()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
@@ -44,6 +45,7 @@ fun ProfileView(
     ProfileFunct(
         user = user,
         ecoStats = ecoStats,
+        submissions = submissions,
         darkModeEnabled = darkModeEnabled,
         notificationsEnabled = notificationsEnabled,
         avatarColorIndex = avatarColorIndex,

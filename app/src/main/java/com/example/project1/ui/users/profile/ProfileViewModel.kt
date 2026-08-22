@@ -51,9 +51,15 @@ class ProfileViewModel(
             initialValue = null
         )
 
-    private val profileSubmissions: Flow<List<EcoSubmissionEntity>> = _studentId.flatMapLatest { id ->
-        if (id.isBlank()) flowOf(emptyList()) else submissionRepository.getAllSubmissionsStream(id)
-    }
+    val submissions: StateFlow<List<EcoSubmissionEntity>> = _studentId
+        .flatMapLatest { id ->
+            if (id.isBlank()) flowOf(emptyList()) else submissionRepository.getAllSubmissionsStream(id)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
 
     private val profileTasks: Flow<List<TaskEntity>> = _studentId.flatMapLatest { id ->
         if (id.isBlank()) flowOf(emptyList()) else taskRepository.getAllTasksStream(id)
@@ -69,7 +75,7 @@ class ProfileViewModel(
 
     val ecoStats: StateFlow<EcoProfileStats> = combine(
         user,
-        profileSubmissions,
+        submissions,
         profileTasks,
         campusUsers
     ) { currentUser, submissions, tasks, allUsers ->
