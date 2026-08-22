@@ -3,6 +3,7 @@ package com.example.project1.ui.admin.home
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -77,9 +78,13 @@ fun AdminHomeFunct(
     onRejectSubmission: (submissionId: Int, feedback: String) -> Unit,
     onApproveTask: (task: TaskEntity, points: Int) -> Unit,
     onRejectTask: (task: TaskEntity, feedback: String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    initialTab: Int = 0
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
+    // Keyed on initialTab so navigating in from Profile's "Pending Tasks" /
+    // "Pending Subs" stat chips (which pass 1 / 0 respectively) always lands
+    // on the right tab, even if this screen was already on the back stack.
+    var selectedTab by remember(initialTab) { mutableIntStateOf(initialTab) }
     var selectedSubmission by remember { mutableStateOf<EcoSubmissionEntity?>(null) }
     var approvingSubmission by remember { mutableStateOf<EcoSubmissionEntity?>(null) }
     var rejectingSubmission by remember { mutableStateOf<EcoSubmissionEntity?>(null) }
@@ -157,7 +162,8 @@ fun AdminHomeFunct(
                     iconBg = Color(0xFFE8F5E9),
                     label = "Pending Submissions",
                     value = pendingSubmissions.size.toString(),
-                    caption = "Needs review"
+                    caption = "Needs review",
+                    onClick = { selectedTab = 0 }
                 )
                 StatMiniCard(
                     modifier = Modifier.weight(1f),
@@ -166,7 +172,8 @@ fun AdminHomeFunct(
                     iconBg = Color(0xFFFFF3E0),
                     label = "Pending Tasks",
                     value = pendingTasks.size.toString(),
-                    caption = "Needs action"
+                    caption = "Needs action",
+                    onClick = { selectedTab = 1 }
                 )
             }
 
@@ -290,11 +297,13 @@ private fun StatMiniCard(
     iconBg: Color,
     label: String,
     value: String,
-    caption: String
+    caption: String,
+    onClick: (() -> Unit)? = null
 ) {
     Column(
         modifier = modifier
             .flatCard()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(12.dp)
     ) {
         Box(

@@ -28,7 +28,6 @@ fun ProfileView(
     val ecoStats by viewModel.ecoStats.collectAsState()
     val submissions by viewModel.submissions.collectAsState()
     val message by viewModel.message.collectAsState()
-    val darkModeEnabled by viewModel.darkModeEnabled.collectAsState()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val avatarColorIndex by viewModel.avatarColorIndex.collectAsState()
     val profilePhotoPath by viewModel.profilePhotoPath.collectAsState()
@@ -46,7 +45,6 @@ fun ProfileView(
         user = user,
         ecoStats = ecoStats,
         submissions = submissions,
-        darkModeEnabled = darkModeEnabled,
         notificationsEnabled = notificationsEnabled,
         avatarColorIndex = avatarColorIndex,
         onAvatarColorSelected = viewModel::setAvatarColorIndex,
@@ -63,8 +61,8 @@ fun ProfileView(
         onConfirmPasswordChange = viewModel::confirmPasswordChange,
         onCancelPasswordChange = viewModel::cancelPasswordChange,
         onDeleteAccount = { viewModel.deleteAccount(onLogout) },
+        onDeleteSubmissions = viewModel::deleteSubmissions,
         onLogout = onLogout,
-        onToggleDarkMode = viewModel::setDarkMode,
         onToggleNotifications = viewModel::setNotifications,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = Modifier.fillMaxSize()

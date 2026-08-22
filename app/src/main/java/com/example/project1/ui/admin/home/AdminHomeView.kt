@@ -14,6 +14,7 @@ fun AdminHomeView(
     adminId: String,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
+    initialTab: Int = 0,
     viewModel: AdminHomeViewModel = viewModel(key = adminId, factory = AppViewModelProvider.Factory)
 ) {
     LaunchedEffect(adminId) {
@@ -26,6 +27,7 @@ fun AdminHomeView(
     AdminHomeFunct(
         pendingSubmissions = pendingSubmissions,
         pendingTasks = pendingTasks,
+        initialTab = initialTab,
         onApproveSubmission = { id, studentId, points ->
             viewModel.approveSubmission(submissionId = id, studentId = studentId, points = points)
         },

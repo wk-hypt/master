@@ -113,6 +113,10 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
 
     var loggedInStudentId by remember { mutableStateOf("") }
     var loggedInAdminId by remember { mutableStateOf("") }
+    // Which tab (0 = Submissions, 1 = Task Goals) the Approval screen should open
+    // on next. Set explicitly right before navigating there; defaults to 0 so
+    // the bottom-nav "Approval" icon always opens on Submissions as before.
+    var approvalInitialTab by remember { mutableIntStateOf(0) }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -162,6 +166,9 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                                     indicatorColor = MaterialTheme.colorScheme.primary
                                 ),
                                 onClick = {
+                                    if (screen == AdminScreen.Approval) {
+                                        approvalInitialTab = 0
+                                    }
                                     if (currentRoute != screen.route) {
                                         navController.navigate(screen.route) {
                                             popUpTo(navController.graph.findStartDestination().id) {
@@ -288,11 +295,12 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                     onBackClick = { navController.navigate(Screen.Task.route) }
                 )
             }
-4
+            4
             //admin page start
             composable(AdminScreen.Approval.route) {
                 AdminHomeView(
                     adminId = loggedInAdminId,
+                    initialTab = approvalInitialTab,
                     onLogout = {
                         app.container.setCurrentStudentId("")
                         onEndSession()
@@ -309,6 +317,16 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
             composable(AdminScreen.Profile.route) {
                 AdminProfileView(
                     adminId = loggedInAdminId,
+                    onNavigateToApproval = { tab ->
+                        approvalInitialTab = tab
+                        navController.navigate(AdminScreen.Approval.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                     onLogout = {
                         app.container.setCurrentStudentId("")
                         onEndSession()

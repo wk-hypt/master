@@ -17,7 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
@@ -42,9 +41,7 @@ import com.example.project1.ui.common.ProfilePageHeader
 
 @Composable
 internal fun SettingsPage(
-    darkModeEnabled: Boolean,
     notificationsEnabled: Boolean,
-    onToggleDarkMode: (Boolean) -> Unit,
     onToggleNotifications: (Boolean) -> Unit,
     onBack: () -> Unit,
     onChangePassword: () -> Unit,
@@ -63,7 +60,6 @@ internal fun SettingsPage(
         Spacer(modifier = Modifier.height(8.dp))
 
         SettingsGroup("Preferences") {
-            ToggleRow("Dark Mode", Icons.Default.DarkMode, darkModeEnabled, onToggleDarkMode)
             ToggleRow("Notifications", Icons.Default.Notifications, notificationsEnabled, onToggleNotifications)
         }
         Spacer(modifier = Modifier.height(20.dp))

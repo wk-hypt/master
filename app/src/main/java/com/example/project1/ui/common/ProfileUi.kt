@@ -212,14 +212,10 @@ fun ProfileStatChip(
     modifier: Modifier = Modifier,
     icon: ImageVector,
     label: String,
-    value: String
+    value: String,
+    onClick: (() -> Unit)? = null
 ) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
+    val chipContent: @Composable () -> Unit = {
         Column(
             modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -234,6 +230,27 @@ fun ProfileStatChip(
                 textAlign = TextAlign.Center
             )
             Text(label, fontSize = 10.sp, color = ProfileColors.TextGrey, textAlign = TextAlign.Center)
+        }
+    }
+
+    if (onClick != null) {
+        Card(
+            onClick = onClick,
+            modifier = modifier,
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(2.dp)
+        ) {
+            chipContent()
+        }
+    } else {
+        Card(
+            modifier = modifier,
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(2.dp)
+        ) {
+            chipContent()
         }
     }
 }

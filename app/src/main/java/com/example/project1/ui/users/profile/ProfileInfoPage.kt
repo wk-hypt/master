@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -132,16 +134,18 @@ internal fun ProfileInfoPage(
                 Box(modifier = Modifier.align(Alignment.BottomEnd)) {
                     ProfileCameraBadge { launchImagePicker(photoPicker) }
                 }
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .size(26.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF2196F3))
-                        .clickable { showColorPicker = true },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Default.Palette, contentDescription = "Change avatar color", tint = Color.White, modifier = Modifier.size(14.dp))
+                if (profilePhotoPath == null) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(26.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF2196F3))
+                            .clickable { showColorPicker = true },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Palette, contentDescription = "Change avatar color", tint = Color.White, modifier = Modifier.size(14.dp))
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(6.dp))
@@ -198,13 +202,16 @@ internal fun ProfileInfoPage(
         }
     }
 
-    if (showColorPicker) {
+    if (showColorPicker && profilePhotoPath == null) {
         AlertDialog(
             onDismissRequest = { showColorPicker = false },
             title = { Text("Choose avatar color", fontWeight = FontWeight.Bold) },
             text = {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    AvatarPalette.forEachIndexed { index, color ->
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    itemsIndexed(AvatarPalette) { index, color ->
                         Box(
                             modifier = Modifier
                                 .size(40.dp)

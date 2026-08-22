@@ -18,6 +18,7 @@ import com.example.project1.ui.AppViewModelProvider
 fun AdminProfileView(
     adminId: String,
     onLogout: () -> Unit,
+    onNavigateToApproval: (tab: Int) -> Unit = {},
     viewModel: AdminProfileViewModel = viewModel(key = adminId, factory = AppViewModelProvider.Factory)
 ) {
     LaunchedEffect(adminId) {
@@ -26,7 +27,6 @@ fun AdminProfileView(
 
     val admin by viewModel.admin.collectAsState()
     val message by viewModel.message.collectAsState()
-    val profilePhotoPath by viewModel.profilePhotoPath.collectAsState()
     val pendingSubmissionsCount by viewModel.pendingSubmissionsCount.collectAsState()
     val pendingTasksCount by viewModel.pendingTasksCount.collectAsState()
     val totalStudents by viewModel.totalStudents.collectAsState()
@@ -44,7 +44,6 @@ fun AdminProfileView(
 
     AdminProfileFunct(
         admin = admin,
-        profilePhotoPath = profilePhotoPath,
         pendingSubmissionsCount = pendingSubmissionsCount,
         pendingTasksCount = pendingTasksCount,
         totalStudents = totalStudents,
@@ -59,8 +58,7 @@ fun AdminProfileView(
         onConfirmPasswordChange = viewModel::confirmPasswordChange,
         onCancelPasswordChange = viewModel::cancelPasswordChange,
         onDeleteUser = viewModel::deleteUser,
-        onProfilePhotoPicked = viewModel::setProfilePhoto,
-        onRemoveProfilePhoto = viewModel::removeProfilePhoto,
+        onNavigateToApproval = onNavigateToApproval,
         onLogout = onLogout,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = Modifier.fillMaxSize()
