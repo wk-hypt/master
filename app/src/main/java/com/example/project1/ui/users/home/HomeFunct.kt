@@ -645,14 +645,15 @@ fun VoucherDetailDialog(voucher: CampusVoucher, heldCount: Int, onDismiss: () ->
                 enabled = !isLimitReached,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF2E7D32),
-                    disabledContainerColor = Color(0xFFBDBDBD)
+                    disabledContainerColor = Color(0xFFBDBDBD),
+                    disabledContentColor = if (isLimitReached) Color(0xFFC62828) else Color(0xFF9E9E9E)
                 )
             ) {
                 Text(if (isLimitReached) "Limit Reached" else "Go to Rewards")
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) { Text("Close") }
+            OutlinedButton(onClick = onDismiss) { Text("Close", color = Color.Black) }
         }
     )
 }
