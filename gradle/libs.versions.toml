@@ -43,6 +43,7 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
 androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }

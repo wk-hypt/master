@@ -1,6 +1,8 @@
 package com.example.project1.ui.admin.rewards
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +23,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,8 +39,10 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,16 +65,34 @@ private val PageBg = Color(0xFFF4F6F5)
 fun AdminRewardsFunct(
     available: List<VoucherEntity>,
     expired: List<VoucherEntity>,
+    scanResult: VoucherScanResult? = null,
     onAddClick: () -> Unit,
     onEditClick: (VoucherEntity) -> Unit,
     onDeleteClick: (VoucherEntity) -> Unit,
+    onScanQr: (expectedTitle: String, qrPayload: String) -> Unit = { _, _ -> },
+    snackbarHost: @Composable () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedScanVoucher by remember { mutableStateOf<VoucherEntity?>(null) }
+    var showScanner by remember { mutableStateOf(false) }
+    var scanLocked by remember { mutableStateOf(false) }
+
+    LaunchedEffect(scanResult) {
+        when (scanResult) {
+            is VoucherScanResult.Success -> {
+                showScanner = false
+                scanLocked = false
+            }
+            is VoucherScanResult.Invalid -> scanLocked = false
+            null -> Unit
+        }
+    }
 
     Scaffold(
         modifier = modifier,
         containerColor = PageBg,
+        snackbarHost = snackbarHost,
         floatingActionButton = {
             if (selectedTab == 0) {
                 FloatingActionButton(
@@ -120,6 +145,11 @@ fun AdminRewardsFunct(
                     onClick = { selectedTab = 1 },
                     text = { Text("Expired (${expired.size})") }
                 )
+                Tab(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
+                    text = { Text("Scan") }
+                )
             }
 
             when (selectedTab) {
@@ -128,11 +158,143 @@ fun AdminRewardsFunct(
                     onEditClick = onEditClick,
                     onDeleteClick = onDeleteClick
                 )
-                else -> ExpiredAdminList(
+                1 -> ExpiredAdminList(
                     vouchers = expired,
                     onDeleteClick = onDeleteClick
                 )
+                else -> ScanVoucherPanel(
+                    catalog = (available + expired).distinctBy { it.title.trim().lowercase() },
+                    selected = selectedScanVoucher,
+                    onSelect = { selectedScanVoucher = it },
+                    onStartScan = {
+                        if (selectedScanVoucher != null) {
+                            scanLocked = false
+                            showScanner = true
+                        }
+                    }
+                )
             }
+        }
+    }
+
+    if (showScanner) {
+        val voucher = selectedScanVoucher
+        if (voucher != null) {
+            QrScannerDialog(
+                voucherTitle = voucher.title,
+                onQrScanned = { payload ->
+                    if (!scanLocked) {
+                        scanLocked = true
+                        onScanQr(voucher.title, payload)
+                    }
+                },
+                onDismiss = {
+                    showScanner = false
+                    scanLocked = false
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ScanVoucherPanel(
+    catalog: List<VoucherEntity>,
+    selected: VoucherEntity?,
+    onSelect: (VoucherEntity) -> Unit,
+    onStartScan: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Text(
+            text = "Select the voucher type first. Only a matching unused QR will be accepted.",
+            fontSize = 13.sp,
+            color = Color(0xFF6B7280),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+
+        if (catalog.isEmpty()) {
+            EmptyState("No vouchers in the catalog. Create one first.")
+            return
+        }
+
+        LazyColumn(
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            items(catalog, key = { it.id ?: it.title }) { voucher ->
+                val isSelected = selected?.title.equals(voucher.title, ignoreCase = true)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(
+                            width = if (isSelected) 2.dp else 0.dp,
+                            color = if (isSelected) PrimaryGreen else Color.Transparent,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .clickable { onSelect(voucher) },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if (isSelected) PrimaryGreen else Color(0xFFE8F5E9)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.QrCodeScanner,
+                                contentDescription = null,
+                                tint = if (isSelected) Color.White else PrimaryGreen
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = voucher.title,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = Color(0xFF1B1F1C)
+                            )
+                            Text(
+                                text = voucher.merchantName,
+                                fontSize = 12.sp,
+                                color = Color(0xFF6B7280)
+                            )
+                        }
+                        if (isSelected) {
+                            Text(
+                                text = "Selected",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PrimaryGreen
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        Button(
+            onClick = onStartScan,
+            enabled = selected != null,
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Icon(Icons.Default.QrCodeScanner, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(if (selected == null) "Select a voucher to scan" else "Scan ${selected.title} QR")
         }
     }
 }
