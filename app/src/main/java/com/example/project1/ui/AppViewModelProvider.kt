@@ -57,6 +57,7 @@ object AppViewModelProvider {
                 submissionRepository = app.container.submissionRepository,
                 taskRepository = app.container.taskRepository,
                 userRepository = app.container.userRepository,
+                offerRepository = app.container.offerRepository,
                 reportRepository = app.container.reportRepository
             )
         }
@@ -100,7 +101,8 @@ object AppViewModelProvider {
                 settingsRepository = app.container.settingsRepository,
                 submissionRepository = app.container.submissionRepository,
                 taskRepository = app.container.taskRepository,
-                userRepository = app.container.userRepository
+                userRepository = app.container.userRepository,
+                offerRepository = app.container.offerRepository
             )
         }
     }

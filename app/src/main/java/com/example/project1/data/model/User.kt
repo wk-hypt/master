@@ -53,7 +53,20 @@ fun pointsAwardedByUser(
     return awarded
 }
 
-fun UserEntity.withAwardedPoints(awarded: Map<String, Int>): UserEntity {
-    val lifetime = awarded[studentId] ?: 0
-    return copy(totalPoints = maxOf(totalPoints, lifetime))
+fun pointsSpentByUser(vouchers: List<VoucherEntity>): Map<String, Int> {
+    val spent = mutableMapOf<String, Int>()
+    vouchers.forEach { voucher ->
+        val studentId = voucher.redeemedBy?.takeIf { it.isNotBlank() } ?: return@forEach
+        spent[studentId] = (spent[studentId] ?: 0) + voucher.pointsCost
+    }
+    return spent
+}
+
+fun UserEntity.withAwardedPoints(
+    awarded: Map<String, Int>,
+    spent: Map<String, Int> = emptyMap()
+): UserEntity {
+    val fromAwards = awarded[studentId] ?: 0
+    val remainingPlusSpent = totalPoints + (spent[studentId] ?: 0)
+    return copy(totalPoints = maxOf(fromAwards, remainingPlusSpent))
 }

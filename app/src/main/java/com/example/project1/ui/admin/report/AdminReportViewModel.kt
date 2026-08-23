@@ -8,8 +8,11 @@ import com.example.project1.data.model.NewReport
 import com.example.project1.data.model.ReportEntity
 import com.example.project1.data.model.TaskEntity
 import com.example.project1.data.model.UserEntity
+import com.example.project1.data.model.VoucherEntity
 import com.example.project1.data.model.pointsAwardedByUser
+import com.example.project1.data.model.pointsSpentByUser
 import com.example.project1.data.model.withAwardedPoints
+import com.example.project1.data.repository.OfferRepository
 import com.example.project1.data.repository.ReportRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.TaskRepository
@@ -54,6 +57,7 @@ class AdminReportViewModel(
     submissionRepository: SubmissionRepository,
     taskRepository: TaskRepository,
     userRepository: UserRepository,
+    offerRepository: OfferRepository,
     private val reportRepository: ReportRepository
 ) : ViewModel() {
 
@@ -66,9 +70,10 @@ class AdminReportViewModel(
     val reportUiState: StateFlow<ReportUiState> = combine(
         submissionRepository.getReportSubmissionsStream(),
         taskRepository.getReportTasksStream(),
-        userRepository.getAllUsersStream()
-    ) { submissions, tasks, users ->
-        buildReportUiState(submissions, tasks, users)
+        userRepository.getAllUsersStream(),
+        offerRepository.getAllVouchersStream()
+    ) { submissions, tasks, users, vouchers ->
+        buildReportUiState(submissions, tasks, users, vouchers)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -130,7 +135,8 @@ class AdminReportViewModel(
     private fun buildReportUiState(
         submissions: List<EcoSubmissionEntity>,
         tasks: List<TaskEntity>,
-        users: List<UserEntity>
+        users: List<UserEntity>,
+        vouchers: List<VoucherEntity>
     ): ReportUiState {
         val approved = submissions.count { it.status == "Approved" }
         val pending = submissions.count { it.status == "Pending" }
@@ -139,7 +145,8 @@ class AdminReportViewModel(
         val approvalRate = if (reviewed > 0) (approved * 100) / reviewed else 0
 
         val awardedByUser = pointsAwardedByUser(submissions, tasks)
-        val usersByAwarded = users.map { it.withAwardedPoints(awardedByUser) }
+        val spentByUser = pointsSpentByUser(vouchers)
+        val usersByAwarded = users.map { it.withAwardedPoints(awardedByUser, spentByUser) }
         val totalPoints = usersByAwarded.sumOf { it.totalPoints }
         val totalPlastics = users.sumOf { it.plasticsSaved }
         val activeStudents = submissions.map { it.userId }.distinct().size

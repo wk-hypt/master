@@ -6,9 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.AdminEntity
 import com.example.project1.data.model.UserEntity
 import com.example.project1.data.model.pointsAwardedByUser
+import com.example.project1.data.model.pointsSpentByUser
 import com.example.project1.data.model.withAwardedPoints
 import com.example.project1.data.repository.AdminRepository
 import com.example.project1.data.repository.AppSettingsRepository
+import com.example.project1.data.repository.OfferRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.TaskRepository
 import com.example.project1.data.repository.UserRepository
@@ -32,7 +34,8 @@ class AdminProfileViewModel(
     private val settingsRepository: AppSettingsRepository,
     submissionRepository: SubmissionRepository,
     taskRepository: TaskRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    offerRepository: OfferRepository
 ) : ViewModel() {
 
     private val _adminId = MutableStateFlow("")
@@ -105,10 +108,12 @@ class AdminProfileViewModel(
     val allUsers: StateFlow<List<UserEntity>> = combine(
         userRepository.getAllUsersStream(),
         submissionRepository.getReportSubmissionsStream(),
-        taskRepository.getReportTasksStream()
-    ) { users, submissions, tasks ->
+        taskRepository.getReportTasksStream(),
+        offerRepository.getAllVouchersStream()
+    ) { users, submissions, tasks, vouchers ->
         val awarded = pointsAwardedByUser(submissions, tasks)
-        users.map { it.withAwardedPoints(awarded) }
+        val spent = pointsSpentByUser(vouchers)
+        users.map { it.withAwardedPoints(awarded, spent) }
     }
         .catch { e ->
             Log.e("AdminProfileViewModel", "Error streaming users: ${e.message}")
