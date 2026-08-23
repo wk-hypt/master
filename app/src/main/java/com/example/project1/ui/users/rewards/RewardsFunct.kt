@@ -1,6 +1,7 @@
 package com.example.project1.ui.users.rewards
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -37,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -155,7 +158,19 @@ fun RewardsFunct(
                     heldCounts = VoucherRules.heldCountByTitle(wallet),
                     onRedeem = onRedeem
                 )
-                else -> WalletList(redeemedVouchers = wallet)
+                else -> {
+                    var qrVoucher by remember { mutableStateOf<VoucherEntity?>(null) }
+                    WalletList(
+                        redeemedVouchers = wallet,
+                        onVoucherClick = { qrVoucher = it }
+                    )
+                    qrVoucher?.let { voucher ->
+                        VoucherQrDialog(
+                            voucher = voucher,
+                            onDismiss = { qrVoucher = null }
+                        )
+                    }
+                }
             }
         }
     }
@@ -307,6 +322,7 @@ private fun MarketVoucherCard(
 @Composable
 fun WalletList(
     redeemedVouchers: List<VoucherEntity>,
+    onVoucherClick: (VoucherEntity) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     if (redeemedVouchers.isEmpty()) {
@@ -333,15 +349,23 @@ fun WalletList(
             .background(PageBg)
     ) {
         items(redeemedVouchers, key = { it.id ?: it.qrCodePayload.orEmpty() }) { voucher ->
-            WalletVoucherCard(voucher = voucher)
+            WalletVoucherCard(
+                voucher = voucher,
+                onClick = { onVoucherClick(voucher) }
+            )
         }
     }
 }
 
 @Composable
-private fun WalletVoucherCard(voucher: VoucherEntity) {
+private fun WalletVoucherCard(
+    voucher: VoucherEntity,
+    onClick: () -> Unit
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
@@ -439,32 +463,24 @@ private fun WalletVoucherCard(voucher: VoucherEntity) {
             ) {
                 Column {
                     Text(
-                        text = "Voucher Code",
+                        text = "Tap to show QR",
                         fontSize = 10.sp,
                         color = Color(0xFF8B948E)
                     )
                     Text(
-                        text = voucher.qrCodePayload ?: "N/A",
+                        text = "Show this to staff to use the voucher",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF1B1F1C)
                     )
                 }
 
-                if (!voucher.redeemedAt.isNullOrBlank()) {
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = "Redeemed At",
-                            fontSize = 10.sp,
-                            color = Color(0xFF8B948E)
-                        )
-                        Text(
-                            text = voucher.redeemedAt,
-                            fontSize = 11.sp,
-                            color = Color(0xFF6B7280)
-                        )
-                    }
-                }
+                Icon(
+                    imageVector = Icons.Default.QrCode2,
+                    contentDescription = "Show QR code",
+                    tint = PrimaryGreen,
+                    modifier = Modifier.size(28.dp)
+                )
             }
         }
     }

@@ -5,33 +5,29 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.NewVoucher
 import com.example.project1.data.model.VoucherEntity
+import com.example.project1.data.model.VoucherRules
 import com.example.project1.data.repository.OfferRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.util.UUID
+
+sealed class VoucherScanResult {
+    data class Success(val message: String) : VoucherScanResult()
+    data class Invalid(val message: String) : VoucherScanResult()
+}
 
 class AdminRewardsViewModel(
     private val offerRepository: OfferRepository
 ) : ViewModel() {
 
-    // Helper function to check if a voucher is expired
-    private fun isVoucherExpired(expiryDateStr: String?): Boolean {
-        if (expiryDateStr.isNullOrBlank()) return false
-        return try {
-            val expiryInstant = Instant.parse(expiryDateStr)
-            expiryInstant.isBefore(Instant.now())
-        } catch (e: Exception) {
-            false
-        }
-    }
-
     val available: StateFlow<List<VoucherEntity>> =
         offerRepository.getAvailableVouchersStream()
-            .map { list -> list.filter { !isVoucherExpired(it.expiryDate) } }
+            .map { list -> list.filter { !VoucherRules.isExpired(it.expiryDate) } }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
@@ -40,12 +36,29 @@ class AdminRewardsViewModel(
 
     val expired: StateFlow<List<VoucherEntity>> =
         offerRepository.getAvailableVouchersStream()
-            .map { list -> list.filter { isVoucherExpired(it.expiryDate) } }
+            .map { list -> list.filter { VoucherRules.isExpired(it.expiryDate) } }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = emptyList()
             )
+
+    private val _scanResult = MutableStateFlow<VoucherScanResult?>(null)
+    val scanResult: StateFlow<VoucherScanResult?> = _scanResult.asStateFlow()
+
+    fun clearScanResult() {
+        _scanResult.value = null
+    }
+
+    fun consumeScannedQr(expectedTitle: String, qrPayload: String) = viewModelScope.launch {
+        try {
+            val used = offerRepository.consumeWalletVoucher(qrPayload, expectedTitle)
+            val holder = used.redeemedBy?.takeIf { it.isNotBlank() } ?: "student"
+            _scanResult.value = VoucherScanResult.Success("Used ${used.title} for $holder")
+        } catch (e: Exception) {
+            _scanResult.value = VoucherScanResult.Invalid(e.message ?: "Invalid QR code")
+        }
+    }
 
     fun create(
         merchant: String,

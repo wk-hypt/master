@@ -310,7 +310,7 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                     onBackClick = { navController.navigate(Screen.Task.route) }
                 )
             }
-            4
+
             //admin page start
             composable(AdminScreen.Approval.route) {
                 AdminHomeView(

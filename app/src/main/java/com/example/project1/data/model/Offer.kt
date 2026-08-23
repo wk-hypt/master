@@ -54,3 +54,8 @@ data class VoucherRedeemUpdate(
     @SerialName("redeemed_by") val redeemedBy: String,
     @SerialName("redeemed_at") val redeemedAt: String
 )
+
+@Serializable
+data class VoucherUseUpdate(
+    @SerialName("is_redeemed") val isRedeemed: Boolean = true
+)
