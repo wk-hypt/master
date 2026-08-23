@@ -284,7 +284,8 @@ private fun MarketVoucherCard(
                 enabled = canRedeem,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = PrimaryGreen,
-                    disabledContainerColor = Color(0xFFE0E0E0)
+                    disabledContainerColor = Color(0xFFE0E0E0),
+                    disabledContentColor = if (voucher.quantity <= 0 || atHoldLimit) Color(0xFFC62828) else Color(0xFF9E9E9E)
                 ),
                 shape = RoundedCornerShape(8.dp),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
@@ -295,7 +296,8 @@ private fun MarketVoucherCard(
                         atHoldLimit -> "Limit"
                         else -> "Redeem"
                     },
-                    fontSize = 12.sp
+                    fontSize = 12.sp,
+                    fontWeight = if (voucher.quantity <= 0 || atHoldLimit) FontWeight.Bold else FontWeight.Normal
                 )
             }
         }

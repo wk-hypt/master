@@ -142,7 +142,7 @@ fun LoginFunct(
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32), disabledContainerColor = Color(0xFFE0E0E0)),
                 enabled = uiState.studentId.isNotBlank() && uiState.password.isNotBlank() || uiState.name.isNotBlank()
             ) {
                 Text(

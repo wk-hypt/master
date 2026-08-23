@@ -241,7 +241,8 @@ fun EcoUploadDialog(
                                 .menuAnchor(),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = Color(0xFF2E7D32),
-                                focusedLabelColor = Color(0xFF2E7D32)
+                                focusedLabelColor = Color.Black,
+                                focusedTextColor = Color.Black
                             )
                         )
                         ExposedDropdownMenu(
@@ -268,7 +269,8 @@ fun EcoUploadDialog(
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF2E7D32),
-                            focusedLabelColor = Color(0xFF2E7D32)
+                            focusedLabelColor = Color.Black,
+                            focusedTextColor = Color.Black
                         )
                     )
 
@@ -280,7 +282,8 @@ fun EcoUploadDialog(
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF2E7D32),
-                            focusedLabelColor = Color(0xFF2E7D32)
+                            focusedLabelColor = Color.Black,
+                            focusedTextColor = Color.Black
                         )
                     )
 
@@ -290,7 +293,7 @@ fun EcoUploadDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Quantity", fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                            Text("Quantity", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = Color.DarkGray)
                             Spacer(modifier = Modifier.width(4.dp))
                             Text("(pcs/set)", fontSize = 12.sp, color = Color.Gray)
                         }
@@ -298,7 +301,10 @@ fun EcoUploadDialog(
                             OutlinedButton(
                                 onClick = { if (quantity > 1) quantity-- },
                                 contentPadding = PaddingValues(0.dp),
-                                modifier = Modifier.size(36.dp)
+                                modifier = Modifier.size(36.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    contentColor = Color.Black
+                                )
                             ) {
                                 Icon(Icons.Default.Remove, contentDescription = "Decrease", modifier = Modifier.size(18.dp))
                             }
@@ -306,12 +312,16 @@ fun EcoUploadDialog(
                                 text = quantity.toString(),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 12.dp)
+                                modifier = Modifier.padding(horizontal = 12.dp),
+                                color = Color.Black
                             )
                             OutlinedButton(
                                 onClick = { quantity++ },
                                 contentPadding = PaddingValues(0.dp),
-                                modifier = Modifier.size(36.dp)
+                                modifier = Modifier.size(36.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    contentColor = Color.Black
+                                )
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = "Increase", modifier = Modifier.size(18.dp))
                             }
@@ -328,7 +338,8 @@ fun EcoUploadDialog(
                             .height(90.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF2E7D32),
-                            focusedLabelColor = Color(0xFF2E7D32)
+                            focusedLabelColor = Color.Black,
+                            focusedTextColor = Color.Black
                         )
                     )
 
