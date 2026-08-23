@@ -50,14 +50,14 @@ import coil.compose.AsyncImage
 import com.example.project1.data.model.VoucherEntity
 
 private val PrimaryGreen = Color(0xFF2E7D32)
-private val SoftGreen = Color(0xFFF1F8E9)
+private val SoftExpiredBg = Color(0xFFFFEBEE)
 private val PageBg = Color(0xFFF4F6F5)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminRewardsFunct(
     available: List<VoucherEntity>,
-    redeemed: List<VoucherEntity>,
+    expired: List<VoucherEntity>,
     onAddClick: () -> Unit,
     onEditClick: (VoucherEntity) -> Unit,
     onDeleteClick: (VoucherEntity) -> Unit,
@@ -93,7 +93,7 @@ fun AdminRewardsFunct(
                     color = Color(0xFF1B1F1C)
                 )
                 Text(
-                    text = "Manage campus vouchers and redemptions",
+                    text = "Manage campus vouchers and expirations",
                     fontSize = 13.sp,
                     color = Color(0xFF8B948E)
                 )
@@ -118,7 +118,7 @@ fun AdminRewardsFunct(
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("Redeemed (${redeemed.size})") }
+                    text = { Text("Expired (${expired.size})") }
                 )
             }
 
@@ -128,7 +128,10 @@ fun AdminRewardsFunct(
                     onEditClick = onEditClick,
                     onDeleteClick = onDeleteClick
                 )
-                else -> RedeemedAdminList(vouchers = redeemed)
+                else -> ExpiredAdminList(
+                    vouchers = expired,
+                    onDeleteClick = onDeleteClick
+                )
             }
         }
     }
@@ -161,9 +164,12 @@ private fun AvailableAdminList(
 }
 
 @Composable
-private fun RedeemedAdminList(vouchers: List<VoucherEntity>) {
+private fun ExpiredAdminList(
+    vouchers: List<VoucherEntity>,
+    onDeleteClick: (VoucherEntity) -> Unit
+) {
     if (vouchers.isEmpty()) {
-        EmptyState("No redeemed vouchers yet")
+        EmptyState("No expired vouchers found")
         return
     }
 
@@ -173,7 +179,10 @@ private fun RedeemedAdminList(vouchers: List<VoucherEntity>) {
         modifier = Modifier.fillMaxSize()
     ) {
         items(vouchers, key = { it.id ?: it.title }) { voucher ->
-            AdminRedeemedCard(voucher = voucher)
+            AdminExpiredCard(
+                voucher = voucher,
+                onDeleteClick = { onDeleteClick(voucher) }
+            )
         }
     }
 }
@@ -196,7 +205,6 @@ private fun AdminAvailableCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 🖼️ Display uploaded image if available, otherwise display default Icon
             if (!voucher.imageUrl.isNullOrEmpty()) {
                 AsyncImage(
                     model = voucher.imageUrl,
@@ -246,12 +254,20 @@ private fun AdminAvailableCard(
                         fontWeight = FontWeight.Medium,
                         color = PrimaryGreen
                     )
-                    // 📦 Display stock / quantity left
                     Text(
                         text = "Stock: ${voucher.quantity}",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (voucher.quantity > 0) Color(0xFF1565C0) else Color(0xFFC62828)
+                    )
+                }
+
+                // Display Expiry Date if set
+                if (!voucher.expiryDate.isNullOrBlank()) {
+                    Text(
+                        text = "Expires: ${voucher.expiryDate.take(10)}",
+                        fontSize = 11.sp,
+                        color = Color(0xFFD97706)
                     )
                 }
             }
@@ -267,45 +283,53 @@ private fun AdminAvailableCard(
 }
 
 @Composable
-private fun AdminRedeemedCard(voucher: VoucherEntity) {
+private fun AdminExpiredCard(
+    voucher: VoucherEntity,
+    onDeleteClick: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = SoftGreen),
+        colors = CardDefaults.cardColors(containerColor = SoftExpiredBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Text(
-                text = voucher.title,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                color = Color(0xFF1B1F1C)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = voucher.merchantName,
-                fontSize = 12.sp,
-                color = Color(0xFF6B7280)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Redeemed by: ${voucher.redeemedBy ?: "—"}",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
-                color = PrimaryGreen
-            )
-            if (!voucher.redeemedAt.isNullOrBlank()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "At: ${voucher.redeemedAt}",
-                    fontSize = 11.sp,
-                    color = Color(0xFF8B948E)
+                    text = voucher.title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = Color(0xFF1B1F1C)
                 )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = voucher.merchantName,
+                    fontSize = 12.sp,
+                    color = Color(0xFF6B7280)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Status: Expired",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFC62828)
+                )
+                if (!voucher.expiryDate.isNullOrBlank()) {
+                    Text(
+                        text = "Expired on: ${voucher.expiryDate.take(10)}",
+                        fontSize = 11.sp,
+                        color = Color(0xFFC62828)
+                    )
+                }
             }
-            Text(
-                text = "Code: ${voucher.qrCodePayload ?: "N/A"}",
-                fontSize = 11.sp,
-                color = Color(0xFF8B948E)
-            )
+            IconButton(onClick = onDeleteClick) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete Expired", tint = Color(0xFFC62828))
+            }
         }
     }
 }

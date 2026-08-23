@@ -8,7 +8,10 @@ import com.example.project1.data.model.SubmissionReviewUpdate
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.storage.Storage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.UUID
 
 interface SubmissionRepository {
@@ -82,22 +85,26 @@ class SupabaseSubmissionRepository(
     }
 
     override suspend fun insertSubmission(submission: EcoSubmissionEntity) {
-        try {
-            postgrest.from("user_submissions").insert(
-                NewSubmission(
-                    userId = submission.userId,
-                    actionType = submission.actionType,
-                    stallName = submission.stallName,
-                    imagePath = submission.imagePath,
-                    status = submission.status,
-                    timestamp = submission.timestamp,
-                    quantity = submission.quantity,
-                    description = submission.description,
-                    location = submission.location
+        withContext(Dispatchers.IO) {
+            try {
+                val publicImageUrl = resolveAndUploadImage(submission.imagePath)
+
+                postgrest.from("user_submissions").insert(
+                    NewSubmission(
+                        userId = submission.userId,
+                        actionType = submission.actionType,
+                        stallName = submission.stallName,
+                        imagePath = publicImageUrl,
+                        status = submission.status,
+                        timestamp = submission.timestamp,
+                        quantity = submission.quantity,
+                        description = submission.description,
+                        location = submission.location
+                    )
                 )
-            )
-        } catch (e: Exception) {
-            Log.e("SubmissionRepository", "Failed to insert submission: ${e.message}", e)
+            } catch (e: Exception) {
+                Log.e("SubmissionRepository", "Failed to insert submission: ${e.message}", e)
+            }
         }
     }
 
@@ -112,24 +119,28 @@ class SupabaseSubmissionRepository(
     }
 
     override suspend fun updateSubmission(submission: EcoSubmissionEntity) {
-        try {
-            postgrest.from("user_submissions").update(
-                NewSubmission(
-                    userId = submission.userId,
-                    actionType = submission.actionType,
-                    stallName = submission.stallName,
-                    imagePath = submission.imagePath,
-                    status = submission.status,
-                    timestamp = submission.timestamp,
-                    quantity = submission.quantity,
-                    description = submission.description,
-                    location = submission.location
-                )
-            ) {
-                filter { eq("id", submission.id) }
+        withContext(Dispatchers.IO) {
+            try {
+                val publicImageUrl = resolveAndUploadImage(submission.imagePath)
+
+                postgrest.from("user_submissions").update(
+                    NewSubmission(
+                        userId = submission.userId,
+                        actionType = submission.actionType,
+                        stallName = submission.stallName,
+                        imagePath = publicImageUrl,
+                        status = submission.status,
+                        timestamp = submission.timestamp,
+                        quantity = submission.quantity,
+                        description = submission.description,
+                        location = submission.location
+                    )
+                ) {
+                    filter { eq("id", submission.id) }
+                }
+            } catch (e: Exception) {
+                Log.e("SubmissionRepository", "Failed to update submission: ${e.message}", e)
             }
-        } catch (e: Exception) {
-            Log.e("SubmissionRepository", "Failed to update submission: ${e.message}", e)
         }
     }
 
@@ -191,10 +202,28 @@ class SupabaseSubmissionRepository(
         }
     }
 
-    override suspend fun uploadProofImage(bytes: ByteArray): String {
+    override suspend fun uploadProofImage(bytes: ByteArray): String = withContext(Dispatchers.IO) {
         val fileName = "eco-logs/${UUID.randomUUID()}.jpg"
         val bucket = storage.from("vouchers")
         bucket.upload(fileName, bytes, upsert = true)
-        return bucket.publicUrl(fileName)
+        return@withContext bucket.publicUrl(fileName)
+    }
+
+    private suspend fun resolveAndUploadImage(path: String): String {
+        if (path.isBlank()) return path
+        if (path.startsWith("http://", ignoreCase = true) || path.startsWith("https://", ignoreCase = true)) {
+            return path
+        }
+        return try {
+            val file = File(path)
+            if (file.exists()) {
+                uploadProofImage(file.readBytes())
+            } else {
+                path
+            }
+        } catch (e: Exception) {
+            Log.e("SubmissionRepository", "Failed to upload local image path: ${e.message}", e)
+            path
+        }
     }
 }

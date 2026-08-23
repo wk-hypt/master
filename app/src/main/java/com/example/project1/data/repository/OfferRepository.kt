@@ -22,6 +22,7 @@ interface OfferRepository {
     suspend fun updateVoucher(voucher: VoucherEntity)
     suspend fun redeemVoucher(voucherId: Long, studentId: String)
     suspend fun uploadVoucherImage(bytes: ByteArray, fileName: String): String
+    fun getAllVouchersStream(): Flow<List<VoucherEntity>>
 }
 
 class SupabaseOfferRepository(
@@ -118,5 +119,11 @@ class SupabaseOfferRepository(
         val bucket = storage.from("vouchers")
         bucket.upload(fileName, bytes, upsert = true)
         return bucket.publicUrl(fileName)
+    }
+
+    override fun getAllVouchersStream(): Flow<List<VoucherEntity>> = pollingFlow {
+        postgrest.from("campus_vouchers").select {
+            order("id", Order.DESCENDING)
+        }.decodeList()
     }
 }

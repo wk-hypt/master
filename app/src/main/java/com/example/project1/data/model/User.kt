@@ -37,3 +37,36 @@ data class UserProfileInfoUpdate(
 data class UserPasswordUpdate(
     val password: String
 )
+
+/** Lifetime points awarded to each student. Spendable `totalPoints` can drop after a redeem. */
+fun pointsAwardedByUser(
+    submissions: List<EcoSubmissionEntity>,
+    tasks: List<TaskEntity>
+): Map<String, Int> {
+    val awarded = mutableMapOf<String, Int>()
+    submissions.filter { it.status.equals("Approved", ignoreCase = true) }.forEach { submission ->
+        awarded[submission.userId] = (awarded[submission.userId] ?: 0) + submission.points
+    }
+    tasks.filter { it.status.equals("Approved", ignoreCase = true) }.forEach { task ->
+        awarded[task.userId] = (awarded[task.userId] ?: 0) + task.points
+    }
+    return awarded
+}
+
+fun pointsSpentByUser(vouchers: List<VoucherEntity>): Map<String, Int> {
+    val spent = mutableMapOf<String, Int>()
+    vouchers.forEach { voucher ->
+        val studentId = voucher.redeemedBy?.takeIf { it.isNotBlank() } ?: return@forEach
+        spent[studentId] = (spent[studentId] ?: 0) + voucher.pointsCost
+    }
+    return spent
+}
+
+fun UserEntity.withAwardedPoints(
+    awarded: Map<String, Int>,
+    spent: Map<String, Int> = emptyMap()
+): UserEntity {
+    val fromAwards = awarded[studentId] ?: 0
+    val remainingPlusSpent = totalPoints + (spent[studentId] ?: 0)
+    return copy(totalPoints = maxOf(fromAwards, remainingPlusSpent))
+}

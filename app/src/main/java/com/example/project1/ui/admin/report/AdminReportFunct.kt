@@ -416,7 +416,7 @@ private fun TopContributorsCard(topUsers: List<UserEntity>) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                CardHeaderIconRow(icon = Icons.Filled.EmojiEvents, iconBg = Color(0xFFFFF3D6), iconTint = Color(0xFFB8860B), title = "Top contributors", subtitle = "Ranked by total points")
+                CardHeaderIconRow(icon = Icons.Filled.EmojiEvents, iconBg = Color(0xFFFFF3D6), iconTint = Color(0xFFB8860B), title = "Top contributors", subtitle = "Ranked by points awarded")
                 if (topUsers.isNotEmpty()) {
                     Icon(imageVector = Icons.Filled.ChevronRight, contentDescription = "View leaderboard", tint = TextGrey, modifier = Modifier.size(18.dp))
                 }
@@ -458,7 +458,7 @@ private fun LeaderboardDialog(topUsers: List<UserEntity>, onDismiss: () -> Unit)
                 ) {
                     Column {
                         Text(text = "Leaderboard", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextDark)
-                        Text(text = "${topUsers.size} contributors \u00b7 ranked by total points", fontSize = 11.sp, color = TextGrey)
+                        Text(text = "${topUsers.size} contributors \u00b7 ranked by points awarded", fontSize = 11.sp, color = TextGrey)
                     }
                     IconButton(onClick = onDismiss, modifier = Modifier.size(34.dp)) {
                         Icon(imageVector = Icons.Filled.Close, contentDescription = "Close", tint = TextGrey2, modifier = Modifier.size(18.dp))

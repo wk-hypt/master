@@ -5,8 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.AdminEntity
 import com.example.project1.data.model.UserEntity
+import com.example.project1.data.model.pointsAwardedByUser
+import com.example.project1.data.model.pointsSpentByUser
+import com.example.project1.data.model.withAwardedPoints
 import com.example.project1.data.repository.AdminRepository
 import com.example.project1.data.repository.AppSettingsRepository
+import com.example.project1.data.repository.OfferRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.TaskRepository
 import com.example.project1.data.repository.UserRepository
@@ -16,6 +20,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -29,7 +34,8 @@ class AdminProfileViewModel(
     private val settingsRepository: AppSettingsRepository,
     submissionRepository: SubmissionRepository,
     taskRepository: TaskRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    offerRepository: OfferRepository
 ) : ViewModel() {
 
     private val _adminId = MutableStateFlow("")
@@ -99,7 +105,16 @@ class AdminProfileViewModel(
     }
 
     // ---- User management (students) ----
-    val allUsers: StateFlow<List<UserEntity>> = userRepository.getAllUsersStream()
+    val allUsers: StateFlow<List<UserEntity>> = combine(
+        userRepository.getAllUsersStream(),
+        submissionRepository.getReportSubmissionsStream(),
+        taskRepository.getReportTasksStream(),
+        offerRepository.getAllVouchersStream()
+    ) { users, submissions, tasks, vouchers ->
+        val awarded = pointsAwardedByUser(submissions, tasks)
+        val spent = pointsSpentByUser(vouchers)
+        users.map { it.withAwardedPoints(awarded, spent) }
+    }
         .catch { e ->
             Log.e("AdminProfileViewModel", "Error streaming users: ${e.message}")
             emit(emptyList())

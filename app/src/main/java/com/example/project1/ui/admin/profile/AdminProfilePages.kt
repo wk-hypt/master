@@ -351,7 +351,7 @@ internal fun UserManagementPage(
         if (users.isNotEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                ProfileStatChip(Modifier.weight(1f), Icons.AutoMirrored.Filled.Assignment, "Total Points", totalPoints.toString())
+                ProfileStatChip(Modifier.weight(1f), Icons.AutoMirrored.Filled.Assignment, "Points awarded", totalPoints.toString())
                 ProfileStatChip(Modifier.weight(1f), Icons.Default.Groups, "Plastics Saved", totalPlastics.toString())
             }
         }

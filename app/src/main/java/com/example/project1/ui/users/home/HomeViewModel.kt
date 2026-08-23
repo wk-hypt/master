@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -26,11 +27,12 @@ class HomeViewModel(
     fun setCurrentStudent(studentId: String) {
         _currentStudentId.value = studentId
     }
+
     val currentPoints: StateFlow<Int> =
         _currentStudentId
             .flatMapLatest { studentId ->
                 if (studentId.isBlank()) {
-                    kotlinx.coroutines.flow.flowOf(null)
+                    flowOf(null)
                 } else {
                     userRepository.getUserStream(studentId)
                 }
@@ -46,7 +48,7 @@ class HomeViewModel(
         _currentStudentId
             .flatMapLatest { studentId ->
                 if (studentId.isBlank()) {
-                    kotlinx.coroutines.flow.flowOf(null)
+                    flowOf(null)
                 } else {
                     userRepository.getUserStream(studentId)
                 }
@@ -58,7 +60,6 @@ class HomeViewModel(
                 initialValue = 0
             )
 
-    // for display the banners taht created in NonSupaRepository
     val banners = adsRepository.getAllBannersStream()
         .stateIn(
             scope = viewModelScope,
@@ -66,7 +67,6 @@ class HomeViewModel(
             initialValue = emptyList()
         )
 
-    // for display the feature card taht created in NonSupaRepository
     val features = adsRepository.getAllFeaturesStream()
         .stateIn(
             scope = viewModelScope,
@@ -74,7 +74,6 @@ class HomeViewModel(
             initialValue = emptyList()
         )
 
-    // function that used for submission to insert data into repository
     fun submitEcoLog(
         imageBytes: ByteArray,
         actionType: String,
@@ -85,7 +84,9 @@ class HomeViewModel(
     ) {
         viewModelScope.launch {
             try {
+                // Upload image first to obtain the public Supabase HTTP URL
                 val imageUrl = submissionRepository.uploadProofImage(imageBytes)
+
                 submissionRepository.insertSubmission(
                     EcoSubmissionEntity(
                         userId = _currentStudentId.value,
@@ -100,7 +101,7 @@ class HomeViewModel(
                     )
                 )
             } catch (e: Exception) {
-                Log.e("HomeViewModel", "Failed to submit eco log", e)
+                Log.e("HomeViewModel", "Failed to submit eco log: ${e.message}", e)
             }
         }
     }
