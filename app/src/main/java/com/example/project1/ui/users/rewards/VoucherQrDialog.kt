@@ -50,18 +50,8 @@ fun VoucherQrDialog(
                 modifier = Modifier.padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = voucher.title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = Color(0xFF1B1F1C),
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    text = voucher.merchantName,
-                    fontSize = 13.sp,
-                    color = Color(0xFF6B7280)
-                )
+                Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1B1F1C), textAlign = TextAlign.Center)
+                Text(text = voucher.merchantName, fontSize = 13.sp, color = Color(0xFF6B7280))
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -69,26 +59,14 @@ fun VoucherQrDialog(
                     Image(
                         bitmap = qrBitmap.asImageBitmap(),
                         contentDescription = "Voucher QR code",
-                        modifier = Modifier
-                            .size(240.dp)
-                            .background(Color.White, RoundedCornerShape(12.dp))
+                        modifier = Modifier.size(240.dp).background(Color.White, RoundedCornerShape(12.dp))
                     )
                 } else {
-                    Text(
-                        text = "QR code is not available for this voucher.",
-                        color = Color(0xFFC62828),
-                        fontSize = 13.sp,
-                        textAlign = TextAlign.Center
-                    )
+                    Text(text = "QR code is not available for this voucher.", color = Color(0xFFC62828), fontSize = 13.sp, textAlign = TextAlign.Center)
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "Show this QR to staff when you use the voucher.",
-                    fontSize = 12.sp,
-                    color = Color(0xFF8B948E),
-                    textAlign = TextAlign.Center
-                )
+                Text(text = "Show this QR to staff when you use the voucher.", fontSize = 12.sp, color = Color(0xFF8B948E), textAlign = TextAlign.Center)
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(

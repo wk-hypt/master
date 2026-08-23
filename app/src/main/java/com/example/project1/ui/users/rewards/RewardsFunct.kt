@@ -81,17 +81,8 @@ fun RewardsFunct(
                 .padding(padding)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "Rewards",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1B1F1C)
-                )
-                Text(
-                    text = "Spend eco points on campus vouchers",
-                    fontSize = 13.sp,
-                    color = Color(0xFF8B948E)
-                )
+                Text(text = "Rewards", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1B1F1C))
+                Text(text = "Spend eco points on campus vouchers", fontSize = 13.sp, color = Color(0xFF8B948E))
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -112,17 +103,8 @@ fun RewardsFunct(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
-                            Text(
-                                text = "Your points",
-                                fontSize = 12.sp,
-                                color = Color(0xFF6B7280)
-                            )
-                            Text(
-                                text = "$points",
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = PrimaryGreen
-                            )
+                            Text(text = "Your points", fontSize = 12.sp, color = Color(0xFF6B7280))
+                            Text(text = "$points", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryGreen)
                         }
                     }
                 }
@@ -256,17 +238,8 @@ private fun MarketVoucherCard(
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = voucher.title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = Color(0xFF1B1F1C)
-                )
-                Text(
-                    text = voucher.merchantName,
-                    fontSize = 12.sp,
-                    color = Color(0xFF6B7280)
-                )
+                Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1B1F1C))
+                Text(text = voucher.merchantName, fontSize = 12.sp, color = Color(0xFF6B7280))
                 Spacer(modifier = Modifier.height(2.dp))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -332,11 +305,7 @@ fun WalletList(
                 .padding(32.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "No redeemed vouchers in your wallet yet.",
-                color = Color(0xFF8B948E),
-                fontSize = 14.sp
-            )
+            Text(text = "No redeemed vouchers in your wallet yet.", color = Color(0xFF8B948E), fontSize = 14.sp)
         }
         return
     }
@@ -408,25 +377,11 @@ private fun WalletVoucherCard(
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = voucher.title,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = Color(0xFF1B1F1C)
-                    )
+                    Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1B1F1C))
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = voucher.merchantName,
-                        fontSize = 12.sp,
-                        color = Color(0xFF6B7280)
-                    )
+                    Text(text = voucher.merchantName, fontSize = 12.sp, color = Color(0xFF6B7280))
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "${voucher.pointsCost} pts · ${voucher.category}",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = PrimaryGreen
-                    )
+                    Text(text = "${voucher.pointsCost} pts · ${voucher.category}", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = PrimaryGreen)
                 }
 
                 Row(
@@ -441,14 +396,8 @@ private fun WalletVoucherCard(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = null,
                         tint = PrimaryGreen,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Text(
-                        text = "Redeemed",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryGreen
-                    )
+                        modifier = Modifier.size(14.dp))
+                    Text(text = "Redeemed", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryGreen)
                 }
             }
 
@@ -462,17 +411,8 @@ private fun WalletVoucherCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(
-                        text = "Tap to show QR",
-                        fontSize = 10.sp,
-                        color = Color(0xFF8B948E)
-                    )
-                    Text(
-                        text = "Show this to staff to use the voucher",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF1B1F1C)
-                    )
+                    Text(text = "Tap to show QR", fontSize = 10.sp, color = Color(0xFF8B948E))
+                    Text(text = "Show this to staff to use the voucher", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1B1F1C))
                 }
 
                 Icon(
