@@ -28,9 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.project1.data.model.VoucherEntity
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 private val PrimaryGreen = Color(0xFF2E7D32)
 
@@ -55,22 +56,26 @@ fun VoucherFormDialog(
 
     var merchant by remember { mutableStateOf(existing?.merchantName.orEmpty()) }
     var title by remember { mutableStateOf(existing?.title.orEmpty()) }
-    var costText by remember { mutableStateOf(existing?.pointsCost?.toString().orEmpty()) }
+    var cost by remember { mutableStateOf(existing?.pointsCost?.toString().orEmpty()) }
     var category by remember { mutableStateOf(existing?.category.orEmpty()) }
-    var quantityText by remember { mutableStateOf(existing?.quantity?.toString() ?: "1") }
+    var quantity by remember { mutableStateOf(existing?.quantity?.toString() ?: "1") }
 
     // Date Picker State
     var expiryIsoString by remember { mutableStateOf(existing?.expiryDate) }
     var showDatePicker by remember { mutableStateOf(false) }
 
-    // Format ISO string to readable string for text field display
     val displayExpiryDate = remember(expiryIsoString) {
-        expiryIsoString?.let {
+        expiryIsoString?.takeIf { it.isNotBlank() }?.let { isoStr ->
             try {
-                val instant = Instant.parse(it)
-                DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault()).format(instant)
-            } catch (e: Exception) {
-                it.take(10)
+                val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+                val date = inputFormat.parse(isoStr)
+                date?.let {
+                    SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(it)
+                } ?: isoStr.take(10)
+            } catch (_: Exception) {
+                isoStr.take(10)
             }
         } ?: ""
     }
@@ -80,14 +85,11 @@ fun VoucherFormDialog(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? -> selectedImageUri = uri }
 
-    val cost = costText.toIntOrNull()
-    val quantity = quantityText.toIntOrNull()
-
     val isValid = merchant.isNotBlank() &&
             title.isNotBlank() &&
             category.isNotBlank() &&
-            cost != null && cost > 0 &&
-            quantity != null && quantity >= 0
+            cost.toIntOrNull() != null && (cost.toIntOrNull()?:0) > 0 &&
+            quantity.toIntOrNull() != null && (quantity.toIntOrNull()?:0) >= 0
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -167,7 +169,12 @@ fun VoucherFormDialog(
                 onValueChange = { title = it },
                 label = { Text("Voucher Title") },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF2E7D32),
+                    focusedLabelColor = Color.Black,
+                    focusedTextColor = Color.Black
+                )
             )
 
             OutlinedTextField(
@@ -175,7 +182,12 @@ fun VoucherFormDialog(
                 onValueChange = { merchant = it },
                 label = { Text("Merchant Name") },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF2E7D32),
+                    focusedLabelColor = Color.Black,
+                    focusedTextColor = Color.Black
+                )
             )
 
             OutlinedTextField(
@@ -183,7 +195,12 @@ fun VoucherFormDialog(
                 onValueChange = { category = it },
                 label = { Text("Category (e.g. Food, Beverage)") },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF2E7D32),
+                    focusedLabelColor = Color.Black,
+                    focusedTextColor = Color.Black
+                )
             )
 
             Row(
@@ -191,21 +208,39 @@ fun VoucherFormDialog(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 OutlinedTextField(
-                    value = costText,
-                    onValueChange = { costText = it.filter { ch -> ch.isDigit() } },
+                    value = cost,
+                    onValueChange = {input ->
+                        if(input.all{it.isDigit()}){
+                            cost = input
+                        }
+                    },
                     label = { Text("Points Cost") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF2E7D32),
+                        focusedLabelColor = Color.Black,
+                        focusedTextColor = Color.Black
+                    )
                 )
 
                 OutlinedTextField(
-                    value = quantityText,
-                    onValueChange = { quantityText = it.filter { ch -> ch.isDigit() } },
+                    value = quantity,
+                    onValueChange = { input ->
+                        if(input.all{it.isDigit()}){
+                            quantity = input
+                        }
+                    },
                     label = { Text("Quantity (Stock)") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF2E7D32),
+                    focusedLabelColor = Color.Black,
+                    focusedTextColor = Color.Black
+                )
                 )
             }
 
@@ -219,9 +254,13 @@ fun VoucherFormDialog(
                     trailingIcon = {
                         Icon(Icons.Default.CalendarMonth, contentDescription = "Pick Date")
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF2E7D32),
+                        focusedLabelColor = Color.Black,
+                        focusedTextColor = Color.Black
+                    )
                 )
-                // Overlay clickable box so full area triggers DatePicker
                 Box(
                     modifier = Modifier
                         .matchParentSize()
@@ -244,9 +283,9 @@ fun VoucherFormDialog(
                     onConfirm(
                         merchant.trim(),
                         title.trim(),
-                        cost!!,
+                        cost.toIntOrNull()!!,
                         category.trim(),
-                        quantity!!,
+                        quantity.toIntOrNull()!!,
                         expiryIsoString,
                         imageBytes,
                         fileName
@@ -268,7 +307,6 @@ fun VoucherFormDialog(
         }
     }
 
-    // Material3 Date Picker Dialog
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState()
         DatePickerDialog(
@@ -277,7 +315,10 @@ fun VoucherFormDialog(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            expiryIsoString = Instant.ofEpochMilli(millis).toString()
+                            val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+                                timeZone = TimeZone.getTimeZone("UTC")
+                            }
+                            expiryIsoString = isoFormat.format(Date(millis))
                         }
                         showDatePicker = false
                     }
