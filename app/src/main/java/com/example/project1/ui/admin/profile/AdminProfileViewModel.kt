@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.AdminEntity
 import com.example.project1.data.model.UserEntity
+import com.example.project1.data.model.pointsAwardedByUser
+import com.example.project1.data.model.withAwardedPoints
 import com.example.project1.data.repository.AdminRepository
 import com.example.project1.data.repository.AppSettingsRepository
 import com.example.project1.data.repository.SubmissionRepository
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -99,7 +102,14 @@ class AdminProfileViewModel(
     }
 
     // ---- User management (students) ----
-    val allUsers: StateFlow<List<UserEntity>> = userRepository.getAllUsersStream()
+    val allUsers: StateFlow<List<UserEntity>> = combine(
+        userRepository.getAllUsersStream(),
+        submissionRepository.getReportSubmissionsStream(),
+        taskRepository.getReportTasksStream()
+    ) { users, submissions, tasks ->
+        val awarded = pointsAwardedByUser(submissions, tasks)
+        users.map { it.withAwardedPoints(awarded) }
+    }
         .catch { e ->
             Log.e("AdminProfileViewModel", "Error streaming users: ${e.message}")
             emit(emptyList())

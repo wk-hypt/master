@@ -94,11 +94,12 @@ class AdminHomeViewModel(
     fun approveTask(task: TaskEntity, points: Int) {
         viewModelScope.launch {
             try {
-                val updatedTask = task.copy(
-                    status = "Approved",
-                    points = points
+                taskRepository.approveTask(
+                    taskId = task.id,
+                    adminId = currentAdminId,
+                    points = points,
+                    plasticSaved = 0
                 )
-                taskRepository.updateTask(updatedTask)
 
                 val user = userRepository.getUserById(task.userId)
                 user?.let { currentUser ->

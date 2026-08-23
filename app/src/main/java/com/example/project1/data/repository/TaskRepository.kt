@@ -5,11 +5,7 @@ import com.example.project1.data.model.NewTask
 import com.example.project1.data.model.TaskEntity
 import com.example.project1.data.model.TaskProgressUpdate
 import com.example.project1.data.model.TaskReviewUpdate
-import com.example.project1.data.model.TaskStatusUpdate
-import com.example.project1.data.model.UserPointsUpdate
-import com.example.project1.data.model.UserProfile
 import io.github.jan.supabase.postgrest.Postgrest
-import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.storage.Storage
 import kotlinx.coroutines.flow.Flow
@@ -18,6 +14,7 @@ import java.util.UUID
 interface TaskRepository {
     fun getAllTasksStream(userId: String): Flow<List<TaskEntity>>
     fun getAllPendingTasksStream(): Flow<List<TaskEntity>>
+    fun getReportTasksStream(): Flow<List<TaskEntity>>
     suspend fun insertTask(task: TaskEntity)
     suspend fun updateTask(task: TaskEntity)
     suspend fun updateTaskProgress(taskId: Int, imagePath: String)
@@ -54,6 +51,17 @@ class SupabaseTaskRepository(
             }.decodeList()
         } catch (e: Exception) {
             Log.e("SupabaseTaskRepository", "Error fetching pending tasks: ${e.message}")
+            emptyList()
+        }
+    }
+
+    override fun getReportTasksStream(): Flow<List<TaskEntity>> = pollingFlow {
+        try {
+            postgrest.from("user_tasks").select {
+                order("timestamp", Order.DESCENDING)
+            }.decodeList()
+        } catch (e: Exception) {
+            Log.e("SupabaseTaskRepository", "Error fetching report tasks: ${e.message}")
             emptyList()
         }
     }
@@ -143,12 +151,6 @@ class SupabaseTaskRepository(
 
     override suspend fun approveTask(taskId: Int, adminId: String, points: Int, plasticSaved: Int) {
         try {
-            val task = getTaskById(taskId)
-            if (task == null) {
-                Log.e("SupabaseTaskRepository", "Task not found with ID: $taskId")
-                return
-            }
-
             postgrest.from("user_tasks").update(
                 TaskReviewUpdate(
                     status = "Approved",
@@ -160,29 +162,6 @@ class SupabaseTaskRepository(
             ) {
                 filter { eq("id", taskId) }
             }
-
-            val user = postgrest.from("users")
-                .select(Columns.list("user_id", "total_points", "total_plastic_saved")) {
-                    filter { eq("user_id", task.userId) }
-                }.decodeSingleOrNull<UserProfile>()
-
-            if (user != null) {
-                val newTotalPoints = user.totalPoints + points
-                val newTotalPlastic = user.totalPlasticSaved + plasticSaved
-
-                postgrest.from("users").update(
-                    UserPointsUpdate(
-                        totalPoints = newTotalPoints,
-                        totalPlasticSaved = newTotalPlastic
-                    )
-                ) {
-                    filter { eq("user_id", task.userId) }
-                }
-                Log.d("SupabaseTaskRepository", "Successfully updated points for user ${task.userId}")
-            } else {
-                Log.e("SupabaseTaskRepository", "User record not found in users table for ID: ${task.userId}")
-            }
-
         } catch (e: Exception) {
             Log.e("SupabaseTaskRepository", "Failed to approve task: ${e.message}", e)
         }
