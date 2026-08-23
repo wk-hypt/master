@@ -18,6 +18,7 @@ import com.example.project1.ui.AppViewModelProvider
 fun ProfileView(
     studentId: String,
     onLogout: () -> Unit,
+    startOnHistory: Boolean = false,
     viewModel: ProfileViewModel = viewModel(key = studentId, factory = AppViewModelProvider.Factory)
 ) {
     LaunchedEffect(studentId) {
@@ -63,6 +64,7 @@ fun ProfileView(
         onDeleteAccount = { viewModel.deleteAccount(onLogout) },
         onDeleteSubmissions = viewModel::deleteSubmissions,
         onLogout = onLogout,
+        startOnHistory = startOnHistory,
         onToggleNotifications = viewModel::setNotifications,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = Modifier.fillMaxSize()

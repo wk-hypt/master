@@ -1,6 +1,7 @@
 package com.example.project1.data.repository
 
 import com.example.project1.R
+import com.example.project1.Screen
 import com.example.project1.data.model.BannerItem
 import com.example.project1.data.model.FeatureCardItem
 import kotlinx.coroutines.flow.Flow
@@ -52,19 +53,19 @@ class LocalEcoAdsRepository : EcoAdsRepository {
                 id = "feature_leaderboard",
                 title = "Check Your Ranking",
                 image = R.drawable.feature1,
-                targetRoute = "Leaderboard"
+                targetRoute = Screen.Leaderboard.route
             ),
             FeatureCardItem(
                 id = "feature_rewards",
                 title = "Redeem Rewards",
                 image = R.drawable.feature2,
-                targetRoute = "Rewards"
+                targetRoute = Screen.Rewards.route
             ),
             FeatureCardItem(
                 id = "feature_history",
                 title = "View Your History",
                 image = R.drawable.feature3,
-                targetRoute = "Profile"
+                targetRoute = Screen.ProfileHistory.route
             )
         )
         return flowOf(features)

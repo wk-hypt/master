@@ -45,10 +45,13 @@ fun ProfileFunct(
     onDeleteAccount: () -> Unit,
     onDeleteSubmissions: (List<Int>) -> Unit = {},
     onLogout: () -> Unit,
+    startOnHistory: Boolean = false,
     onToggleNotifications: (Boolean) -> Unit = {},
     snackbarHost: @Composable () -> Unit = {}
 ) {
-    var page by remember { mutableStateOf(UserProfilePage.Hub) }
+    var page by remember {
+        mutableStateOf(if (startOnHistory) UserProfilePage.History else UserProfilePage.Hub)
+    }
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showLogoutConfirm by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
