@@ -17,12 +17,8 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        val settingsRepository = (application as EcoApplication).container.settingsRepository
-
         setContent {
-            val darkModeEnabled by settingsRepository.darkModeEnabled.collectAsState()
-
-            EcoTheme(darkTheme = darkModeEnabled) {
+            EcoTheme() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

@@ -70,6 +70,7 @@ sealed class Screen(
     object Task : Screen("task", "Task", Icons.Filled.Task, Icons.Outlined.Task)
     object Rewards : Screen("rewards", "Rewards", Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard)
     object Profile : Screen("profile", "Profile", Icons.Filled.Person, Icons.Outlined.Person)
+    object ProfileHistory : Screen("profile_history", "History")
     object Leaderboard : Screen("leaderboard", "Leaderboard")
 }
 
@@ -126,7 +127,8 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
     val isStudentMainTab = currentRoute?.startsWith("home/") == true ||
             currentRoute == Screen.Task.route ||
             currentRoute == Screen.Rewards.route ||
-            currentRoute == Screen.Profile.route
+            currentRoute == Screen.Profile.route ||
+            currentRoute == Screen.ProfileHistory.route
 
     val isAdminMainTab = currentRoute in adminItems.map { it.route }
 
@@ -186,6 +188,9 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                         studentItems.forEach { screen ->
                             val isSelected = if (screen == Screen.Home) {
                                 currentRoute?.startsWith("home/") == true
+                            } else if (screen == Screen.Profile) {
+                                currentRoute == Screen.Profile.route ||
+                                        currentRoute == Screen.ProfileHistory.route
                             } else {
                                 currentRoute == screen.route
                             }
@@ -283,6 +288,16 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
             composable(Screen.Profile.route) {
                 ProfileView(
                     studentId = loggedInStudentId,
+                    onLogout = {
+                        app.container.setCurrentStudentId("")
+                        onEndSession()
+                    }
+                )
+            }
+            composable(Screen.ProfileHistory.route) {
+                ProfileView(
+                    studentId = loggedInStudentId,
+                    startOnHistory = true,
                     onLogout = {
                         app.container.setCurrentStudentId("")
                         onEndSession()
