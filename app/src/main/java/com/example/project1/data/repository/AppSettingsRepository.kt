@@ -20,10 +20,8 @@ import java.io.File
  * rest of the app keeps working.
  */
 interface AppSettingsRepository {
-    val darkModeEnabled: StateFlow<Boolean>
     val notificationsEnabled: StateFlow<Boolean>
 
-    fun setDarkMode(enabled: Boolean)
     fun setNotifications(enabled: Boolean)
 
     /** Returns the saved avatar color swatch index (0-based) for the given account id. */
@@ -56,25 +54,11 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
     private val prefs: SharedPreferences =
         appContext.getSharedPreferences("eco_app_settings", Context.MODE_PRIVATE)
 
-    private val _darkModeEnabled =
-        MutableStateFlow(prefs.getBoolean(KEY_DARK_MODE, false))
-
-    override val darkModeEnabled: StateFlow<Boolean> =
-        _darkModeEnabled.asStateFlow()
-
     private val _notificationsEnabled =
         MutableStateFlow(prefs.getBoolean(KEY_NOTIFICATIONS, true))
 
     override val notificationsEnabled: StateFlow<Boolean> =
         _notificationsEnabled.asStateFlow()
-
-    override fun setDarkMode(enabled: Boolean) {
-        prefs.edit {
-            putBoolean(KEY_DARK_MODE, enabled)
-        }
-
-        _darkModeEnabled.value = enabled
-    }
 
     override fun setNotifications(enabled: Boolean) {
         prefs.edit {
