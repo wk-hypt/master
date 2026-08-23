@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,6 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.project1.data.model.VoucherEntity
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 private val PrimaryGreen = Color(0xFF2E7D32)
 
@@ -41,6 +45,7 @@ fun VoucherFormDialog(
         cost: Int,
         category: String,
         quantity: Int,
+        expiryDate: String?,
         imageBytes: ByteArray?,
         imageFileName: String?
     ) -> Unit
@@ -54,15 +59,26 @@ fun VoucherFormDialog(
     var category by remember { mutableStateOf(existing?.category.orEmpty()) }
     var quantityText by remember { mutableStateOf(existing?.quantity?.toString() ?: "1") }
 
-    // 图片上传 State
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    // Date Picker State
+    var expiryIsoString by remember { mutableStateOf(existing?.expiryDate) }
+    var showDatePicker by remember { mutableStateOf(false) }
 
-    // 相册选择器
+    // Format ISO string to readable string for text field display
+    val displayExpiryDate = remember(expiryIsoString) {
+        expiryIsoString?.let {
+            try {
+                val instant = Instant.parse(it)
+                DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault()).format(instant)
+            } catch (e: Exception) {
+                it.take(10)
+            }
+        } ?: ""
+    }
+
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        selectedImageUri = uri
-    }
+    ) { uri: Uri? -> selectedImageUri = uri }
 
     val cost = costText.toIntOrNull()
     val quantity = quantityText.toIntOrNull()
@@ -86,7 +102,6 @@ fun VoucherFormDialog(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -103,7 +118,6 @@ fun VoucherFormDialog(
                 }
             }
 
-            // 📷 1. 图片选择区域 (Image Picker)
             Text(
                 text = "Voucher Cover Image",
                 fontSize = 13.sp,
@@ -116,7 +130,7 @@ fun VoucherFormDialog(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp)
+                    .height(140.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF1F8E9))
                     .clickable { imagePickerLauncher.launch("image/*") },
@@ -148,7 +162,6 @@ fun VoucherFormDialog(
                 }
             }
 
-            // 2. 表单输入框
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -196,15 +209,33 @@ fun VoucherFormDialog(
                 )
             }
 
+            // Expiry Date Input Field
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = displayExpiryDate,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Expiration Date (Optional)") },
+                    trailingIcon = {
+                        Icon(Icons.Default.CalendarMonth, contentDescription = "Pick Date")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                // Overlay clickable box so full area triggers DatePicker
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clickable { showDatePicker = true }
+                )
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 保存按钮
             Button(
                 onClick = {
                     var imageBytes: ByteArray? = null
                     var fileName: String? = null
 
-                    // 读取新选照片的 ByteArray
                     selectedImageUri?.let { uri ->
                         imageBytes = context.contentResolver.openInputStream(uri)?.readBytes()
                         fileName = "voucher_${System.currentTimeMillis()}.jpg"
@@ -216,6 +247,7 @@ fun VoucherFormDialog(
                         cost!!,
                         category.trim(),
                         quantity!!,
+                        expiryIsoString,
                         imageBytes,
                         fileName
                     )
@@ -233,6 +265,33 @@ fun VoucherFormDialog(
                     fontWeight = FontWeight.Bold
                 )
             }
+        }
+    }
+
+    // Material3 Date Picker Dialog
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState()
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            expiryIsoString = Instant.ofEpochMilli(millis).toString()
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("OK", color = PrimaryGreen)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
 }

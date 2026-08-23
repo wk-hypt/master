@@ -15,7 +15,8 @@ data class VoucherEntity(
     @SerialName("redeemed_by") val redeemedBy: String? = null,
     @SerialName("redeemed_at") val redeemedAt: String? = null,
     @SerialName("image_url") val imageUrl: String? = null,
-    val quantity: Int = 1
+    val quantity: Int = 1,
+    @SerialName("expiry_date") val expiryDate: String? = null
 )
 
 @Serializable
@@ -30,7 +31,8 @@ data class CampusVoucher(
     @SerialName("redeemed_by") val redeemedBy: String? = null,
     @SerialName("redeemed_at") val redeemedAt: String? = null,
     @SerialName("image_url") val imageUrl: String? = null,
-    @SerialName("quantity") val quantity: Int? = null
+    @SerialName("quantity") val quantity: Int? = null,
+    @SerialName("expiry_date") val expiryDate: String? = null
 )
 
 @Serializable
@@ -43,7 +45,8 @@ data class NewVoucher(
     @SerialName("image_url") val imageUrl: String? = null,
     val quantity: Int = 1,
     @SerialName("redeemed_by") val redeemedBy: String? = null,
-    @SerialName("redeemed_at") val redeemedAt: String? = null
+    @SerialName("redeemed_at") val redeemedAt: String? = null,
+    @SerialName("expiry_date") val expiryDate: String? = null
 )
 
 @Serializable
