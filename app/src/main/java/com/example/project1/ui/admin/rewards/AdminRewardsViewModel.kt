@@ -56,6 +56,7 @@ class AdminRewardsViewModel(
             val holder = used.redeemedBy?.takeIf { it.isNotBlank() } ?: "student"
             _scanResult.value = VoucherScanResult.Success("Used ${used.title} for $holder")
         } catch (e: Exception) {
+            Log.e("AdminRewardsViewModel", "QR consume failed: ${e.message}", e)
             _scanResult.value = VoucherScanResult.Invalid(e.message ?: "Invalid QR code")
         }
     }

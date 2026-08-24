@@ -37,6 +37,7 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -142,6 +143,13 @@ fun RewardsFunct(
                 )
                 else -> {
                     var qrVoucher by remember { mutableStateOf<VoucherEntity?>(null) }
+                    LaunchedEffect(wallet, qrVoucher?.id) {
+                        val openVoucher = qrVoucher ?: return@LaunchedEffect
+                        val stillInWallet = wallet.any { it.id == openVoucher.id }
+                        if (!stillInWallet) {
+                            qrVoucher = null
+                        }
+                    }
                     WalletList(
                         redeemedVouchers = wallet,
                         onVoucherClick = { qrVoucher = it }
