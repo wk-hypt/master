@@ -171,7 +171,10 @@ fun TargetFormDialog(
                             OutlinedButton(
                                 onClick = { quantity++ },
                                 contentPadding = PaddingValues(0.dp),
-                                modifier = Modifier.size(36.dp)
+                                modifier = Modifier.size(36.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    contentColor = Color.Black
+                                )
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = "Increase", modifier = Modifier.size(18.dp))
                             }
@@ -186,10 +189,7 @@ fun TargetFormDialog(
                     OutlinedButton(
                         onClick = { openDatePicker() },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            contentColor = Color.Black
-                        )
+                        shape = RoundedCornerShape(8.dp)
                     ) {
                         Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color(0xFF2E7D32))
                         Spacer(modifier = Modifier.width(8.dp))
