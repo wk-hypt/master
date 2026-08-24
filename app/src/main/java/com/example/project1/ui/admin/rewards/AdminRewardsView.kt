@@ -29,12 +29,10 @@ fun AdminRewardsView(
 
     LaunchedEffect(scanResult) {
         val result = scanResult ?: return@LaunchedEffect
-        val text = when (result) {
-            is VoucherScanResult.Success -> result.message
-            is VoucherScanResult.Invalid -> result.message
+        if (result is VoucherScanResult.Success) {
+            snackbarHostState.showSnackbar(result.message)
+            viewModel.clearScanResult()
         }
-        snackbarHostState.showSnackbar(text)
-        viewModel.clearScanResult()
     }
 
     AdminRewardsFunct(

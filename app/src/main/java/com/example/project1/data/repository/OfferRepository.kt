@@ -3,7 +3,6 @@ package com.example.project1.data.repository
 import com.example.project1.data.model.NewVoucher
 import com.example.project1.data.model.VoucherEntity
 import com.example.project1.data.model.VoucherRules
-import com.example.project1.data.model.VoucherUseUpdate
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.storage.Storage
@@ -145,11 +144,22 @@ class SupabaseOfferRepository(
             throw IllegalStateException("This voucher has expired")
         }
 
-        postgrest.from("campus_vouchers").update(VoucherUseUpdate()) {
-            filter { eq("id", voucher.id!!) }
+        val voucherId = voucher.id ?: throw IllegalStateException("Invalid QR code")
+        postgrest.from("campus_vouchers").update(
+            mapOf("is_redeemed" to true)
+        ) {
+            filter { eq("id", voucherId) }
         }
 
-        return voucher
+        val updated = postgrest.from("campus_vouchers")
+            .select { filter { eq("id", voucherId) } }
+            .decodeSingle<VoucherEntity>()
+
+        if (!updated.isRedeemed) {
+            throw IllegalStateException("Could not mark this voucher as used")
+        }
+
+        return updated
     }
 
     override suspend fun uploadVoucherImage(bytes: ByteArray, fileName: String): String {

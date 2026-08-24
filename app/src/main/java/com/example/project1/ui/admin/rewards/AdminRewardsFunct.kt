@@ -182,6 +182,7 @@ fun AdminRewardsFunct(
         if (voucher != null) {
             QrScannerDialog(
                 voucherTitle = voucher.title,
+                statusMessage = (scanResult as? VoucherScanResult.Invalid)?.message,
                 onQrScanned = { payload ->
                     if (!scanLocked) {
                         scanLocked = true

@@ -57,5 +57,5 @@ data class VoucherRedeemUpdate(
 
 @Serializable
 data class VoucherUseUpdate(
-    @SerialName("is_redeemed") val isRedeemed: Boolean = true
+    @SerialName("is_redeemed") val isRedeemed: Boolean
 )

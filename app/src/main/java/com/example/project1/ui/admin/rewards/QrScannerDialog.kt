@@ -57,6 +57,7 @@ private val PrimaryGreen = Color(0xFF2E7D32)
 @Composable
 fun QrScannerDialog(
     voucherTitle: String,
+    statusMessage: String? = null,
     onQrScanned: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -127,8 +128,8 @@ fun QrScannerDialog(
                                     .border(3.dp, PrimaryGreen, RoundedCornerShape(16.dp))
                             )
                             Text(
-                                text = "Align the QR code inside the box",
-                                color = Color.White,
+                                text = statusMessage ?: "Align the QR code inside the box",
+                                color = if (statusMessage == null) Color.White else Color(0xFFFFCDD2),
                                 fontWeight = FontWeight.Medium,
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -185,9 +186,12 @@ private fun QrCameraPreview(
                         )
                         scanner.process(image)
                             .addOnSuccessListener { barcodes ->
-                                barcodes.firstOrNull()?.rawValue
-                                    ?.takeIf { it.isNotBlank() }
-                                    ?.let(onQrDetected)
+                                val value = barcodes.firstOrNull()?.rawValue?.trim().orEmpty()
+                                if (value.isNotBlank()) {
+                                    ContextCompat.getMainExecutor(context).execute {
+                                        onQrDetected(value)
+                                    }
+                                }
                             }
                             .addOnCompleteListener { imageProxy.close() }
                     }
