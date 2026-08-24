@@ -40,6 +40,8 @@ import com.example.project1.data.model.BannerItem
 import com.example.project1.data.model.CampusVoucher
 import com.example.project1.data.model.FeatureCardItem
 import com.example.project1.data.model.VoucherRules
+import com.example.project1.ui.adaptive.HeightSize
+import com.example.project1.ui.adaptive.LocalAppWindowInfo
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
@@ -59,23 +61,62 @@ fun HomeFunct(
     onNavigateToRewards: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        EcoBannerSlider(banners = banners)
-        EcoStatsDashboard(points = currentPoints, plasticSaved = totalPlasticSaved)
-        EcoUploadArea(onUploadClick = onUploadClick)
-        EcoFeatureGrid(features = features, onFeatureClick = onFeatureClick)
-        HotRewardsMarket(
-            supabaseClient = supabaseClient,
-            currentUserId = currentUserId,
-            onNavigateToRewards = onNavigateToRewards
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+    val window = LocalAppWindowInfo.current
+    val bannerHeight = if (window.heightSize == HeightSize.Compact) 112.dp else 180.dp
+
+    if (window.useTwoPane) {
+        Row(
+            modifier = modifier
+                .fillMaxSize()
+                .background(Color.White)
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                EcoBannerSlider(banners = banners, height = bannerHeight)
+                EcoStatsDashboard(points = currentPoints, plasticSaved = totalPlasticSaved)
+                EcoUploadArea(onUploadClick = onUploadClick)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                EcoFeatureGrid(features = features, onFeatureClick = onFeatureClick)
+                HotRewardsMarket(
+                    supabaseClient = supabaseClient,
+                    currentUserId = currentUserId,
+                    onNavigateToRewards = onNavigateToRewards
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    } else {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            EcoBannerSlider(banners = banners, height = bannerHeight)
+            EcoStatsDashboard(points = currentPoints, plasticSaved = totalPlasticSaved)
+            EcoUploadArea(onUploadClick = onUploadClick)
+            EcoFeatureGrid(features = features, onFeatureClick = onFeatureClick)
+            HotRewardsMarket(
+                supabaseClient = supabaseClient,
+                currentUserId = currentUserId,
+                onNavigateToRewards = onNavigateToRewards
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
     }
 }
 
@@ -198,7 +239,7 @@ fun EcoUploadArea(onUploadClick: () -> Unit, modifier: Modifier = Modifier) {
 
 //banner display
 @Composable
-fun EcoBannerSlider(banners: List<BannerItem>, autoScrollDelayMillis: Long = 4000L, modifier: Modifier = Modifier) {
+fun EcoBannerSlider(banners: List<BannerItem>, autoScrollDelayMillis: Long = 4000L, height: androidx.compose.ui.unit.Dp = 180.dp, modifier: Modifier = Modifier) {
     if (banners.isEmpty()) return
     val pagerState = rememberPagerState(pageCount = { banners.size })
 
@@ -216,7 +257,7 @@ fun EcoBannerSlider(banners: List<BannerItem>, autoScrollDelayMillis: Long = 400
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .height(180.dp)
+            .height(height)
             .clip(RoundedCornerShape(16.dp))
     ) {
         HorizontalPager(state = pagerState) { page -> // just like forEach to for loop out of the banner inside the container

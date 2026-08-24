@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.project1.data.model.TaskEntity
+import com.example.project1.ui.adaptive.AdaptiveDialogSurface
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -68,12 +69,8 @@ fun TargetFormDialog(
         }.show()
     }
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
-            Column(modifier = Modifier.fillMaxSize()) {
+    AdaptiveDialogSurface(onDismiss = onDismiss) {
+        Column(modifier = Modifier.fillMaxSize()) {
 
                 TopAppBar(
                     title = {
@@ -95,7 +92,7 @@ fun TargetFormDialog(
 
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .weight(1f)
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp)
                 ) {
@@ -114,7 +111,12 @@ fun TargetFormDialog(
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF2E7D32),
-                            focusedLabelColor = Color(0xFF2E7D32)
+                            focusedLabelColor = Color.Black,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            unfocusedBorderColor = Color(0xFF424242),
+                            unfocusedLabelColor = Color(0xFF424242),
+                            unfocusedTrailingIconColor = Color(0xFF424242)
                         )
                     )
 
@@ -130,7 +132,12 @@ fun TargetFormDialog(
                             .height(100.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF2E7D32),
-                            focusedLabelColor = Color(0xFF2E7D32)
+                            focusedLabelColor = Color.Black,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            unfocusedBorderColor = Color(0xFF424242),
+                            unfocusedLabelColor = Color(0xFF424242),
+                            unfocusedTrailingIconColor = Color(0xFF424242)
                         )
                     )
 
@@ -209,6 +216,5 @@ fun TargetFormDialog(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
-        }
     }
 }

@@ -33,11 +33,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
+import com.example.project1.ui.adaptive.AdaptiveDialogSurface
+import com.example.project1.ui.adaptive.HeightSize
+import com.example.project1.ui.adaptive.LocalAppWindowInfo
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -130,13 +131,10 @@ fun EcoUploadDialog(
     }
 
     val isFormValid = captured != null && actionType.isNotBlank() && stallName.isNotBlank() && terms
+    val photoHeight = if (LocalAppWindowInfo.current.heightSize == HeightSize.Compact) 120.dp else 200.dp
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
-            Column(modifier = Modifier.fillMaxSize()) {
+    AdaptiveDialogSurface(onDismiss = onDismiss) {
+        Column(modifier = Modifier.fillMaxSize()) {
 
                 TopAppBar(
                     title = {
@@ -158,7 +156,7 @@ fun EcoUploadDialog(
 
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .weight(1f)
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -179,7 +177,7 @@ fun EcoUploadDialog(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp)
+                            .height(photoHeight)
                             .clip(RoundedCornerShape(12.dp))
                             .background(Color(0xFFF8F9FA))
                             .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp)),
@@ -242,7 +240,11 @@ fun EcoUploadDialog(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = Color(0xFF2E7D32),
                                 focusedLabelColor = Color.Black,
-                                focusedTextColor = Color.Black
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                unfocusedBorderColor = Color(0xFF424242),
+                                unfocusedLabelColor = Color(0xFF424242),
+                                unfocusedTrailingIconColor = Color(0xFF424242)
                             )
                         )
                         ExposedDropdownMenu(
@@ -270,7 +272,11 @@ fun EcoUploadDialog(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF2E7D32),
                             focusedLabelColor = Color.Black,
-                            focusedTextColor = Color.Black
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            unfocusedBorderColor = Color(0xFF424242),
+                            unfocusedLabelColor = Color(0xFF424242),
+                            unfocusedTrailingIconColor = Color(0xFF424242)
                         )
                     )
 
@@ -283,7 +289,11 @@ fun EcoUploadDialog(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF2E7D32),
                             focusedLabelColor = Color.Black,
-                            focusedTextColor = Color.Black
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            unfocusedBorderColor = Color(0xFF424242),
+                            unfocusedLabelColor = Color(0xFF424242),
+                            unfocusedTrailingIconColor = Color(0xFF424242)
                         )
                     )
 
@@ -419,7 +429,6 @@ fun EcoUploadDialog(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
-        }
     }
 
     if (showTermsDialog) {
@@ -442,12 +451,8 @@ private fun RequiredLabel(labelText: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TermsAndConditionsDialog(onDismiss: () -> Unit) {
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
-            Column(modifier = Modifier.fillMaxSize()) {
+    AdaptiveDialogSurface(onDismiss = onDismiss) {
+        Column(modifier = Modifier.fillMaxSize()) {
                 TopAppBar(
                     title = {
                         Text("Terms & Conditions", fontWeight = FontWeight.Bold, color = Color.White)
@@ -464,7 +469,7 @@ fun TermsAndConditionsDialog(onDismiss: () -> Unit) {
 
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .weight(1f)
                         .verticalScroll(rememberScrollState())
                         .padding(20.dp)
                 ) {
@@ -500,7 +505,6 @@ fun TermsAndConditionsDialog(onDismiss: () -> Unit) {
                     Spacer(modifier = Modifier.height(24.dp))
                 }
             }
-        }
     }
 }
 

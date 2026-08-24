@@ -39,6 +39,10 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.example.project1.data.model.EcoSubmissionEntity
 import com.example.project1.data.model.TaskEntity
+import com.example.project1.ui.adaptive.AdaptiveDialogFrame
+import com.example.project1.ui.adaptive.HeightSize
+import com.example.project1.ui.adaptive.LocalAppWindowInfo
+import com.example.project1.ui.adaptive.adaptiveDialogModifier
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -93,6 +97,8 @@ fun AdminHomeFunct(
     var rejectingTask by remember { mutableStateOf<TaskEntity?>(null) }
 
     val totalPendingCount = pendingSubmissions.size + pendingTasks.size
+    val window = LocalAppWindowInfo.current
+    val compactHeader = window.heightSize == HeightSize.Compact
 
     Column(modifier = modifier.fillMaxSize().background(BgColor)) {
         Column(
@@ -100,15 +106,22 @@ fun AdminHomeFunct(
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(horizontal = 18.dp)
         ) {
-            // Extra top space so the header clears the status bar / notch, with a bit
-            // of breathing room underneath so the title never feels crowded.
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(if (compactHeader) 8.dp else 20.dp))
 
-            Text("Staff Control Desk", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
-            Text("SDG 12 Verification Portal", fontSize = 12.sp, color = TextGrey)
+            Text("Staff Control Desk", fontSize = if (compactHeader) 18.sp else 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
+            if (!compactHeader) {
+                Text("SDG 12 Verification Portal", fontSize = 12.sp, color = TextGrey)
+                Spacer(modifier = Modifier.height(16.dp))
+            } else {
+                Text(
+                    "$totalPendingCount pending",
+                    fontSize = 12.sp,
+                    color = TextGrey,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
+            if (!compactHeader) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -178,6 +191,7 @@ fun AdminHomeFunct(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
+            }
 
             TabRow(
                 selectedTabIndex = selectedTab,
@@ -210,6 +224,7 @@ fun AdminHomeFunct(
             }
         }
 
+        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
         if (selectedTab == 0) {
             PendingList(pendingSubmissions, "No pending eco submissions.") { submission ->
                 AdminSummaryCard(
@@ -230,6 +245,7 @@ fun AdminHomeFunct(
                     onClick = { selectedTask = task }
                 )
             }
+        }
         }
     }
 
@@ -435,7 +451,8 @@ private fun DetailDialogScaffold(
     content: @Composable ColumnScope.() -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(modifier = Modifier.fillMaxSize(), color = BgColor) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Surface(modifier = adaptiveDialogModifier(), color = BgColor) {
             Column(modifier = Modifier.fillMaxSize()) {
                 TopAppBar(
                     title = { Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold) },
@@ -491,6 +508,7 @@ private fun DetailDialogScaffold(
                 }
             }
         }
+        }
     }
 }
 
@@ -502,7 +520,7 @@ fun SubmissionDetailDialog(submission: EcoSubmissionEntity, onDismiss: () -> Uni
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(250.dp)
+                .height(if (LocalAppWindowInfo.current.heightSize == HeightSize.Compact) 140.dp else 250.dp)
                 .shadow(elevation = 14.dp, shape = RoundedCornerShape(22.dp), spotColor = Color.Black.copy(alpha = 0.25f))
                 .clip(RoundedCornerShape(22.dp))
         ) {
@@ -582,7 +600,7 @@ fun TaskDetailDialog(task: TaskEntity, onDismiss: () -> Unit, onApprove: () -> U
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(250.dp)
+                    .height(if (LocalAppWindowInfo.current.heightSize == HeightSize.Compact) 140.dp else 250.dp)
                     .shadow(elevation = 14.dp, shape = RoundedCornerShape(22.dp), spotColor = Color.Black.copy(alpha = 0.25f))
                     .clip(RoundedCornerShape(22.dp))
             ) {
@@ -777,7 +795,10 @@ fun ApprovePointsDialog(title: String, studentId: String, subtitle: String, onDi
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 28.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Celebratory icon badge — reinforces the positive "approve" action.

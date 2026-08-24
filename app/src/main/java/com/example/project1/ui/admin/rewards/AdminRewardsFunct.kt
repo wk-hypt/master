@@ -55,6 +55,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.project1.data.model.VoucherEntity
+import com.example.project1.ui.adaptive.HeightSize
+import com.example.project1.ui.adaptive.LocalAppWindowInfo
 
 private val PrimaryGreen = Color(0xFF2E7D32)
 private val SoftExpiredBg = Color(0xFFFFEBEE)
@@ -110,7 +112,7 @@ fun AdminRewardsFunct(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
+            Column(modifier = Modifier.padding(if (LocalAppWindowInfo.current.heightSize == HeightSize.Compact) 12.dp else 20.dp)) {
                 Text(
                     text = "Rewards Catalog",
                     fontSize = 22.sp,
@@ -152,6 +154,7 @@ fun AdminRewardsFunct(
                 )
             }
 
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             when (selectedTab) {
                 0 -> AvailableAdminList(
                     vouchers = available,
@@ -173,6 +176,7 @@ fun AdminRewardsFunct(
                         }
                     }
                 )
+            }
             }
         }
     }
