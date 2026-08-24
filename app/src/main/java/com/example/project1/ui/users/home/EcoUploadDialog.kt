@@ -133,6 +133,11 @@ fun EcoUploadDialog(
     val isFormValid = captured != null && actionType.isNotBlank() && stallName.isNotBlank() && terms
     val photoHeight = if (LocalAppWindowInfo.current.heightSize == HeightSize.Compact) 120.dp else 200.dp
 
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? -> selectedImageUri = uri }
+
     AdaptiveDialogSurface(onDismiss = onDismiss) {
         Column(modifier = Modifier.fillMaxSize()) {
 
@@ -222,6 +227,26 @@ fun EcoUploadDialog(
                         Icon(Icons.Default.CameraAlt, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(if (captured == null) "Take Photo" else "Retake Photo")
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Or choose from Gallery",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF2E7D32),
+                            style = androidx.compose.ui.text.TextStyle(
+                                textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
+                            ),
+                            modifier = Modifier.clickable {
+                                imagePickerLauncher.launch("image/*")
+                            }
+                        )
                     }
 
                     ExposedDropdownMenuBox(
