@@ -1,0 +1,153 @@
+package com.example.project1.ui.adaptive
+
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+data class EcoNavDestination(
+    val title: String,
+    val selected: Boolean,
+    val filledIcon: ImageVector,
+    val outlineIcon: ImageVector,
+    val onClick: () -> Unit
+)
+
+private val NavItemColors
+    @Composable get() = NavigationBarItemDefaults.colors(
+        selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+        selectedTextColor = MaterialTheme.colorScheme.primary,
+        unselectedIconColor = MaterialTheme.colorScheme.outline,
+        unselectedTextColor = MaterialTheme.colorScheme.outline,
+        indicatorColor = MaterialTheme.colorScheme.primary
+    )
+
+private val RailItemColors
+    @Composable get() = NavigationRailItemDefaults.colors(
+        selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+        selectedTextColor = MaterialTheme.colorScheme.primary,
+        unselectedIconColor = MaterialTheme.colorScheme.outline,
+        unselectedTextColor = MaterialTheme.colorScheme.outline,
+        indicatorColor = MaterialTheme.colorScheme.primary
+    )
+
+@Composable
+fun EcoBottomBar(
+    destinations: List<EcoNavDestination>,
+    modifier: Modifier = Modifier
+) {
+    NavigationBar(
+        containerColor = Color.White,
+        tonalElevation = 0.dp,
+        modifier = modifier
+            .height(120.dp)
+            .border(width = 0.5.dp, color = Color(0xFFE5E5E5))
+    ) {
+        destinations.forEach { dest ->
+            NavigationBarItem(
+                icon = {
+                    Icon(
+                        imageVector = if (dest.selected) dest.filledIcon else dest.outlineIcon,
+                        contentDescription = dest.title
+                    )
+                },
+                label = { Text(text = dest.title, fontSize = 11.sp) },
+                selected = dest.selected,
+                alwaysShowLabel = true,
+                colors = NavItemColors,
+                onClick = dest.onClick
+            )
+        }
+    }
+}
+
+@Composable
+fun EcoNavRail(
+    destinations: List<EcoNavDestination>,
+    modifier: Modifier = Modifier
+) {
+    NavigationRail(
+        containerColor = Color.White,
+        modifier = modifier
+            .fillMaxHeight()
+            .border(width = 0.5.dp, color = Color(0xFFE5E5E5))
+    ) {
+        destinations.forEach { dest ->
+            NavigationRailItem(
+                icon = {
+                    Icon(
+                        imageVector = if (dest.selected) dest.filledIcon else dest.outlineIcon,
+                        contentDescription = dest.title
+                    )
+                },
+                label = { Text(text = dest.title, fontSize = 11.sp) },
+                selected = dest.selected,
+                alwaysShowLabel = true,
+                colors = RailItemColors,
+                onClick = dest.onClick,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun AdaptiveAppScaffold(
+    showNavigation: Boolean,
+    useNavigationRail: Boolean,
+    destinations: List<EcoNavDestination>,
+    content: @Composable (PaddingValues) -> Unit
+) {
+    when {
+        !showNavigation -> {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                contentWindowInsets = WindowInsets(0, 0, 0, 0)
+            ) { innerPadding ->
+                content(innerPadding)
+            }
+        }
+        useNavigationRail -> {
+            Row(modifier = Modifier.fillMaxSize()) {
+                EcoNavRail(destinations = destinations)
+                Scaffold(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxSize(),
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0)
+                ) { innerPadding ->
+                    content(innerPadding)
+                }
+            }
+        }
+        else -> {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                bottomBar = { EcoBottomBar(destinations = destinations) }
+            ) { innerPadding ->
+                content(innerPadding)
+            }
+        }
+    }
+}
