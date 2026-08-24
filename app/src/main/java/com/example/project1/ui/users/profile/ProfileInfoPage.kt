@@ -304,6 +304,8 @@ private fun ProfileField(
                     focusedLabelColor = Color.Black,
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black,
+                    disabledTextColor = Color.Black,
+                    disabledBorderColor = Color(0xFF424242),
                     unfocusedBorderColor = Color(0xFF424242),
                     unfocusedLabelColor = Color(0xFF424242),
                     unfocusedTrailingIconColor = Color(0xFF424242)
