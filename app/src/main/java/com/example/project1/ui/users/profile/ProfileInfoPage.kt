@@ -32,6 +32,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -298,6 +299,15 @@ private fun ProfileField(
                 isError = isError,
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF2E7D32),
+                    focusedLabelColor = Color.Black,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    unfocusedBorderColor = Color(0xFF424242),
+                    unfocusedLabelColor = Color(0xFF424242),
+                    unfocusedTrailingIconColor = Color(0xFF424242)
+                ),
                 shape = RoundedCornerShape(8.dp),
                 supportingText = supportingText?.let { text ->
                     {

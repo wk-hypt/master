@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.MoveToInbox
 import androidx.compose.material.icons.filled.PendingActions
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Recycling
 import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -39,6 +40,10 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.example.project1.data.model.EcoSubmissionEntity
 import com.example.project1.data.model.TaskEntity
+import com.example.project1.ui.adaptive.AdaptiveDialogFrame
+import com.example.project1.ui.adaptive.HeightSize
+import com.example.project1.ui.adaptive.LocalAppWindowInfo
+import com.example.project1.ui.adaptive.adaptiveDialogModifier
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -74,9 +79,9 @@ private fun statusColors(status: String): Pair<Color, Color> = when (status.lowe
 fun AdminHomeFunct(
     pendingSubmissions: List<EcoSubmissionEntity>,
     pendingTasks: List<TaskEntity>,
-    onApproveSubmission: (submissionId: Int, studentId: String, points: Int) -> Unit,
+    onApproveSubmission: (submissionId: Int, studentId: String, points: Int, plasticSaved: Int) -> Unit,
     onRejectSubmission: (submissionId: Int, feedback: String) -> Unit,
-    onApproveTask: (task: TaskEntity, points: Int) -> Unit,
+    onApproveTask: (task: TaskEntity, points: Int, plasticSaved: Int) -> Unit,
     onRejectTask: (task: TaskEntity, feedback: String) -> Unit,
     modifier: Modifier = Modifier,
     initialTab: Int = 0
@@ -93,6 +98,8 @@ fun AdminHomeFunct(
     var rejectingTask by remember { mutableStateOf<TaskEntity?>(null) }
 
     val totalPendingCount = pendingSubmissions.size + pendingTasks.size
+    val window = LocalAppWindowInfo.current
+    val compactHeader = window.heightSize == HeightSize.Compact
 
     Column(modifier = modifier.fillMaxSize().background(BgColor)) {
         Column(
@@ -100,15 +107,22 @@ fun AdminHomeFunct(
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(horizontal = 18.dp)
         ) {
-            // Extra top space so the header clears the status bar / notch, with a bit
-            // of breathing room underneath so the title never feels crowded.
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(if (compactHeader) 8.dp else 20.dp))
 
-            Text("Staff Control Desk", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
-            Text("SDG 12 Verification Portal", fontSize = 12.sp, color = TextGrey)
+            Text("Staff Control Desk", fontSize = if (compactHeader) 18.sp else 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
+            if (!compactHeader) {
+                Text("SDG 12 Verification Portal", fontSize = 12.sp, color = TextGrey)
+                Spacer(modifier = Modifier.height(16.dp))
+            } else {
+                Text(
+                    "$totalPendingCount pending",
+                    fontSize = 12.sp,
+                    color = TextGrey,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
+            if (!compactHeader) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -178,6 +192,7 @@ fun AdminHomeFunct(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
+            }
 
             TabRow(
                 selectedTabIndex = selectedTab,
@@ -210,6 +225,7 @@ fun AdminHomeFunct(
             }
         }
 
+        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
         if (selectedTab == 0) {
             PendingList(pendingSubmissions, "No pending eco submissions.") { submission ->
                 AdminSummaryCard(
@@ -231,6 +247,7 @@ fun AdminHomeFunct(
                 )
             }
         }
+        }
     }
 
     selectedSubmission?.let { s ->
@@ -247,8 +264,12 @@ fun AdminHomeFunct(
             title = "Approve Eco Submission",
             studentId = s.userId,
             subtitle = "Action: ${s.actionType} \u00d7 ${s.quantity}",
+            initialPlasticSaved = s.quantity,
             onDismiss = { approvingSubmission = null },
-            onConfirm = { points -> onApproveSubmission(s.id, s.userId, points); approvingSubmission = null }
+            onConfirm = { points, plasticSaved ->
+                onApproveSubmission(s.id, s.userId, points, plasticSaved)
+                approvingSubmission = null
+            }
         )
     }
 
@@ -275,7 +296,10 @@ fun AdminHomeFunct(
             studentId = t.userId,
             subtitle = "Task: ${t.title} (${t.taskQuantity})",
             onDismiss = { approvingTask = null },
-            onConfirm = { points -> onApproveTask(t, points); approvingTask = null }
+            onConfirm = { points, plasticSaved ->
+                onApproveTask(t, points, plasticSaved)
+                approvingTask = null
+            }
         )
     }
 
@@ -435,7 +459,8 @@ private fun DetailDialogScaffold(
     content: @Composable ColumnScope.() -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(modifier = Modifier.fillMaxSize(), color = BgColor) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Surface(modifier = adaptiveDialogModifier(), color = BgColor) {
             Column(modifier = Modifier.fillMaxSize()) {
                 TopAppBar(
                     title = { Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold) },
@@ -455,9 +480,6 @@ private fun DetailDialogScaffold(
                     content()
                 }
 
-                // Sticky action bar with a soft top shadow instead of buttons pinned
-                // inside the scroll content — keeps Approve/Reject reachable no
-                // matter how long the detail content gets.
                 Surface(color = SurfaceColor, shadowElevation = 10.dp) {
                     Row(
                         modifier = Modifier
@@ -491,18 +513,18 @@ private fun DetailDialogScaffold(
                 }
             }
         }
+        }
     }
 }
 
 @Composable
 fun SubmissionDetailDialog(submission: EcoSubmissionEntity, onDismiss: () -> Unit, onApprove: () -> Unit, onReject: () -> Unit) {
     DetailDialogScaffold("Submission Detail", onDismiss, onApprove, onReject) {
-        // Hero image with a bottom gradient scrim + status pill floating on top,
-        // lifted off the page with a soft shadow so it reads as the focal point.
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(250.dp)
+                .height(if (LocalAppWindowInfo.current.heightSize == HeightSize.Compact) 140.dp else 250.dp)
                 .shadow(elevation = 14.dp, shape = RoundedCornerShape(22.dp), spotColor = Color.Black.copy(alpha = 0.25f))
                 .clip(RoundedCornerShape(22.dp))
         ) {
@@ -577,12 +599,10 @@ fun TaskDetailDialog(task: TaskEntity, onDismiss: () -> Unit, onApprove: () -> U
         val proofImage = task.imagePath?.takeIf { it.isNotBlank() }
 
         if (proofImage != null) {
-            // Proof photo submitted — same hero treatment as Submission Detail:
-            // full-width image, gradient scrim, status pill floating on top.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(250.dp)
+                    .height(if (LocalAppWindowInfo.current.heightSize == HeightSize.Compact) 140.dp else 250.dp)
                     .shadow(elevation = 14.dp, shape = RoundedCornerShape(22.dp), spotColor = Color.Black.copy(alpha = 0.25f))
                     .clip(RoundedCornerShape(22.dp))
             ) {
@@ -614,8 +634,6 @@ fun TaskDetailDialog(task: TaskEntity, onDismiss: () -> Unit, onApprove: () -> U
                 }
             }
         } else {
-            // No photo evidence submitted yet — icon badge header instead of an
-            // empty image frame.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -667,7 +685,6 @@ fun TaskDetailDialog(task: TaskEntity, onDismiss: () -> Unit, onApprove: () -> U
     }
 }
 
-/** Small uppercase, letter-spaced heading used above each detail section. */
 @Composable
 private fun SectionLabel(text: String) {
     Text(
@@ -679,7 +696,6 @@ private fun SectionLabel(text: String) {
     )
 }
 
-/** Compact student/submitter identity card, reused by both detail dialogs. */
 @Composable
 private fun SubmitterCard(userId: String, subtitle: String) {
     Row(
@@ -699,8 +715,6 @@ private fun SubmitterCard(userId: String, subtitle: String) {
     }
 }
 
-/** Rounded pill showing status with a small color dot, matching the list's color scheme.
- *  [onTint] renders a translucent white pill for use over a photo/gradient background. */
 @Composable
 private fun StatusPill(status: String, modifier: Modifier = Modifier, onTint: Boolean = false) {
     val (fg, bg) = statusColors(status)
@@ -717,7 +731,6 @@ private fun StatusPill(status: String, modifier: Modifier = Modifier, onTint: Bo
     }
 }
 
-/** Small "at a glance" fact card — icon, big value, small label — used for short data points. */
 @Composable
 private fun StatChip(modifier: Modifier = Modifier, icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
     Column(
@@ -760,13 +773,49 @@ private fun DescriptionCard(text: String) {
     }
 }
 
-/** Preset point values shown as quick-pick chips above the manual input. */
+/** Preset values shown as quick-pick chips above the manual input. */
 private val QuickPointOptions = listOf(10, 20, 50, 100)
+private val QuickPlasticOptions = listOf(1, 5, 10, 20)
+
+@Composable
+private fun AwardQuickChips(options: List<Int>, selected: String, onSelect: (String) -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        options.forEach { value ->
+            val isSelected = selected == value.toString()
+            Surface(
+                onClick = { onSelect(value.toString()) },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                color = if (isSelected) PrimaryGreen else BgColor,
+                border = if (isSelected) null else BorderStroke(1.dp, CardBorder)
+            ) {
+                Text(
+                    "$value",
+                    textAlign = TextAlign.Center,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (isSelected) Color.White else TextGrey2,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp)
+                )
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ApprovePointsDialog(title: String, studentId: String, subtitle: String, onDismiss: () -> Unit, onConfirm: (points: Int) -> Unit) {
+fun ApprovePointsDialog(
+    title: String,
+    studentId: String,
+    subtitle: String,
+    onDismiss: () -> Unit,
+    onConfirm: (points: Int, plasticSaved: Int) -> Unit,
+    initialPlasticSaved: Int = 0
+) {
     var pointsInput by remember { mutableStateOf("") }
+    var plasticInput by remember {
+        mutableStateOf(if (initialPlasticSaved > 0) initialPlasticSaved.toString() else "")
+    }
     val isValid = pointsInput.toIntOrNull()?.let { it > 0 } ?: false
 
     Dialog(onDismissRequest = onDismiss) {
@@ -777,7 +826,10 @@ fun ApprovePointsDialog(title: String, studentId: String, subtitle: String, onDi
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 28.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Celebratory icon badge — reinforces the positive "approve" action.
@@ -829,27 +881,31 @@ fun ApprovePointsDialog(title: String, studentId: String, subtitle: String, onDi
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    QuickPointOptions.forEach { value ->
-                        val selected = pointsInput == value.toString()
-                        Surface(
-                            onClick = { pointsInput = value.toString() },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            color = if (selected) PrimaryGreen else BgColor,
-                            border = if (selected) null else BorderStroke(1.dp, CardBorder)
-                        ) {
-                            Text(
-                                "$value",
-                                textAlign = TextAlign.Center,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = if (selected) Color.White else TextGrey2,
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp)
-                            )
-                        }
-                    }
-                }
+                AwardQuickChips(options = QuickPointOptions, selected = pointsInput, onSelect = { pointsInput = it })
+
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    "PLASTIC SAVED TO AWARD", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextGrey,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = plasticInput,
+                    onValueChange = { input -> plasticInput = input.filter { it.isDigit() }.take(5) },
+                    placeholder = { Text("e.g. 5") },
+                    leadingIcon = { Icon(Icons.Default.Recycling, contentDescription = null, tint = PrimaryGreen) },
+                    suffix = { Text("items", color = TextGrey2) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(14.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = PrimaryGreen,
+                        cursorColor = PrimaryGreen
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+                AwardQuickChips(options = QuickPlasticOptions, selected = plasticInput, onSelect = { plasticInput = it })
 
                 Spacer(modifier = Modifier.height(24.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -861,7 +917,11 @@ fun ApprovePointsDialog(title: String, studentId: String, subtitle: String, onDi
                         modifier = Modifier.weight(1f).height(50.dp)
                     ) { Text("Cancel", fontWeight = FontWeight.Medium) }
                     Button(
-                        onClick = { pointsInput.toIntOrNull()?.let { onConfirm(it) } },
+                        onClick = {
+                            val points = pointsInput.toIntOrNull() ?: return@Button
+                            val plasticSaved = plasticInput.toIntOrNull() ?: 0
+                            onConfirm(points, plasticSaved)
+                        },
                         enabled = isValid,
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),

@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.project1.data.model.TaskEntity
+import com.example.project1.ui.adaptive.AdaptiveDialogSurface
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -68,12 +70,8 @@ fun TargetFormDialog(
         }.show()
     }
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
-            Column(modifier = Modifier.fillMaxSize()) {
+    AdaptiveDialogSurface(onDismiss = onDismiss) {
+        Column(modifier = Modifier.fillMaxSize()) {
 
                 TopAppBar(
                     title = {
@@ -95,7 +93,7 @@ fun TargetFormDialog(
 
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .weight(1f)
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp)
                 ) {
@@ -114,7 +112,12 @@ fun TargetFormDialog(
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF2E7D32),
-                            focusedLabelColor = Color(0xFF2E7D32)
+                            focusedLabelColor = Color.Black,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            unfocusedBorderColor = Color(0xFF424242),
+                            unfocusedLabelColor = Color(0xFF424242),
+                            unfocusedTrailingIconColor = Color(0xFF424242)
                         )
                     )
 
@@ -130,7 +133,12 @@ fun TargetFormDialog(
                             .height(100.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF2E7D32),
-                            focusedLabelColor = Color(0xFF2E7D32)
+                            focusedLabelColor = Color.Black,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            unfocusedBorderColor = Color(0xFF424242),
+                            unfocusedLabelColor = Color(0xFF424242),
+                            unfocusedTrailingIconColor = Color(0xFF424242)
                         )
                     )
 
@@ -146,7 +154,10 @@ fun TargetFormDialog(
                             OutlinedButton(
                                 onClick = { if (quantity > 1) quantity-- },
                                 contentPadding = PaddingValues(0.dp),
-                                modifier = Modifier.size(36.dp)
+                                modifier = Modifier.size(36.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                        contentColor = Color.Black
+                                        )
                             ) {
                                 Icon(Icons.Default.Remove, contentDescription = "Decrease", modifier = Modifier.size(18.dp))
                             }
@@ -154,7 +165,8 @@ fun TargetFormDialog(
                                 text = quantity.toString(),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 12.dp)
+                                modifier = Modifier.padding(horizontal = 12.dp),
+                                color = Color.Black
                             )
                             OutlinedButton(
                                 onClick = { quantity++ },
@@ -174,7 +186,10 @@ fun TargetFormDialog(
                     OutlinedButton(
                         onClick = { openDatePicker() },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            contentColor = Color.Black
+                        )
                     ) {
                         Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color(0xFF2E7D32))
                         Spacer(modifier = Modifier.width(8.dp))
@@ -209,6 +224,5 @@ fun TargetFormDialog(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
-        }
     }
 }

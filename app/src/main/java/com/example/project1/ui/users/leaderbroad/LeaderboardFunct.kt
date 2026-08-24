@@ -29,6 +29,8 @@ import androidx.compose.ui.window.DialogProperties
 import com.example.project1.R
 import com.example.project1.data.model.LeaderboardEntry
 import com.example.project1.data.model.LeaderboardUiState
+import com.example.project1.ui.adaptive.HeightSize
+import com.example.project1.ui.adaptive.LocalAppWindowInfo
 
 enum class LeaderboardTimeFrame { MONTHLY, DAILY }
 
@@ -123,7 +125,7 @@ fun LeaderboardFunct(
                         )
 
                         LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.weight(1f).fillMaxWidth(),
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
@@ -148,10 +150,11 @@ fun PodiumHeader(
     selectedTimeFrame: LeaderboardTimeFrame,
     onTimeFrameChange: (LeaderboardTimeFrame) -> Unit
 ) {
+    val compact = LocalAppWindowInfo.current.heightSize == HeightSize.Compact
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(240.dp)
+            .height(if (compact) 156.dp else 240.dp)
             .background(
                 Brush.verticalGradient(
                     colors = listOf(Color(0xFF7CB342), Color(0xFF33691E))

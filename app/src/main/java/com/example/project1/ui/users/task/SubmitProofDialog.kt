@@ -7,7 +7,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
@@ -22,10 +24,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
+import com.example.project1.ui.adaptive.AdaptiveDialogSurface
+import com.example.project1.ui.adaptive.HeightSize
+import com.example.project1.ui.adaptive.LocalAppWindowInfo
 import com.example.project1.ui.users.home.createImageUri
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,9 +66,10 @@ fun SubmitProofDialog(
         }
     }
 
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
-            Column(modifier = Modifier.fillMaxSize()) {
+    val photoHeight = if (LocalAppWindowInfo.current.heightSize == HeightSize.Compact) 140.dp else 240.dp
+
+    AdaptiveDialogSurface(onDismiss = onDismiss) {
+        Column(modifier = Modifier.fillMaxSize()) {
                 TopAppBar(
                     title = { Text("Submit Proof") },
                     navigationIcon = {
@@ -75,11 +79,16 @@ fun SubmitProofDialog(
                     }
                 )
 
-                Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp)
+                ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(240.dp)
+                            .height(photoHeight)
                             .clip(RoundedCornerShape(12.dp))
                             .background(Color(0xFFF0F0F0)),
                         contentAlignment = Alignment.Center
@@ -124,6 +133,5 @@ fun SubmitProofDialog(
                     }
                 }
             }
-        }
     }
 }

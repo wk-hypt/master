@@ -3,8 +3,7 @@ package com.example.project1.ui.adaptive
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -18,7 +17,7 @@ enum class WidthSize { Compact, Medium, Expanded }
 
 enum class HeightSize { Compact, Medium, Expanded }
 
-data class AppWindowInfo(
+data class AppWindowSize(
     val widthDp: Dp,
     val heightDp: Dp,
     val widthSize: WidthSize,
@@ -33,7 +32,7 @@ data class AppWindowInfo(
     companion object {
         val Default = from(360.dp, 800.dp)
 
-        fun from(widthDp: Dp, heightDp: Dp): AppWindowInfo {
+        fun from(widthDp: Dp, heightDp: Dp): AppWindowSize {
             val widthSize = when {
                 widthDp < 600.dp -> WidthSize.Compact
                 widthDp < 840.dp -> WidthSize.Medium
@@ -45,7 +44,7 @@ data class AppWindowInfo(
                 else -> HeightSize.Expanded
             }
             val isLandscape = widthDp > heightDp
-            return AppWindowInfo(
+            return AppWindowSize(
                 widthDp = widthDp,
                 heightDp = heightDp,
                 widthSize = widthSize,
@@ -69,13 +68,12 @@ data class AppWindowInfo(
     }
 }
 
-val LocalAppWindowInfo = compositionLocalOf { AppWindowInfo.Default }
+val LocalAppWindowInfo = compositionLocalOf { AppWindowSize.Default }
 
 @Composable
-fun rememberAppWindowInfo(): AppWindowInfo {
-    val windowInfo = LocalWindowInfo.current
-    val density = LocalDensity.current
-    val width = with(density) { windowInfo.containerSize.width.toDp() }
-    val height = with(density) { windowInfo.containerSize.height.toDp() }
-    return remember(width, height) { AppWindowInfo.from(width, height) }
+fun rememberAppWindowInfo(): AppWindowSize {
+    val configuration = LocalConfiguration.current
+    val width = configuration.screenWidthDp.dp
+    val height = configuration.screenHeightDp.dp
+    return remember(width, height) { AppWindowSize.from(width, height) }
 }

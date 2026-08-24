@@ -50,7 +50,7 @@ class AdminHomeViewModel(
                 initialValue = emptyList()
             )
 
-    fun approveSubmission(submissionId: Int, studentId: String, points: Int, quantity: Int = 1) {
+    fun approveSubmission(submissionId: Int, studentId: String, points: Int, plasticSaved: Int) {
         viewModelScope.launch {
             try {
                 submissionRepository.approveSubmission(
@@ -63,7 +63,7 @@ class AdminHomeViewModel(
                 user?.let { currentUser ->
                     val updatedUser = currentUser.copy(
                         totalPoints = currentUser.totalPoints + points,
-                        plasticsSaved = currentUser.plasticsSaved + quantity
+                        plasticsSaved = currentUser.plasticsSaved + plasticSaved
                     )
                     userRepository.updateUser(updatedUser)
                 }
@@ -91,20 +91,21 @@ class AdminHomeViewModel(
         }
     }
 
-    fun approveTask(task: TaskEntity, points: Int) {
+    fun approveTask(task: TaskEntity, points: Int, plasticSaved: Int) {
         viewModelScope.launch {
             try {
                 taskRepository.approveTask(
                     taskId = task.id,
                     adminId = currentAdminId,
                     points = points,
-                    plasticSaved = 0
+                    plasticSaved = plasticSaved
                 )
 
                 val user = userRepository.getUserById(task.userId)
                 user?.let { currentUser ->
                     val updatedUser = currentUser.copy(
-                        totalPoints = currentUser.totalPoints + points
+                        totalPoints = currentUser.totalPoints + points,
+                        plasticsSaved = currentUser.plasticsSaved + plasticSaved
                     )
                     userRepository.updateUser(updatedUser)
                 }

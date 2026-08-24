@@ -47,6 +47,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.project1.data.model.ReportEntity
 import com.example.project1.data.model.UserEntity
+import com.example.project1.ui.adaptive.LocalAppWindowInfo
+import com.example.project1.ui.adaptive.WidthSize
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -252,14 +254,24 @@ private fun HeroStat(value: String, label: String, modifier: Modifier = Modifier
 
 @Composable
 private fun KpiGrid(uiState: ReportUiState) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.Inventory2, iconColor = PrimaryGreen, iconBg = Color(0xFFE8F5E9), value = "${uiState.totalSubmissions}", label = "Total submissions")
-            KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.TrendingUp, iconColor = BlueAccent, iconBg = Color(0xFFE3F2FD), value = "${uiState.approvalRate}%", label = "Approval rate")
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.PendingActions, iconColor = AmberPending, iconBg = Color(0xFFFFF3E0), value = "${uiState.pendingCount}", label = "Pending review")
-            KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.Groups, iconColor = Color(0xFF6A1B9A), iconBg = Color(0xFFF3E5F5), value = "${uiState.activeStudents}", label = "Active students")
+    val kpiItems: @Composable RowScope.() -> Unit = {
+        KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.Inventory2, iconColor = PrimaryGreen, iconBg = Color(0xFFE8F5E9), value = "${uiState.totalSubmissions}", label = "Total submissions")
+        KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.TrendingUp, iconColor = BlueAccent, iconBg = Color(0xFFE3F2FD), value = "${uiState.approvalRate}%", label = "Approval rate")
+        KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.PendingActions, iconColor = AmberPending, iconBg = Color(0xFFFFF3E0), value = "${uiState.pendingCount}", label = "Pending review")
+        KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.Groups, iconColor = Color(0xFF6A1B9A), iconBg = Color(0xFFF3E5F5), value = "${uiState.activeStudents}", label = "Active students")
+    }
+    if (LocalAppWindowInfo.current.widthSize == WidthSize.Expanded) {
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth(), content = kpiItems)
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.Inventory2, iconColor = PrimaryGreen, iconBg = Color(0xFFE8F5E9), value = "${uiState.totalSubmissions}", label = "Total submissions")
+                KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.TrendingUp, iconColor = BlueAccent, iconBg = Color(0xFFE3F2FD), value = "${uiState.approvalRate}%", label = "Approval rate")
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.PendingActions, iconColor = AmberPending, iconBg = Color(0xFFFFF3E0), value = "${uiState.pendingCount}", label = "Pending review")
+                KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.Groups, iconColor = Color(0xFF6A1B9A), iconBg = Color(0xFFF3E5F5), value = "${uiState.activeStudents}", label = "Active students")
+            }
         }
     }
 }

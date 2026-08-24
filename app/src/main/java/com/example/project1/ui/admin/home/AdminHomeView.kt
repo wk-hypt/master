@@ -28,14 +28,19 @@ fun AdminHomeView(
         pendingSubmissions = pendingSubmissions,
         pendingTasks = pendingTasks,
         initialTab = initialTab,
-        onApproveSubmission = { id, studentId, points ->
-            viewModel.approveSubmission(submissionId = id, studentId = studentId, points = points)
+        onApproveSubmission = { id, studentId, points, plasticSaved ->
+            viewModel.approveSubmission(
+                submissionId = id,
+                studentId = studentId,
+                points = points,
+                plasticSaved = plasticSaved
+            )
         },
         onRejectSubmission = { id, feedback ->
             viewModel.rejectSubmission(id, feedback)
         },
-        onApproveTask = { task, points ->
-            viewModel.approveTask(task, points)
+        onApproveTask = { task, points, plasticSaved ->
+            viewModel.approveTask(task, points, plasticSaved)
         },
         onRejectTask = { task, feedback ->
             viewModel.rejectTask(task, feedback)

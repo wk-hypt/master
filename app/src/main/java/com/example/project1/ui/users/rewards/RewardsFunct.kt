@@ -54,6 +54,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.project1.data.model.VoucherEntity
 import com.example.project1.data.model.VoucherRules
+import com.example.project1.ui.adaptive.HeightSize
+import com.example.project1.ui.adaptive.LocalAppWindowInfo
 
 private val PrimaryGreen = Color(0xFF2E7D32)
 private val SoftGreen = Color(0xFFF1F8E9)
@@ -81,7 +83,7 @@ fun RewardsFunct(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
+            Column(modifier = Modifier.padding(if (LocalAppWindowInfo.current.heightSize == HeightSize.Compact) 12.dp else 20.dp)) {
                 Text(text = "Rewards", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1B1F1C))
                 Text(text = "Spend eco points on campus vouchers", fontSize = 13.sp, color = Color(0xFF8B948E))
 
@@ -134,6 +136,7 @@ fun RewardsFunct(
                 )
             }
 
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             when (selectedTab) {
                 0 -> MarketList(
                     vouchers = available,
@@ -161,6 +164,7 @@ fun RewardsFunct(
                         )
                     }
                 }
+            }
             }
         }
     }
