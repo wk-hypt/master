@@ -30,6 +30,8 @@ fun AdminReportView(
 
     // Create: showing the "Save current report" dialog
     var showSaveDialog by remember { mutableStateOf(false) }
+    // Read: which report is open for viewing (null = none)
+    var viewingReport by remember { mutableStateOf<ReportEntity?>(null) }
     // Update: which report is being edited (null = none)
     var editingReport by remember { mutableStateOf<ReportEntity?>(null) }
     // Delete: which report is pending a delete confirmation
@@ -39,17 +41,33 @@ fun AdminReportView(
         uiState = uiState,
         savedReports = savedReports,
         onSaveReportClick = { showSaveDialog = true },
+        onViewReportClick = { viewingReport = it },
         onEditReportClick = { editingReport = it },
         onDeleteReportClick = { reportPendingDelete = it },
         modifier = modifier
     )
 
+    viewingReport?.let { report ->
+        ReportDetailDialog(
+            report = report,
+            onDismiss = { viewingReport = null }
+        )
+    }
+
     if (showSaveDialog) {
         ReportFormDialog(
             existing = null,
+            students = uiState.topContributors,
             onDismiss = { showSaveDialog = false },
-            onConfirm = { title, notes ->
-                viewModel.saveCurrentReport(title = title, notes = notes)
+            onConfirm = { title, notes, studentId, studentName, startDate, endDate ->
+                viewModel.saveReport(
+                    title = title,
+                    notes = notes,
+                    studentId = studentId,
+                    studentName = studentName,
+                    startDate = startDate,
+                    endDate = endDate
+                )
                 showSaveDialog = false
             }
         )
@@ -58,8 +76,9 @@ fun AdminReportView(
     editingReport?.let { report ->
         ReportFormDialog(
             existing = report,
+            students = uiState.topContributors,
             onDismiss = { editingReport = null },
-            onConfirm = { title, notes ->
+            onConfirm = { title, notes, _, _, _, _ ->
                 viewModel.updateReport(report = report, title = title, notes = notes)
                 editingReport = null
             }
