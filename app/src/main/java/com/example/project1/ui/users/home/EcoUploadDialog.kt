@@ -133,10 +133,9 @@ fun EcoUploadDialog(
     val isFormValid = captured != null && actionType.isNotBlank() && stallName.isNotBlank() && terms
     val photoHeight = if (LocalAppWindowInfo.current.heightSize == HeightSize.Compact) 120.dp else 200.dp
 
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? -> selectedImageUri = uri }
+    ) { uri: Uri? -> captured = uri }
 
     AdaptiveDialogSurface(onDismiss = onDismiss) {
         Column(modifier = Modifier.fillMaxSize()) {

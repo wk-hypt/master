@@ -8,9 +8,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -45,7 +49,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project1.data.model.ReportEntity
+import com.example.project1.data.model.ReportFormInput
+import com.example.project1.data.model.ReportNarrative
 import com.example.project1.data.model.UserEntity
+import com.example.project1.data.model.narrative
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -56,31 +63,71 @@ private val TextGrey = Color(0xFF6C757D)
 private val BgColor = Color(0xFFF6F8F5)
 private val CardBorder = Color(0xFFEDF1EC)
 
+internal val ReportPurposeOptions = listOf(
+    "Monthly review",
+    "Semester summary",
+    "Campus briefing",
+    "Audit / compliance",
+    "Student record",
+    "Other"
+)
+
+internal val ReportAudienceOptions = listOf(
+    "Internal staff",
+    "Campus management",
+    "Faculty",
+    "Student"
+)
+
+internal val ReportDepartmentOptions = listOf(
+    "Sustainability Office",
+    "Campus Admin",
+    "FOCS",
+    "FAFB",
+    "FOAS",
+    "FOBE",
+    "FOET",
+    "FCCI",
+    "FSSH",
+    "Other"
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportFormDialog(
     existing: ReportEntity?,
     students: List<UserEntity> = emptyList(),
+    defaultPreparedBy: String = "",
+    defaultDepartment: String = "",
     onDismiss: () -> Unit,
-    onConfirm: (title: String, notes: String?, studentId: String?, studentName: String?, startDate: Long?, endDate: Long?) -> Unit
+    onConfirm: (ReportFormInput) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val existingNarrative = remember(existing) { existing?.narrative() ?: ReportNarrative() }
 
     var title by remember { mutableStateOf(existing?.title.orEmpty()) }
-    var notes by remember { mutableStateOf(existing?.notes.orEmpty()) }
+    var preparedBy by remember {
+        mutableStateOf(existingNarrative.preparedBy.orEmpty().ifBlank { defaultPreparedBy })
+    }
+    var department by remember {
+        mutableStateOf(existingNarrative.department.orEmpty().ifBlank { defaultDepartment })
+    }
+    var purpose by remember { mutableStateOf(existingNarrative.purpose.orEmpty()) }
+    var audience by remember { mutableStateOf(existingNarrative.audience.orEmpty()) }
+    var summary by remember { mutableStateOf(existingNarrative.summary.orEmpty()) }
+    var findings by remember { mutableStateOf(existingNarrative.findings.orEmpty()) }
+    var recommendations by remember { mutableStateOf(existingNarrative.recommendations.orEmpty()) }
+    var notes by remember { mutableStateOf(existingNarrative.notes.orEmpty()) }
 
-    // Report scope: only choosable when creating a brand-new report; editing keeps the original scope.
     var isStudentReport by remember { mutableStateOf(existing?.reportType == REPORT_TYPE_STUDENT) }
     var selectedStudent by remember {
         mutableStateOf(existing?.studentId?.let { id -> students.find { it.studentId == id } })
     }
-
-    // Date range: only choosable when creating a brand-new report; null on either side = open-ended ("All time").
     var startDate by remember { mutableStateOf(existing?.periodStart) }
     var endDate by remember { mutableStateOf(existing?.periodEnd) }
     var showDateRangePicker by remember { mutableStateOf(false) }
 
-    val isValid = title.isNotBlank() && (!isStudentReport || selectedStudent != null)
+    val isValid = title.isNotBlank() && (!isStudentReport || selectedStudent != null || existing != null)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -90,8 +137,11 @@ fun ReportFormDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
+                .imePadding()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
-                .padding(bottom = 24.dp),
+                .padding(bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Row(
@@ -99,26 +149,31 @@ fun ReportFormDialog(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = if (existing == null) "Save Report" else "Edit Report",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextDark
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = if (existing == null) "Prepare Report" else "Edit Report",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
+                    )
+                    Text(
+                        text = if (existing == null) {
+                            "Capture a frozen snapshot, then add the document details for a formal record."
+                        } else {
+                            "Update the document details. Snapshot figures stay fixed."
+                        },
+                        fontSize = 12.sp,
+                        color = TextGrey,
+                        lineHeight = 16.sp
+                    )
+                }
                 IconButton(onClick = onDismiss) {
                     Icon(Icons.Default.Close, contentDescription = "Close")
                 }
             }
 
             if (existing == null) {
-                Text(
-                    text = "This saves a snapshot of the stats below. " +
-                            "You can rename or annotate it later, but the numbers stay fixed.",
-                    fontSize = 12.sp,
-                    color = TextGrey
-                )
-
-                // Simple static choice: overall campus snapshot, or one student's snapshot.
+                FormSectionLabel("1. Scope")
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -134,7 +189,6 @@ fun ReportFormDialog(
                         modifier = Modifier.weight(1f)
                     ) { isStudentReport = true }
                 }
-
                 if (isStudentReport) {
                     StudentDropdown(
                         students = students,
@@ -142,7 +196,6 @@ fun ReportFormDialog(
                         onSelect = { selectedStudent = it }
                     )
                 }
-
                 DateRangeField(
                     startDate = startDate,
                     endDate = endDate,
@@ -151,40 +204,92 @@ fun ReportFormDialog(
                 )
             }
 
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Report Title") },
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = TextDark,
-                    unfocusedTextColor = TextDark
-                ),
-                modifier = Modifier.fillMaxWidth()
+            FormSectionLabel(if (existing == null) "2. Document details" else "Document details")
+            FormTextField(value = title, onValueChange = { title = it }, label = "Report title", singleLine = true)
+            FormTextField(value = preparedBy, onValueChange = { preparedBy = it }, label = "Prepared by", singleLine = true)
+            OptionDropdown(
+                label = "Department / faculty",
+                value = department,
+                placeholder = "Select department",
+                options = ReportDepartmentOptions,
+                onSelect = { department = it },
+                allowCustom = true,
+                onCustomChange = { department = it }
+            )
+            OptionDropdown(
+                label = "Purpose",
+                value = purpose,
+                placeholder = "Select purpose",
+                options = ReportPurposeOptions,
+                onSelect = { purpose = it }
+            )
+            OptionDropdown(
+                label = "Audience",
+                value = audience,
+                placeholder = "Select audience",
+                options = ReportAudienceOptions,
+                onSelect = { audience = it }
             )
 
-            OutlinedTextField(
+            FormSectionLabel(if (existing == null) "3. Narrative" else "Narrative")
+            FormTextField(
+                value = summary,
+                onValueChange = { summary = it },
+                label = "Executive summary",
+                minLines = 3
+            )
+            FormTextField(
+                value = findings,
+                onValueChange = { findings = it },
+                label = "Key findings",
+                minLines = 3
+            )
+            FormTextField(
+                value = recommendations,
+                onValueChange = { recommendations = it },
+                label = "Recommendations",
+                minLines = 3
+            )
+            FormTextField(
                 value = notes,
                 onValueChange = { notes = it },
-                label = { Text("Notes (optional)") },
-                minLines = 3,
-                modifier = Modifier.fillMaxWidth()
+                label = "Additional notes (optional)",
+                minLines = 2
             )
 
             Button(
                 onClick = {
                     val target = if (isStudentReport) selectedStudent else null
-                    onConfirm(title.trim(), notes.trim().ifBlank { null }, target?.studentId, target?.name, startDate, endDate)
+                    onConfirm(
+                        ReportFormInput(
+                            title = title.trim(),
+                            studentId = target?.studentId ?: existing?.studentId,
+                            studentName = target?.name ?: existing?.studentName,
+                            startDate = startDate,
+                            endDate = endDate,
+                            narrative = ReportNarrative(
+                                reference = existingNarrative.reference,
+                                preparedBy = preparedBy,
+                                department = department.takeUnless { it == "Other" },
+                                purpose = purpose,
+                                audience = audience,
+                                summary = summary,
+                                findings = findings,
+                                recommendations = recommendations,
+                                notes = notes
+                            )
+                        )
+                    )
                 },
                 enabled = isValid,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
+                    .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
-                shape = RoundedCornerShape(10.dp)
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = if (existing == null) "Save Report" else "Save Changes",
+                    text = if (existing == null) "Generate Report" else "Save Changes",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -220,6 +325,40 @@ fun ReportFormDialog(
 }
 
 @Composable
+private fun FormSectionLabel(text: String) {
+    Text(
+        text = text.uppercase(),
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 1.sp,
+        color = PrimaryGreen,
+        modifier = Modifier.padding(top = 4.dp)
+    )
+}
+
+@Composable
+private fun FormTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    singleLine: Boolean = false,
+    minLines: Int = 1
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        singleLine = singleLine,
+        minLines = minLines,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = TextDark,
+            unfocusedTextColor = TextDark
+        ),
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
 private fun DateRangeField(startDate: Long?, endDate: Long?, onClick: () -> Unit, onClear: () -> Unit) {
     val dateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     val label = when {
@@ -231,7 +370,7 @@ private fun DateRangeField(startDate: Long?, endDate: Long?, onClick: () -> Unit
     val hasRange = startDate != null || endDate != null
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(text = "Date range", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextDark)
+        Text(text = "Coverage period", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextDark)
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -295,13 +434,74 @@ private fun ReportTypeChip(label: String, selected: Boolean, modifier: Modifier 
     }
 }
 
-/** Plain static dropdown - lists every student, no search box. */
+@Composable
+private fun OptionDropdown(
+    label: String,
+    value: String,
+    placeholder: String,
+    options: List<String>,
+    onSelect: (String) -> Unit,
+    allowCustom: Boolean = false,
+    onCustomChange: (String) -> Unit = {}
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(text = label, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextDark)
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = true },
+            shape = RoundedCornerShape(10.dp),
+            color = BgColor,
+            border = BorderStroke(1.dp, CardBorder)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = value.ifBlank { placeholder },
+                    fontSize = 13.sp,
+                    color = if (value.isNotBlank()) TextDark else TextGrey,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = TextGrey)
+            }
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onSelect(option)
+                        expanded = false
+                    }
+                )
+            }
+        }
+        if (allowCustom && (value == "Other" || (value.isNotBlank() && value !in options))) {
+            FormTextField(
+                value = if (value == "Other") "" else value,
+                onValueChange = onCustomChange,
+                label = "Custom department",
+                singleLine = true
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StudentDropdown(students: List<UserEntity>, selected: UserEntity?, onSelect: (UserEntity) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
-    Column {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(text = "Student", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextDark)
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
