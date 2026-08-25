@@ -81,6 +81,7 @@ fun AdminReportFunct(
     uiState: ReportUiState,
     savedReports: List<ReportEntity> = emptyList(),
     onSaveReportClick: () -> Unit = {},
+    onViewReportClick: (ReportEntity) -> Unit = {},
     onEditReportClick: (ReportEntity) -> Unit = {},
     onDeleteReportClick: (ReportEntity) -> Unit = {},
     modifier: Modifier = Modifier
@@ -123,6 +124,7 @@ fun AdminReportFunct(
                     item {
                         SavedReportsCard(
                             reports = savedReports,
+                            onView = onViewReportClick,
                             onEdit = onEditReportClick,
                             onDelete = onDeleteReportClick
                         )
@@ -338,9 +340,11 @@ private fun StatusLegendItem(label: String, count: Int) {
 
 @Composable
 private fun WeeklyTrendCard(trend: List<DayTrendItem>) {
+    var selectedDay by remember { mutableStateOf<DayTrendItem?>(null) }
+
     Box(modifier = Modifier.fillMaxWidth().flatCard()) {
         Column(modifier = Modifier.padding(CardPadding)) {
-            SectionTitle(title = "Last 7 days", subtitle = "Daily submission activity")
+            SectionTitle(title = "Last 7 days", subtitle = "Tap a day to see its submissions")
             Spacer(modifier = Modifier.height(16.dp))
 
             val maxCount = (trend.maxOfOrNull { it.count } ?: 0).coerceAtLeast(1)
@@ -348,7 +352,10 @@ private fun WeeklyTrendCard(trend: List<DayTrendItem>) {
                 trend.forEach { day ->
                     val isPeak = day.count == maxCount && maxCount > 0
                     Column(
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable(enabled = day.count > 0) { selectedDay = day },
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Bottom
                     ) {
@@ -370,6 +377,86 @@ private fun WeeklyTrendCard(trend: List<DayTrendItem>) {
                             fontWeight = if (isPeak) FontWeight.Medium else FontWeight.Normal,
                             color = if (isPeak) TextDark else TextGrey
                         )
+                    }
+                }
+            }
+        }
+    }
+
+    selectedDay?.let { day ->
+        DaySubmissionsDialog(day = day, onDismiss = { selectedDay = null })
+    }
+}
+
+@Composable
+private fun DaySubmissionsDialog(day: DayTrendItem, onDismiss: () -> Unit) {
+    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .heightIn(max = 520.dp)
+                .padding(vertical = 24.dp),
+            shape = RoundedCornerShape(20.dp),
+            color = Color.White
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(day.fullDateLabel, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                        Text(
+                            "${day.count} submission${if (day.count == 1) "" else "s"}",
+                            fontSize = 12.sp,
+                            color = TextGrey
+                        )
+                    }
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Filled.Close, contentDescription = "Close")
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                if (day.submissions.isEmpty()) {
+                    Text("No submissions on this day.", fontSize = 12.sp, color = TextGrey)
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items(day.submissions) { submission ->
+                            val statusColor = when (submission.status) {
+                                "Approved" -> PrimaryGreen
+                                "Rejected" -> RedRejected
+                                else -> AmberPending
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(BgColor)
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(submission.actionType, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextDark)
+                                    Text(
+                                        "${submission.userId} · ${submission.stallName} · ${timeFormat.format(Date(submission.timestamp))}",
+                                        fontSize = 10.sp,
+                                        color = TextGrey,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                Text(
+                                    submission.status,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = statusColor
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -525,10 +612,10 @@ private fun ContributorRow(rank: Int, user: UserEntity) {
 }
 
 @Composable
-private fun SavedReportsCard(reports: List<ReportEntity>, onEdit: (ReportEntity) -> Unit, onDelete: (ReportEntity) -> Unit) {
+private fun SavedReportsCard(reports: List<ReportEntity>, onView: (ReportEntity) -> Unit, onEdit: (ReportEntity) -> Unit, onDelete: (ReportEntity) -> Unit) {
     Box(modifier = Modifier.fillMaxWidth().flatCard()) {
         Column(modifier = Modifier.padding(CardPadding)) {
-            CardHeaderIconRow(icon = Icons.Filled.Save, iconBg = Color(0xFFE3F2FD), iconTint = BlueAccent, title = "Saved reports", subtitle = "Archived snapshots")
+            CardHeaderIconRow(icon = Icons.Filled.Save, iconBg = Color(0xFFE3F2FD), iconTint = BlueAccent, title = "Saved reports", subtitle = "Tap a report to view it")
             Spacer(modifier = Modifier.height(12.dp))
 
             if (reports.isEmpty()) {
@@ -541,7 +628,12 @@ private fun SavedReportsCard(reports: List<ReportEntity>, onEdit: (ReportEntity)
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     reports.forEach { report ->
-                        SavedReportRow(report = report, onEdit = { onEdit(report) }, onDelete = { onDelete(report) })
+                        SavedReportRow(
+                            report = report,
+                            onClick = { onView(report) },
+                            onEdit = { onEdit(report) },
+                            onDelete = { onDelete(report) }
+                        )
                     }
                 }
             }
@@ -550,16 +642,50 @@ private fun SavedReportsCard(reports: List<ReportEntity>, onEdit: (ReportEntity)
 }
 
 @Composable
-private fun SavedReportRow(report: ReportEntity, onEdit: () -> Unit, onDelete: () -> Unit) {
+private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
     val dateFormat = remember { SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()) }
+    val periodDateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
 
-    Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), color = BgColor) {
+    Surface(modifier = Modifier.fillMaxWidth().clickable { onClick() }, shape = RoundedCornerShape(12.dp), color = BgColor) {
         Row(modifier = Modifier.padding(start = 12.dp, end = 2.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = report.title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextDark, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                val isPersonal = report.reportType == REPORT_TYPE_STUDENT
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = if (isPersonal) Color(0xFFF3E5F5) else Color(0xFFE3F2FD)
+                    ) {
+                        Text(
+                            text = if (isPersonal) "PERSONAL" else "OVERALL",
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isPersonal) Color(0xFF6A1B9A) else BlueAccent,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = report.title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextDark, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                if (isPersonal && !report.studentName.isNullOrBlank()) {
+                    Text(text = report.studentName, fontSize = 10.sp, color = TextGrey2, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                val periodLabel = when {
+                    report.periodStart != null && report.periodEnd != null ->
+                        "${periodDateFormat.format(Date(report.periodStart))} \u2013 ${periodDateFormat.format(Date(report.periodEnd))}"
+                    report.periodStart != null -> "From ${periodDateFormat.format(Date(report.periodStart))}"
+                    report.periodEnd != null -> "Until ${periodDateFormat.format(Date(report.periodEnd))}"
+                    else -> "All time"
+                }
                 Text(
-                    text = "${report.totalSubmissions} submissions \u00b7 ${report.approvedCount} approved \u00b7 ${dateFormat.format(Date(report.createdAt))}",
+                    text = "$periodLabel \u00b7 ${report.totalSubmissions} submissions \u00b7 ${report.approvedCount} approved",
                     fontSize = 10.sp,
+                    color = TextGrey,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "Saved ${dateFormat.format(Date(report.createdAt))}",
+                    fontSize = 9.sp,
                     color = TextGrey,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

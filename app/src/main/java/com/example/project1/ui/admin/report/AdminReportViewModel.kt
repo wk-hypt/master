@@ -20,11 +20,15 @@ import com.example.project1.data.repository.UserRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+
+const val REPORT_TYPE_OVERALL = "OVERALL"
+const val REPORT_TYPE_STUDENT = "STUDENT"
 
 data class ReportBarItem(
     val label: String,
@@ -33,7 +37,9 @@ data class ReportBarItem(
 
 data class DayTrendItem(
     val dayLabel: String,
-    val count: Int
+    val fullDateLabel: String,
+    val count: Int,
+    val submissions: List<EcoSubmissionEntity> = emptyList()
 )
 
 data class ReportUiState(
@@ -53,6 +59,23 @@ data class ReportUiState(
     val topContributors: List<UserEntity> = emptyList()
 )
 
+/** Raw source data behind the report screen, cached so a "Save" can build a fresh snapshot on demand. */
+private data class RawReportData(
+    val submissions: List<EcoSubmissionEntity> = emptyList(),
+    val tasks: List<TaskEntity> = emptyList(),
+    val users: List<UserEntity> = emptyList(),
+    val vouchers: List<VoucherEntity> = emptyList()
+)
+
+private data class ReportSnapshot(
+    val totalSubmissions: Int,
+    val approvedCount: Int,
+    val pendingCount: Int,
+    val rejectedCount: Int,
+    val totalPointsAwarded: Int,
+    val totalPlasticsSaved: Int
+)
+
 class AdminReportViewModel(
     submissionRepository: SubmissionRepository,
     taskRepository: TaskRepository,
@@ -67,18 +90,26 @@ class AdminReportViewModel(
         currentAdminId = adminId
     }
 
-    val reportUiState: StateFlow<ReportUiState> = combine(
+    private val rawData: StateFlow<RawReportData> = combine(
         submissionRepository.getReportSubmissionsStream(),
         taskRepository.getReportTasksStream(),
         userRepository.getAllUsersStream(),
         offerRepository.getAllVouchersStream()
     ) { submissions, tasks, users, vouchers ->
-        buildReportUiState(submissions, tasks, users, vouchers)
+        RawReportData(submissions, tasks, users, vouchers)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = ReportUiState()
+        initialValue = RawReportData()
     )
+
+    val reportUiState: StateFlow<ReportUiState> = rawData
+        .map { raw -> buildReportUiState(raw.submissions, raw.tasks, raw.users, raw.vouchers) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = ReportUiState()
+        )
 
     val savedReports: StateFlow<List<ReportEntity>> =
         reportRepository.getAllReportsStream()
@@ -88,8 +119,36 @@ class AdminReportViewModel(
                 initialValue = emptyList()
             )
 
-    fun saveCurrentReport(title: String, notes: String?) {
-        val snapshot = reportUiState.value
+    /**
+     * Saves the report shown when the admin taps "Save".
+     * - studentId == null -> the overall campus snapshot.
+     * - studentId != null -> a simple static snapshot scoped to just that student.
+     * - startDate/endDate == null -> all-time totals (same as before).
+     * - startDate/endDate set -> totals scoped to that date range only.
+     */
+    fun saveReport(
+        title: String,
+        notes: String?,
+        studentId: String? = null,
+        studentName: String? = null,
+        startDate: Long? = null,
+        endDate: Long? = null
+    ) {
+        val hasRange = startDate != null || endDate != null
+        val snapshot = if (studentId == null && !hasRange) {
+            val overall = reportUiState.value
+            ReportSnapshot(
+                totalSubmissions = overall.totalSubmissions,
+                approvedCount = overall.approvedCount,
+                pendingCount = overall.pendingCount,
+                rejectedCount = overall.rejectedCount,
+                totalPointsAwarded = overall.totalPointsAwarded,
+                totalPlasticsSaved = overall.totalPlasticsSaved
+            )
+        } else {
+            buildScopedSnapshot(rawData.value, studentId, startDate, endDate)
+        }
+
         viewModelScope.launch {
             try {
                 reportRepository.insertReport(
@@ -103,13 +162,56 @@ class AdminReportViewModel(
                         pendingCount = snapshot.pendingCount,
                         rejectedCount = snapshot.rejectedCount,
                         totalPointsAwarded = snapshot.totalPointsAwarded,
-                        totalPlasticsSaved = snapshot.totalPlasticsSaved
+                        totalPlasticsSaved = snapshot.totalPlasticsSaved,
+                        reportType = if (studentId != null) REPORT_TYPE_STUDENT else REPORT_TYPE_OVERALL,
+                        studentId = studentId,
+                        studentName = studentName,
+                        periodStart = startDate,
+                        periodEnd = endDate
                     )
                 )
             } catch (e: Exception) {
                 Log.e("AdminReportViewModel", "Failed to save report: ${e.message}")
             }
         }
+    }
+
+    /**
+     * Simple static totals, optionally filtered to one student and/or a [startDate]..[endDate]
+     * window (both inclusive, either side may be null for an open range).
+     */
+    private fun buildScopedSnapshot(
+        raw: RawReportData,
+        studentId: String?,
+        startDate: Long?,
+        endDate: Long?
+    ): ReportSnapshot {
+        fun inScope(userId: String, timestamp: Long): Boolean {
+            if (studentId != null && userId != studentId) return false
+            if (startDate != null && timestamp < startDate) return false
+            if (endDate != null && timestamp > endDate) return false
+            return true
+        }
+
+        val subs = raw.submissions.filter { inScope(it.userId, it.timestamp) }
+        val tasks = raw.tasks.filter { inScope(it.userId, it.timestamp) }
+
+        val approved = subs.count { it.status == "Approved" }
+        val pending = subs.count { it.status == "Pending" }
+        val rejected = subs.count { it.status == "Rejected" }
+
+        val pointsFromSubs = subs.filter { it.status == "Approved" }.sumOf { it.points }
+        val pointsFromTasks = tasks.filter { it.status == "Approved" }.sumOf { it.points }
+        val plasticsFromTasks = tasks.filter { it.status == "Approved" }.sumOf { it.plasticSaved }
+
+        return ReportSnapshot(
+            totalSubmissions = subs.size,
+            approvedCount = approved,
+            pendingCount = pending,
+            rejectedCount = rejected,
+            totalPointsAwarded = pointsFromSubs + pointsFromTasks,
+            totalPlasticsSaved = plasticsFromTasks
+        )
     }
 
     fun updateReport(report: ReportEntity, title: String, notes: String?) {
@@ -165,12 +267,13 @@ class AdminReportViewModel(
             activeStudents = activeStudents,
             weeklyTrend = buildWeeklyTrend(submissions),
             actionTypeBreakdown = buildBreakdown(submissions.map { it.actionType }),
-            topContributors = usersByAwarded.sortedByDescending { it.totalPoints }.take(5)
+            topContributors = usersByAwarded.sortedByDescending { it.totalPoints }
         )
     }
 
     private fun buildWeeklyTrend(submissions: List<EcoSubmissionEntity>): List<DayTrendItem> {
         val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())
+        val fullDateFormat = SimpleDateFormat("EEEE, dd MMM", Locale.getDefault())
         val calendar = Calendar.getInstance()
 
         // Build the last 7 calendar-day buckets, oldest first.
@@ -186,10 +289,15 @@ class AdminReportViewModel(
 
         return dayBuckets.map { dayStart ->
             val dayEnd = (dayStart.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, 1) }
-            val count = submissions.count {
-                it.timestamp >= dayStart.timeInMillis && it.timestamp < dayEnd.timeInMillis
-            }
-            DayTrendItem(dayLabel = dayFormat.format(dayStart.time), count = count)
+            val daySubmissions = submissions
+                .filter { it.timestamp >= dayStart.timeInMillis && it.timestamp < dayEnd.timeInMillis }
+                .sortedByDescending { it.timestamp }
+            DayTrendItem(
+                dayLabel = dayFormat.format(dayStart.time),
+                fullDateLabel = fullDateFormat.format(dayStart.time),
+                count = daySubmissions.size,
+                submissions = daySubmissions
+            )
         }
     }
 

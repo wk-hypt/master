@@ -3,6 +3,7 @@
 package com.example.project1.ui.admin.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,11 +34,13 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -45,6 +48,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -234,6 +238,7 @@ internal fun StaffDirectoryPage(
     onRefresh: () -> Unit
 ) {
     var query by remember { mutableStateOf("") }
+    var viewingStaff by remember { mutableStateOf<AdminEntity?>(null) }
     val filteredStaff = remember(staff, query) {
         if (query.isBlank()) staff else staff.filter {
             it.name.contains(query, ignoreCase = true) ||
@@ -279,12 +284,60 @@ internal fun StaffDirectoryPage(
                         title = colleague.name + if (colleague.adminId == currentAdminId) " (You)" else "",
                         subtitle = "${colleague.adminId} · ${colleague.faculty.ifBlank { "Staff" }}",
                         avatarName = colleague.name,
-                        highlight = colleague.adminId == currentAdminId
+                        highlight = colleague.adminId == currentAdminId,
+                        onClick = { viewingStaff = colleague }
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
+    }
+
+    viewingStaff?.let { colleague ->
+        StaffDetailDialog(
+            admin = colleague,
+            isYou = colleague.adminId == currentAdminId,
+            onDismiss = { viewingStaff = null }
+        )
+    }
+}
+
+@Composable
+private fun StaffDetailDialog(
+    admin: AdminEntity,
+    isYou: Boolean,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ProfilePhotoAvatar(name = admin.name, photoPath = null, color = ProfileColors.DarkGreen, size = 40.dp)
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                    Text(admin.name + if (isYou) " (You)" else "", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Campus Admin", fontSize = 11.sp, color = ProfileColors.TextGrey)
+                }
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Divider(color = Color(0xFFEDF1EC))
+                StaffDetailRow(label = "Admin ID", value = admin.adminId)
+                StaffDetailRow(label = "Faculty", value = admin.faculty.ifBlank { "Staff" })
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Close") }
+        }
+    )
+}
+
+@Composable
+private fun StaffDetailRow(label: String, value: String) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, fontSize = 12.sp, color = ProfileColors.TextGrey)
+        Text(value, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = ProfileColors.TextDark)
     }
 }
 
@@ -414,9 +467,11 @@ private fun PersonCard(
     caption: String? = null,
     avatarName: String = title,
     highlight: Boolean = false,
-    onDelete: (() -> Unit)? = null
+    onDelete: (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null
 ) {
     Card(
+        modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = if (highlight) ProfileColors.SoftGreen else Color.White),
         elevation = CardDefaults.cardElevation(1.dp)
