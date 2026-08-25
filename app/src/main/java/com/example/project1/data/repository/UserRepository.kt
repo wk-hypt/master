@@ -3,6 +3,7 @@ package com.example.project1.data.repository
 import com.example.project1.data.model.NewUser
 import com.example.project1.data.model.UserEntity
 import com.example.project1.data.model.UserPasswordUpdate
+import com.example.project1.data.model.UserPointsUpdate
 import com.example.project1.data.model.UserProfileInfoUpdate
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.query.Order
@@ -26,6 +27,9 @@ interface UserRepository {
     suspend fun updatePassword(studentId: String, newPassword: String)
     suspend fun deleteUser(studentId: String)
     suspend fun getUserById(studentId: String): UserEntity?
+
+    /** Adds bonus points on top of a student's current total (e.g. milestone rewards). */
+    suspend fun addBonusPoints(studentId: String, bonusPoints: Int)
 }
 
 class SupabaseUserRepository(private val postgrest: Postgrest) : UserRepository {
@@ -108,5 +112,15 @@ class SupabaseUserRepository(private val postgrest: Postgrest) : UserRepository 
         return postgrest.from("users").select {
             filter { eq("student_id", studentId) }
         }.decodeSingleOrNull()
+    }
+
+    override suspend fun addBonusPoints(studentId: String, bonusPoints: Int) {
+        if (bonusPoints <= 0) return
+        val current = getUserById(studentId) ?: return
+        postgrest.from("users").update(
+            UserPointsUpdate(totalPoints = current.totalPoints + bonusPoints)
+        ) {
+            filter { eq("student_id", studentId) }
+        }
     }
 }

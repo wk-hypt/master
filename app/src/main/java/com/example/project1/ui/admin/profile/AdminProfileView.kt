@@ -33,6 +33,8 @@ fun AdminProfileView(
     val staffDirectory by viewModel.staffDirectory.collectAsState()
     val staffDirectoryLoading by viewModel.staffDirectoryLoading.collectAsState()
     val allUsers by viewModel.allUsers.collectAsState()
+    val allSubmissions by viewModel.allSubmissions.collectAsState()
+    val allTasks by viewModel.allTasks.collectAsState()
     val verificationCode by viewModel.verificationCode.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -50,6 +52,8 @@ fun AdminProfileView(
         staffDirectory = staffDirectory,
         staffDirectoryLoading = staffDirectoryLoading,
         allUsers = allUsers,
+        allSubmissions = allSubmissions,
+        allTasks = allTasks,
         verificationCode = verificationCode,
         onOpenStaffDirectory = viewModel::loadStaffDirectory,
         onSaveStaffInfo = viewModel::saveStaffInfo,

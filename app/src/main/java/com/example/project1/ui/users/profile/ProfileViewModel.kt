@@ -39,6 +39,13 @@ class ProfileViewModel(
         _avatarColorIndex.value = settingsRepository.getAvatarColorIndex(id)
         _profilePhotoPath.value = settingsRepository.getProfilePhotoPath(id)
         _backgroundPhotoPath.value = settingsRepository.getBackgroundPhotoPath(id)
+        _claimedMilestones.value = settingsRepository.getClaimedMilestones(id)
+        _collectedBadges.value = settingsRepository.getCollectedBadges(id)
+        _showcaseBadgeId.value = settingsRepository.getShowcaseBadgeId(id)
+        val today = todayIsoDate()
+        val savedDate = settingsRepository.getDailyQuestDate(id)
+        _dailyQuestCompleted.value = savedDate == today
+        _completedDailyQuestId.value = if (savedDate == today) settingsRepository.getDailyQuestId(id) else null
     }
 
     val user: StateFlow<UserEntity?> = _studentId
@@ -145,6 +152,79 @@ class ProfileViewModel(
         if (id.isBlank()) return
         settingsRepository.clearBackgroundPhoto(id)
         _backgroundPhotoPath.value = null
+    }
+
+    // ---- Milestone rewards: claiming a reached milestone grants real bonus points ----
+    private val _claimedMilestones = MutableStateFlow<Set<String>>(emptySet())
+    val claimedMilestones: StateFlow<Set<String>> = _claimedMilestones.asStateFlow()
+
+    fun claimMilestoneReward(milestoneId: String, bonusPoints: Int) = viewModelScope.launch {
+        val id = _studentId.value
+        if (id.isBlank() || milestoneId in _claimedMilestones.value) return@launch
+        try {
+            userRepository.addBonusPoints(id, bonusPoints)
+            settingsRepository.markMilestoneClaimed(id, milestoneId)
+            _claimedMilestones.value = _claimedMilestones.value + milestoneId
+            _message.value = "+$bonusPoints bonus points claimed!"
+        } catch (e: Exception) {
+            _message.value = e.message ?: "Could not claim reward"
+        }
+    }
+
+    private val _collectedBadges = MutableStateFlow<Set<String>>(emptySet())
+    val collectedBadges: StateFlow<Set<String>> = _collectedBadges.asStateFlow()
+
+    fun collectBadge(badgeId: String) {
+        val id = _studentId.value
+        if (id.isBlank() || badgeId in _collectedBadges.value) return
+        settingsRepository.markBadgeCollected(id, badgeId)
+        _collectedBadges.value = _collectedBadges.value + badgeId
+        _message.value = "Badge collected!"
+    }
+
+    private val _showcaseBadgeId = MutableStateFlow<String?>(null)
+    val showcaseBadgeId: StateFlow<String?> = _showcaseBadgeId.asStateFlow()
+
+    fun setShowcaseBadge(badgeId: String?) {
+        val id = _studentId.value
+        if (id.isBlank()) return
+        settingsRepository.setShowcaseBadgeId(id, badgeId)
+        _showcaseBadgeId.value = badgeId
+        _message.value = if (badgeId == null) "Showcase badge cleared" else "Badge equipped on your profile"
+    }
+
+    private val _dailyQuestCompleted = MutableStateFlow(false)
+    val dailyQuestCompleted: StateFlow<Boolean> = _dailyQuestCompleted.asStateFlow()
+
+    private val _completedDailyQuestId = MutableStateFlow<String?>(null)
+    val completedDailyQuestId: StateFlow<String?> = _completedDailyQuestId.asStateFlow()
+
+    fun completeDailyQuest(questId: String) = viewModelScope.launch {
+        val id = _studentId.value
+        if (id.isBlank() || _dailyQuestCompleted.value) return@launch
+        val today = todayIsoDate()
+        try {
+            userRepository.addBonusPoints(id, DAILY_QUEST_BONUS)
+            settingsRepository.markDailyQuestCompleted(id, today, questId)
+            _dailyQuestCompleted.value = true
+            _completedDailyQuestId.value = questId
+            _message.value = "Daily quest complete · +$DAILY_QUEST_BONUS pts"
+        } catch (e: Exception) {
+            _message.value = e.message ?: "Could not complete daily quest"
+        }
+    }
+
+    private fun todayIsoDate(): String {
+        val c = java.util.Calendar.getInstance()
+        return "%04d-%02d-%02d".format(
+            c.get(java.util.Calendar.YEAR),
+            c.get(java.util.Calendar.MONTH) + 1,
+            c.get(java.util.Calendar.DAY_OF_MONTH)
+        )
+    }
+
+    private companion object {
+        const val DAILY_QUEST_BONUS = 5
     }
 
     fun saveProfileInfo(

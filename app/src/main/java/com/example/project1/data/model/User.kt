@@ -38,6 +38,11 @@ data class UserPasswordUpdate(
     val password: String
 )
 
+@Serializable
+data class UserPointsUpdate(
+    @SerialName("total_points") val totalPoints: Int
+)
+
 /** Lifetime points awarded to each student. Spendable `totalPoints` can drop after a redeem. */
 fun pointsAwardedByUser(
     submissions: List<EcoSubmissionEntity>,

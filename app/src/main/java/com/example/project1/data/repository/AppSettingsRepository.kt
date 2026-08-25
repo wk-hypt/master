@@ -45,6 +45,22 @@ interface AppSettingsRepository {
 
     /** Removes the saved profile background/cover photo for the given account id. */
     fun clearBackgroundPhoto(accountId: String)
+
+    /** Returns the set of milestone ids for which this account has already claimed the bonus-point reward. */
+    fun getClaimedMilestones(accountId: String): Set<String>
+
+    /** Marks a milestone reward as claimed for this account, so it cannot be claimed again. */
+    fun markMilestoneClaimed(accountId: String, milestoneId: String)
+
+    fun getCollectedBadges(accountId: String): Set<String>
+    fun markBadgeCollected(accountId: String, badgeId: String)
+
+    fun getShowcaseBadgeId(accountId: String): String?
+    fun setShowcaseBadgeId(accountId: String, badgeId: String?)
+
+    fun getDailyQuestDate(accountId: String): String?
+    fun getDailyQuestId(accountId: String): String?
+    fun markDailyQuestCompleted(accountId: String, date: String, questId: String)
 }
 
 class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
@@ -226,11 +242,73 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         }
     }
 
+    override fun getClaimedMilestones(accountId: String): Set<String> {
+        if (accountId.isBlank()) return emptySet()
+        return prefs.getStringSet(KEY_CLAIMED_MILESTONES_PREFIX + accountId, emptySet()).orEmpty()
+    }
+
+    override fun markMilestoneClaimed(accountId: String, milestoneId: String) {
+        if (accountId.isBlank()) return
+        val key = KEY_CLAIMED_MILESTONES_PREFIX + accountId
+        val updated = prefs.getStringSet(key, emptySet()).orEmpty().toMutableSet().apply { add(milestoneId) }
+        prefs.edit {
+            putStringSet(key, updated)
+        }
+    }
+
+    override fun getCollectedBadges(accountId: String): Set<String> {
+        if (accountId.isBlank()) return emptySet()
+        return prefs.getStringSet(KEY_COLLECTED_BADGES_PREFIX + accountId, emptySet()).orEmpty()
+    }
+
+    override fun markBadgeCollected(accountId: String, badgeId: String) {
+        if (accountId.isBlank()) return
+        val key = KEY_COLLECTED_BADGES_PREFIX + accountId
+        val updated = prefs.getStringSet(key, emptySet()).orEmpty().toMutableSet().apply { add(badgeId) }
+        prefs.edit { putStringSet(key, updated) }
+    }
+
+    override fun getShowcaseBadgeId(accountId: String): String? {
+        if (accountId.isBlank()) return null
+        return prefs.getString(KEY_SHOWCASE_BADGE_PREFIX + accountId, null)
+    }
+
+    override fun setShowcaseBadgeId(accountId: String, badgeId: String?) {
+        if (accountId.isBlank()) return
+        prefs.edit {
+            if (badgeId.isNullOrBlank()) remove(KEY_SHOWCASE_BADGE_PREFIX + accountId)
+            else putString(KEY_SHOWCASE_BADGE_PREFIX + accountId, badgeId)
+        }
+    }
+
+    override fun getDailyQuestDate(accountId: String): String? {
+        if (accountId.isBlank()) return null
+        return prefs.getString(KEY_DAILY_QUEST_DATE_PREFIX + accountId, null)
+    }
+
+    override fun getDailyQuestId(accountId: String): String? {
+        if (accountId.isBlank()) return null
+        return prefs.getString(KEY_DAILY_QUEST_ID_PREFIX + accountId, null)
+    }
+
+    override fun markDailyQuestCompleted(accountId: String, date: String, questId: String) {
+        if (accountId.isBlank()) return
+        prefs.edit {
+            putString(KEY_DAILY_QUEST_DATE_PREFIX + accountId, date)
+            putString(KEY_DAILY_QUEST_ID_PREFIX + accountId, questId)
+        }
+    }
+
     private companion object {
         const val KEY_DARK_MODE = "dark_mode_enabled"
         const val KEY_NOTIFICATIONS = "notifications_enabled"
         const val KEY_AVATAR_PREFIX = "avatar_color_index_"
         const val KEY_PROFILE_PHOTO_PREFIX = "profile_photo_path_"
         const val KEY_BACKGROUND_PHOTO_PREFIX = "background_photo_path_"
+        const val KEY_CLAIMED_MILESTONES_PREFIX = "claimed_milestones_"
+        const val KEY_COLLECTED_BADGES_PREFIX = "collected_badges_"
+        const val KEY_SHOWCASE_BADGE_PREFIX = "showcase_badge_"
+        const val KEY_DAILY_QUEST_DATE_PREFIX = "daily_quest_date_"
+        const val KEY_DAILY_QUEST_ID_PREFIX = "daily_quest_id_"
     }
 }

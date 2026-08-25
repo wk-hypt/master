@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +27,8 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Groups
@@ -34,7 +37,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -48,6 +51,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -63,6 +67,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project1.data.model.AdminEntity
+import com.example.project1.data.model.EcoSubmissionEntity
+import com.example.project1.data.model.TaskEntity
 import com.example.project1.data.model.UserEntity
 import com.example.project1.ui.common.ProfileColors
 import com.example.project1.ui.common.ProfileConfirmDialog
@@ -71,6 +77,9 @@ import com.example.project1.ui.common.ProfilePageHeader
 import com.example.project1.ui.common.ProfilePhotoAvatar
 import com.example.project1.ui.common.ProfileStatChip
 import com.example.project1.ui.common.initialsOf
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 internal fun AdminHubPage(
@@ -263,10 +272,10 @@ internal fun StaffDirectoryPage(
     staff: List<AdminEntity>,
     loading: Boolean,
     onBack: () -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onViewDetails: (AdminEntity) -> Unit
 ) {
     var query by remember { mutableStateOf("") }
-    var viewingStaff by remember { mutableStateOf<AdminEntity?>(null) }
     val filteredStaff = remember(staff, query) {
         if (query.isBlank()) staff else staff.filter {
             it.name.contains(query, ignoreCase = true) ||
@@ -311,54 +320,175 @@ internal fun StaffDirectoryPage(
                     PersonCard(
                         title = colleague.name + if (colleague.adminId == currentAdminId) " (You)" else "",
                         subtitle = "${colleague.adminId} · ${colleague.faculty.ifBlank { "Staff" }}",
+                        caption = "Tap to view staff details",
                         avatarName = colleague.name,
                         highlight = colleague.adminId == currentAdminId,
-                        onClick = { viewingStaff = colleague }
+                        showChevron = true,
+                        onClick = { onViewDetails(colleague) }
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }
+}
 
-    viewingStaff?.let { colleague ->
-        StaffDetailDialog(
-            admin = colleague,
-            isYou = colleague.adminId == currentAdminId,
-            onDismiss = { viewingStaff = null }
-        )
+/**
+ * Full "Staff Details" screen reached from Staff Directory → Search → View Details.
+ * Search is no longer a dead end: it surfaces the staff member's profile plus their
+ * real review activity (submissions and tasks they have approved/rejected), so the
+ * admin can actually see what that colleague has been doing.
+ */
+@Composable
+internal fun StaffDetailsPage(
+    staff: AdminEntity?,
+    isYou: Boolean,
+    submissions: List<EcoSubmissionEntity>,
+    tasks: List<TaskEntity>,
+    onBack: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        ProfilePageHeader(title = "Staff Details", onBack = onBack)
+
+        if (staff == null) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("Staff member not found.", fontSize = 13.sp, color = ProfileColors.TextGrey)
+            return@Column
+        }
+
+        val reviewedSubmissions = remember(submissions, staff.adminId) {
+            submissions.filter { it.reviewedBy == staff.adminId }
+        }
+        val reviewedTasks = remember(tasks, staff.adminId) {
+            tasks.filter { it.reviewedBy == staff.adminId }
+        }
+        val totalReviewed = reviewedSubmissions.size + reviewedTasks.size
+        val approvedReviewed = reviewedSubmissions.count { it.status.equals("Approved", ignoreCase = true) } +
+                reviewedTasks.count { it.status.equals("Approved", ignoreCase = true) }
+        val completionRate = if (totalReviewed == 0) 0 else (approvedReviewed * 100) / totalReviewed
+
+        val recentActivity = remember(reviewedSubmissions, reviewedTasks) {
+            (reviewedSubmissions.map { StaffActivityItem.FromSubmission(it) } +
+                    reviewedTasks.map { StaffActivityItem.FromTask(it) })
+                .sortedByDescending { it.timestamp }
+                .take(6)
+        }
+
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ProfilePhotoAvatar(name = staff.name, photoPath = null, color = ProfileColors.DarkGreen, size = 56.dp)
+                Spacer(modifier = Modifier.width(14.dp))
+                Column {
+                    Text(staff.name + if (isYou) " (You)" else "", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = ProfileColors.TextDark)
+                    Text("Campus Admin · ${staff.faculty.ifBlank { "Staff" }}", fontSize = 12.sp, color = ProfileColors.PrimaryGreen)
+                }
+            }
+
+            SectionCard(title = "STAFF INFORMATION") {
+                StaffDetailRow(label = "Admin ID", value = staff.adminId)
+                StaffDetailRow(label = "Faculty", value = staff.faculty.ifBlank { "Staff" })
+            }
+
+            SectionCard(title = "PERFORMANCE") {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                    ProfileStatChip(Modifier.weight(1f), Icons.AutoMirrored.Filled.Assignment, "Submissions Reviewed", reviewedSubmissions.size.toString())
+                    ProfileStatChip(Modifier.weight(1f), Icons.Default.TaskAlt, "Tasks Reviewed", reviewedTasks.size.toString())
+                    ProfileStatChip(Modifier.weight(1f), Icons.Default.CheckCircle, "Approval Rate", if (totalReviewed == 0) "—" else "$completionRate%")
+                }
+            }
+
+            SectionCard(title = "RECENT ACTIVITY") {
+                if (recentActivity.isEmpty()) {
+                    Text(
+                        "No submissions or tasks reviewed by this staff member yet.",
+                        fontSize = 12.sp,
+                        color = ProfileColors.TextGrey
+                    )
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        recentActivity.forEach { activity -> ActivityRow(activity) }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+        }
     }
 }
 
+private sealed class StaffActivityItem(val timestamp: Long) {
+    class FromSubmission(val submission: EcoSubmissionEntity) : StaffActivityItem(submission.reviewTimestamp ?: submission.timestamp)
+    class FromTask(val task: TaskEntity) : StaffActivityItem(task.reviewTimestamp ?: task.timestamp)
+}
+
 @Composable
-private fun StaffDetailDialog(
-    admin: AdminEntity,
-    isYou: Boolean,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                ProfilePhotoAvatar(name = admin.name, photoPath = null, color = ProfileColors.DarkGreen, size = 40.dp)
-                Spacer(modifier = Modifier.width(10.dp))
-                Column {
-                    Text(admin.name + if (isYou) " (You)" else "", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text("Campus Admin", fontSize = 11.sp, color = ProfileColors.TextGrey)
-                }
-            }
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Divider(color = Color(0xFFEDF1EC))
-                StaffDetailRow(label = "Admin ID", value = admin.adminId)
-                StaffDetailRow(label = "Faculty", value = admin.faculty.ifBlank { "Staff" })
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Close") }
+private fun ActivityRow(item: StaffActivityItem) {
+    val dateFormat = remember { SimpleDateFormat("dd MMM, h:mm a", Locale.getDefault()) }
+    val (icon, title, status, timestamp) = when (item) {
+        is StaffActivityItem.FromSubmission -> StaffActivityRowData(
+            Icons.AutoMirrored.Filled.Assignment,
+            "${item.submission.actionType} · ${item.submission.stallName}",
+            item.submission.status,
+            item.timestamp
+        )
+        is StaffActivityItem.FromTask -> StaffActivityRowData(
+            Icons.Default.TaskAlt,
+            item.task.title,
+            item.task.status,
+            item.timestamp
+        )
+    }
+    val (statusColor, statusBg) = statusColors(status)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFFF7FAF7))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(18.dp))
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = ProfileColors.TextDark, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            Text(dateFormat.format(Date(timestamp)), fontSize = 10.sp, color = ProfileColors.TextGrey)
         }
-    )
+        Surface(shape = RoundedCornerShape(8.dp), color = statusBg) {
+            Text(status, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = statusColor, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+        }
+    }
+}
+
+private data class StaffActivityRowData(
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val title: String,
+    val status: String,
+    val timestamp: Long
+)
+
+private fun statusColors(status: String): Pair<Color, Color> = when (status.lowercase()) {
+    "approved" -> ProfileColors.PrimaryGreen to Color(0xFFE8F5E9)
+    "rejected" -> ProfileColors.Danger to Color(0xFFFDECEA)
+    else -> Color(0xFFEF6C00) to Color(0xFFFFF3E0)
+}
+
+@Composable
+private fun SectionCard(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(title, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = ProfileColors.TextGrey, letterSpacing = 0.6.sp)
+            content()
+        }
+    }
 }
 
 @Composable
@@ -379,7 +509,8 @@ private enum class UserSort(val label: String) {
 internal fun UserManagementPage(
     users: List<UserEntity>,
     onBack: () -> Unit,
-    onDeleteUser: (studentId: String) -> Unit
+    onDeleteUser: (studentId: String) -> Unit,
+    onViewDetails: (UserEntity) -> Unit = {}
 ) {
     var query by remember { mutableStateOf("") }
     var pendingDelete by remember { mutableStateOf<UserEntity?>(null) }
@@ -463,8 +594,10 @@ internal fun UserManagementPage(
                     PersonCard(
                         title = student.name.ifBlank { "Unnamed student" },
                         subtitle = "${student.studentId} · ${student.faculty.ifBlank { "Student" }}",
-                        caption = "${student.totalPoints} pts · ${student.plasticsSaved} plastics saved",
+                        caption = "${student.totalPoints} pts · ${student.plasticsSaved} plastics saved · Tap to view details",
                         avatarName = student.name.ifBlank { student.studentId },
+                        showChevron = true,
+                        onClick = { onViewDetails(student) },
                         onDelete = { pendingDelete = student }
                     )
                 }
@@ -488,6 +621,147 @@ internal fun UserManagementPage(
     }
 }
 
+/**
+ * Full "Student Details" screen reached from User Management → Search → View Details.
+ * Mirrors StaffDetailsPage: shows the student's profile plus their real activity
+ * (submissions and tasks they have submitted), so the admin can see what that
+ * student has actually been doing, not just their running totals.
+ */
+@Composable
+internal fun UserDetailsPage(
+    student: UserEntity?,
+    submissions: List<EcoSubmissionEntity>,
+    tasks: List<TaskEntity>,
+    onBack: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        ProfilePageHeader(title = "Student Details", onBack = onBack)
+
+        if (student == null) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("Student not found.", fontSize = 13.sp, color = ProfileColors.TextGrey)
+            return@Column
+        }
+
+        val ownSubmissions = remember(submissions, student.studentId) {
+            submissions.filter { it.userId == student.studentId }
+        }
+        val ownTasks = remember(tasks, student.studentId) {
+            tasks.filter { it.userId == student.studentId }
+        }
+        val totalActivity = ownSubmissions.size + ownTasks.size
+        val approvedActivity = ownSubmissions.count { it.status.equals("Approved", ignoreCase = true) } +
+                ownTasks.count { it.status.equals("Approved", ignoreCase = true) }
+        val approvalRate = if (totalActivity == 0) 0 else (approvedActivity * 100) / totalActivity
+
+        val recentActivity = remember(ownSubmissions, ownTasks) {
+            (ownSubmissions.map { UserActivityItem.FromSubmission(it) } +
+                    ownTasks.map { UserActivityItem.FromTask(it) })
+                .sortedByDescending { it.timestamp }
+                .take(6)
+        }
+
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ProfilePhotoAvatar(
+                    name = student.name.ifBlank { student.studentId },
+                    photoPath = null,
+                    color = ProfileColors.DarkGreen,
+                    size = 56.dp
+                )
+                Spacer(modifier = Modifier.width(14.dp))
+                Column {
+                    Text(student.name.ifBlank { "Unnamed student" }, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = ProfileColors.TextDark)
+                    Text("Student · ${student.faculty.ifBlank { "Student" }}", fontSize = 12.sp, color = ProfileColors.PrimaryGreen)
+                }
+            }
+
+            SectionCard(title = "STUDENT INFORMATION") {
+                StaffDetailRow(label = "Student ID", value = student.studentId)
+                StaffDetailRow(label = "Faculty", value = student.faculty.ifBlank { "Student" })
+                if (!student.phone.isNullOrBlank()) StaffDetailRow(label = "Phone", value = student.phone)
+                if (!student.email.isNullOrBlank()) StaffDetailRow(label = "Email", value = student.email)
+            }
+
+            SectionCard(title = "PERFORMANCE") {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                    ProfileStatChip(Modifier.weight(1f), Icons.AutoMirrored.Filled.Assignment, "Submissions Made", ownSubmissions.size.toString())
+                    ProfileStatChip(Modifier.weight(1f), Icons.Default.TaskAlt, "Tasks Done", ownTasks.size.toString())
+                    ProfileStatChip(Modifier.weight(1f), Icons.Default.CheckCircle, "Approval Rate", if (totalActivity == 0) "—" else "$approvalRate%")
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                    ProfileStatChip(Modifier.weight(1f), Icons.Default.Groups, "Total Points", student.totalPoints.toString())
+                    ProfileStatChip(Modifier.weight(1f), Icons.Default.CheckCircle, "Plastics Saved", student.plasticsSaved.toString())
+                }
+            }
+
+            SectionCard(title = "RECENT ACTIVITY") {
+                if (recentActivity.isEmpty()) {
+                    Text(
+                        "No submissions or tasks from this student yet.",
+                        fontSize = 12.sp,
+                        color = ProfileColors.TextGrey
+                    )
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        recentActivity.forEach { activity -> UserActivityRow(activity) }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
+}
+
+private sealed class UserActivityItem(val timestamp: Long) {
+    class FromSubmission(val submission: EcoSubmissionEntity) : UserActivityItem(submission.timestamp)
+    class FromTask(val task: TaskEntity) : UserActivityItem(task.timestamp)
+}
+
+@Composable
+private fun UserActivityRow(item: UserActivityItem) {
+    val dateFormat = remember { SimpleDateFormat("dd MMM, h:mm a", Locale.getDefault()) }
+    val (icon, title, status, timestamp) = when (item) {
+        is UserActivityItem.FromSubmission -> StaffActivityRowData(
+            Icons.AutoMirrored.Filled.Assignment,
+            "${item.submission.actionType} · ${item.submission.stallName}",
+            item.submission.status,
+            item.timestamp
+        )
+        is UserActivityItem.FromTask -> StaffActivityRowData(
+            Icons.Default.TaskAlt,
+            item.task.title,
+            item.task.status,
+            item.timestamp
+        )
+    }
+    val (statusColor, statusBg) = statusColors(status)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFFF7FAF7))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(18.dp))
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = ProfileColors.TextDark, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            Text(dateFormat.format(Date(timestamp)), fontSize = 10.sp, color = ProfileColors.TextGrey)
+        }
+        Surface(shape = RoundedCornerShape(8.dp), color = statusBg) {
+            Text(status, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = statusColor, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+        }
+    }
+}
+
 @Composable
 private fun PersonCard(
     title: String,
@@ -495,6 +769,7 @@ private fun PersonCard(
     caption: String? = null,
     avatarName: String = title,
     highlight: Boolean = false,
+    showChevron: Boolean = false,
     onDelete: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
@@ -526,6 +801,9 @@ private fun PersonCard(
                 IconButton(onClick = onDelete) {
                     Icon(Icons.Default.Delete, contentDescription = "Remove student", tint = ProfileColors.Danger)
                 }
+            }
+            if (showChevron) {
+                Icon(Icons.Default.ChevronRight, contentDescription = "View details", tint = Color(0xFF9E9E9E))
             }
         }
     }

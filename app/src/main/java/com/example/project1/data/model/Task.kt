@@ -42,11 +42,6 @@ data class TaskProgressUpdate(
 )
 
 @Serializable
-data class TaskStatusUpdate(
-    @SerialName("status") val status: String
-)
-
-@Serializable
 data class TaskReviewUpdate(
     val status: String,
     val points: Int,
@@ -54,17 +49,4 @@ data class TaskReviewUpdate(
     @SerialName("reviewed_by") val reviewedBy: String,
     @SerialName("admin_feedback") val adminFeedback: String? = null,
     @SerialName("review_timestamp") val reviewTimestamp: Long
-)
-
-@Serializable
-data class UserProfile(
-    @SerialName("user_id") val id: String,
-    @SerialName("total_points") val totalPoints: Int = 0,
-    @SerialName("total_plastic_saved") val totalPlasticSaved: Int = 0
-)
-
-@Serializable
-data class UserPointsUpdate(
-    @SerialName("total_points") val totalPoints: Int,
-    @SerialName("total_plastic_saved") val totalPlasticSaved: Int
 )

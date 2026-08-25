@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.AdminEntity
+import com.example.project1.data.model.EcoSubmissionEntity
+import com.example.project1.data.model.TaskEntity
 import com.example.project1.data.model.UserEntity
 import com.example.project1.data.model.pointsAwardedByUser
 import com.example.project1.data.model.pointsSpentByUser
@@ -32,8 +34,8 @@ import kotlin.random.Random
 class AdminProfileViewModel(
     private val adminRepository: AdminRepository,
     private val settingsRepository: AppSettingsRepository,
-    submissionRepository: SubmissionRepository,
-    taskRepository: TaskRepository,
+    private val submissionRepository: SubmissionRepository,
+    private val taskRepository: TaskRepository,
     private val userRepository: UserRepository,
     offerRepository: OfferRepository
 ) : ViewModel() {
@@ -85,6 +87,22 @@ class AdminProfileViewModel(
             emit(0)
         }
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = 0)
+
+    // Full submission + task history, used to power the Report Submission Analysis
+    // drill-down and each staff member's "Reviewed by me" performance numbers.
+    val allSubmissions: StateFlow<List<EcoSubmissionEntity>> = submissionRepository.getReportSubmissionsStream()
+        .catch { e ->
+            Log.e("AdminProfileViewModel", "Error streaming submissions: ${e.message}")
+            emit(emptyList())
+        }
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = emptyList())
+
+    val allTasks: StateFlow<List<TaskEntity>> = taskRepository.getReportTasksStream()
+        .catch { e ->
+            Log.e("AdminProfileViewModel", "Error streaming tasks: ${e.message}")
+            emit(emptyList())
+        }
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = emptyList())
 
     // Staff directory, loaded on demand when the admin opens that page.
     private val _staffDirectory = MutableStateFlow<List<AdminEntity>>(emptyList())

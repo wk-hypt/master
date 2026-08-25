@@ -192,114 +192,134 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                 startDestination = Screen.Login.route,
                 modifier = Modifier.padding(innerPadding)
             ) {
-            composable(Screen.Login.route) {
-                LoginView(
-                    onLoginSuccess = { loginId ->
-                        if (loginId.startsWith("admin", ignoreCase = true)) {
-                            loggedInAdminId = loginId
-                            app.container.setCurrentStudentId("")
-                            navController.navigate(AdminScreen.Approval.route) {
-                                popUpTo(Screen.Login.route) { inclusive = true }
+                composable(Screen.Login.route) {
+                    LoginView(
+                        onLoginSuccess = { loginId ->
+                            if (loginId.startsWith("admin", ignoreCase = true)) {
+                                loggedInAdminId = loginId
+                                app.container.setCurrentStudentId("")
+                                navController.navigate(AdminScreen.Approval.route) {
+                                    popUpTo(Screen.Login.route) { inclusive = true }
+                                }
                             }
-                        }
-                        else {
-                            loggedInStudentId = loginId
-                            app.container.setCurrentStudentId(loginId)
-                            navController.navigate(Screen.Home.createRoute(loginId)) {
-                                popUpTo(Screen.Login.route) { inclusive = true }
+                            else {
+                                loggedInStudentId = loginId
+                                app.container.setCurrentStudentId(loginId)
+                                navController.navigate(Screen.Home.createRoute(loginId)) {
+                                    popUpTo(Screen.Login.route) { inclusive = true }
+                                }
                             }
-                        }
-                    },
-                    onRegisterSuccess = {}
-                )
-            }
-
-            composable(
-                route = Screen.Home.route,
-                arguments = listOf(navArgument("studentId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val studentId = backStackEntry.arguments?.getString("studentId") ?: ""
-                if (loggedInStudentId != studentId) {
-                    loggedInStudentId = studentId
+                        },
+                        onRegisterSuccess = {}
+                    )
                 }
-                HomeView(
-                    navController = navController,
-                    studentId = studentId,
-                    supabaseClient = SupabaseClientProvider.client
-                )
-            }
-            composable(Screen.Task.route) {
-                TaskView(studentId = loggedInStudentId, onOpenLeaderboard = {
-                    navController.navigate(Screen.Leaderboard.route)
-                })
-            }
-            composable(Screen.Rewards.route) {
-                RewardsView(studentId = loggedInStudentId)
-            }
-            composable(Screen.Profile.route) {
-                ProfileView(
-                    studentId = loggedInStudentId,
-                    onLogout = {
-                        app.container.setCurrentStudentId("")
-                        onEndSession()
-                    }
-                )
-            }
-            composable(Screen.ProfileHistory.route) {
-                ProfileView(
-                    studentId = loggedInStudentId,
-                    startOnHistory = true,
-                    onLogout = {
-                        app.container.setCurrentStudentId("")
-                        onEndSession()
-                    }
-                )
-            }
-            composable(Screen.Leaderboard.route) {
-                LeaderboardView(
-                    studentId = loggedInStudentId,
-                    onBackClick = { navController.navigate(Screen.Task.route) }
-                )
-            }
 
-            //admin page start
-            composable(AdminScreen.Approval.route) {
-                AdminHomeView(
-                    adminId = loggedInAdminId,
-                    initialTab = approvalInitialTab,
-                    onLogout = {
-                        app.container.setCurrentStudentId("")
-                        onEndSession()
+                composable(
+                    route = Screen.Home.route,
+                    arguments = listOf(navArgument("studentId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val studentId = backStackEntry.arguments?.getString("studentId") ?: ""
+                    if (loggedInStudentId != studentId) {
+                        loggedInStudentId = studentId
                     }
-                )
-            }
-
-            composable(AdminScreen.Rewards.route) {
-                AdminRewardsView()
-            }
-            composable(AdminScreen.Report.route) {
-                AdminReportView(adminId = loggedInAdminId)
-            }
-            composable(AdminScreen.Profile.route) {
-                AdminProfileView(
-                    adminId = loggedInAdminId,
-                    onNavigateToApproval = { tab ->
-                        approvalInitialTab = tab
-                        navController.navigate(AdminScreen.Approval.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+                    HomeView(
+                        navController = navController,
+                        studentId = studentId,
+                        supabaseClient = SupabaseClientProvider.client
+                    )
+                }
+                composable(Screen.Task.route) {
+                    TaskView(studentId = loggedInStudentId, onOpenLeaderboard = {
+                        navController.navigate(Screen.Leaderboard.route)
+                    })
+                }
+                composable(Screen.Rewards.route) {
+                    RewardsView(studentId = loggedInStudentId)
+                }
+                composable(Screen.Profile.route) {
+                    ProfileView(
+                        studentId = loggedInStudentId,
+                        onLogout = {
+                            app.container.setCurrentStudentId("")
+                            onEndSession()
+                        },
+                        onNavigateToLeaderboard = { navController.navigate(Screen.Leaderboard.route) },
+                        onNavigateToLogAction = {
+                            navController.navigate(Screen.Home.createRoute(loggedInStudentId)) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
                         }
-                    },
-                    onLogout = {
-                        app.container.setCurrentStudentId("")
-                        onEndSession()
-                    }
-                )
+                    )
+                }
+                composable(Screen.ProfileHistory.route) {
+                    ProfileView(
+                        studentId = loggedInStudentId,
+                        startOnHistory = true,
+                        onLogout = {
+                            app.container.setCurrentStudentId("")
+                            onEndSession()
+                        },
+                        onNavigateToLeaderboard = { navController.navigate(Screen.Leaderboard.route) },
+                        onNavigateToLogAction = {
+                            navController.navigate(Screen.Home.createRoute(loggedInStudentId)) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                }
+                composable(Screen.Leaderboard.route) {
+                    LeaderboardView(
+                        studentId = loggedInStudentId,
+                        onBackClick = { navController.navigate(Screen.Task.route) }
+                    )
+                }
+
+                //admin page start
+                composable(AdminScreen.Approval.route) {
+                    AdminHomeView(
+                        adminId = loggedInAdminId,
+                        initialTab = approvalInitialTab,
+                        onLogout = {
+                            app.container.setCurrentStudentId("")
+                            onEndSession()
+                        }
+                    )
+                }
+
+                composable(AdminScreen.Rewards.route) {
+                    AdminRewardsView()
+                }
+                composable(AdminScreen.Report.route) {
+                    AdminReportView(adminId = loggedInAdminId)
+                }
+                composable(AdminScreen.Profile.route) {
+                    AdminProfileView(
+                        adminId = loggedInAdminId,
+                        onNavigateToApproval = { tab ->
+                            approvalInitialTab = tab
+                            navController.navigate(AdminScreen.Approval.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        onLogout = {
+                            app.container.setCurrentStudentId("")
+                            onEndSession()
+                        }
+                    )
+                }
             }
-        }
         }
     }
 }

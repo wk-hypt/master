@@ -13,12 +13,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.project1.data.model.AdminEntity
+import com.example.project1.data.model.EcoSubmissionEntity
+import com.example.project1.data.model.TaskEntity
 import com.example.project1.data.model.UserEntity
 import com.example.project1.ui.common.ChangePasswordDialog
 import com.example.project1.ui.common.ProfileColors
 import com.example.project1.ui.common.ProfileConfirmDialog
 
-private enum class AdminProfilePage { Hub, Info, StaffDirectory, UserManagement }
+private enum class AdminProfilePage { Hub, Info, StaffDirectory, StaffDetails, UserManagement, UserDetails }
 
 @Composable
 fun AdminProfileFunct(
@@ -30,6 +32,8 @@ fun AdminProfileFunct(
     staffDirectory: List<AdminEntity> = emptyList(),
     staffDirectoryLoading: Boolean = false,
     allUsers: List<UserEntity> = emptyList(),
+    allSubmissions: List<EcoSubmissionEntity> = emptyList(),
+    allTasks: List<TaskEntity> = emptyList(),
     verificationCode: String? = null,
     onOpenStaffDirectory: () -> Unit = {},
     onSaveStaffInfo: (name: String, faculty: String) -> Unit,
@@ -45,6 +49,8 @@ fun AdminProfileFunct(
     var page by remember { mutableStateOf(AdminProfilePage.Hub) }
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showLogoutConfirm by remember { mutableStateOf(false) }
+    var selectedStaff by remember { mutableStateOf<AdminEntity?>(null) }
+    var selectedUser by remember { mutableStateOf<UserEntity?>(null) }
 
     Scaffold(
         modifier = modifier,
@@ -80,12 +86,33 @@ fun AdminProfileFunct(
                     staff = staffDirectory,
                     loading = staffDirectoryLoading,
                     onBack = { page = AdminProfilePage.Hub },
-                    onRefresh = onOpenStaffDirectory
+                    onRefresh = onOpenStaffDirectory,
+                    onViewDetails = { colleague ->
+                        selectedStaff = colleague
+                        page = AdminProfilePage.StaffDetails
+                    }
+                )
+                AdminProfilePage.StaffDetails -> StaffDetailsPage(
+                    staff = selectedStaff,
+                    isYou = selectedStaff?.adminId == admin?.adminId,
+                    submissions = allSubmissions,
+                    tasks = allTasks,
+                    onBack = { page = AdminProfilePage.StaffDirectory }
                 )
                 AdminProfilePage.UserManagement -> UserManagementPage(
                     users = allUsers,
                     onBack = { page = AdminProfilePage.Hub },
-                    onDeleteUser = onDeleteUser
+                    onDeleteUser = onDeleteUser,
+                    onViewDetails = { student ->
+                        selectedUser = student
+                        page = AdminProfilePage.UserDetails
+                    }
+                )
+                AdminProfilePage.UserDetails -> UserDetailsPage(
+                    student = selectedUser,
+                    submissions = allSubmissions,
+                    tasks = allTasks,
+                    onBack = { page = AdminProfilePage.UserManagement }
                 )
             }
         }

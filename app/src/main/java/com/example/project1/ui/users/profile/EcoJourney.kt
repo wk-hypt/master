@@ -20,12 +20,42 @@ data class MemberTier(
 }
 
 data class EcoBadge(
+    val id: String,
     val title: String,
-    val unlocked: Boolean
+    val description: String,
+    val unlocked: Boolean,
+    val current: Int,
+    val goal: Int
+) {
+    val progress: Float get() = if (goal <= 0) 1f else (current.toFloat() / goal).coerceIn(0f, 1f)
+    val progressLabel: String get() = if (unlocked) "Unlocked" else "$current/$goal"
+}
+
+data class DailyEcoQuest(
+    val id: String,
+    val title: String,
+    val hint: String
 )
 
+fun dailyEcoQuests(): List<DailyEcoQuest> = listOf(
+    DailyEcoQuest("bottle", "Reusable bottle", "Skip a disposable cup or bottle today."),
+    DailyEcoQuest("recycle", "Sort recycling", "Put at least one item in the right bin."),
+    DailyEcoQuest("walk", "Walk a short trip", "Skip a vehicle for a nearby destination.")
+)
+
+fun todaysEcoQuest(now: Long = System.currentTimeMillis()): DailyEcoQuest {
+    val quests = dailyEcoQuests()
+    val dayOfYear = Calendar.getInstance().apply { timeInMillis = now }.get(Calendar.DAY_OF_YEAR)
+    return quests[dayOfYear % quests.size]
+}
+
+fun nextBadgeChallenge(badges: List<EcoBadge>): EcoBadge? =
+    badges.filter { !it.unlocked }.maxByOrNull { it.progress }
+
 data class EcoMilestone(
+    val id: String,
     val title: String,
+    val bonusPoints: Int,
     val current: Int,
     val goal: Int,
     val detail: String
@@ -72,14 +102,14 @@ fun badgesFor(
     plasticsSaved: Int,
     stats: EcoProfileStats = EcoProfileStats()
 ): List<EcoBadge> = listOf(
-    EcoBadge("Leaf Guardian", points >= 50),
-    EcoBadge("Water Saver", plasticsSaved >= 5),
-    EcoBadge("Pedal Power", points >= 200),
-    EcoBadge("Forest Friend", points >= 800),
-    EcoBadge("7-Day Streak", stats.currentStreak >= 7),
-    EcoBadge("Campus Hero", points >= 3000),
-    EcoBadge("Task Master", stats.completedTasks >= 10),
-    EcoBadge("Green Regular", stats.approvedActions >= 20)
+    EcoBadge("leaf_guardian", "Leaf Guardian", "Earn 50 eco points from approved actions.", points >= 50, points, 50),
+    EcoBadge("water_saver", "Water Saver", "Save 5 plastic items through your eco actions.", plasticsSaved >= 5, plasticsSaved, 5),
+    EcoBadge("pedal_power", "Pedal Power", "Reach 200 eco points.", points >= 200, points, 200),
+    EcoBadge("forest_friend", "Forest Friend", "Reach 800 eco points.", points >= 800, points, 800),
+    EcoBadge("streak_7", "7-Day Streak", "Log an approved eco action 7 days in a row.", stats.currentStreak >= 7, stats.currentStreak, 7),
+    EcoBadge("campus_hero", "Campus Hero", "Reach 3,000 eco points.", points >= 3000, points, 3000),
+    EcoBadge("task_master", "Task Master", "Complete 10 approved eco tasks.", stats.completedTasks >= 10, stats.completedTasks, 10),
+    EcoBadge("green_regular", "Green Regular", "Get 20 eco actions approved in total.", stats.approvedActions >= 20, stats.approvedActions, 20)
 )
 
 /** Friendly illustrative impact equivalents, not a scientific carbon calculator. */
@@ -97,10 +127,10 @@ fun impactFor(points: Int, plasticsSaved: Int): EcoImpact {
 }
 
 fun milestonesFor(points: Int, plasticsSaved: Int): List<EcoMilestone> = listOf(
-    EcoMilestone("Tree Planter", plasticsSaved.coerceAtMost(20), 20, "$plasticsSaved/20 plastics saved"),
-    EcoMilestone("Solar Explorer", points.coerceAtMost(500), 500, "$points/500 points"),
-    EcoMilestone("Recycle Master", plasticsSaved.coerceAtMost(100), 100, "$plasticsSaved/100 items"),
-    EcoMilestone("Zero Waste Advocate", points.coerceAtMost(1500), 1500, "$points/1500 points")
+    EcoMilestone("tree_planter", "Tree Planter", 30, plasticsSaved.coerceAtMost(20), 20, "$plasticsSaved/20 plastics saved"),
+    EcoMilestone("solar_explorer", "Solar Explorer", 50, points.coerceAtMost(500), 500, "$points/500 points"),
+    EcoMilestone("recycle_master", "Recycle Master", 80, plasticsSaved.coerceAtMost(100), 100, "$plasticsSaved/100 items"),
+    EcoMilestone("zero_waste_advocate", "Zero Waste Advocate", 150, points.coerceAtMost(1500), 1500, "$points/1500 points")
 )
 
 fun goalsFor(points: Int, plasticsSaved: Int, stats: EcoProfileStats): List<EcoGoal> = listOf(
