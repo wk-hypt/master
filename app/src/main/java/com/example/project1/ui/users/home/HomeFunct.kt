@@ -266,8 +266,8 @@ fun EcoBannerSlider(banners: List<BannerItem>, autoScrollDelayMillis: Long = 400
         HorizontalPager(state = pagerState) { page -> // just like forEach to for loop out of the banner inside the container
             val banner = banners[page]
 
-            Image(
-                painter = painterResource(id = banner.image),
+            AsyncImage(
+                model = resolveImageModel(banner.image, R.drawable.img_placeholder_voucher),
                 contentDescription = banner.title ?: "Eco banner image",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()

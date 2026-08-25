@@ -7,6 +7,7 @@ import com.example.project1.data.model.EcoSubmissionEntity
 import com.example.project1.data.repository.EcoAdsRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.UserRepository
+import com.example.project1.data.repository.defaultHomeBanners
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -64,7 +65,7 @@ class HomeViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyList()
+            initialValue = defaultHomeBanners()
         )
 
     val features = adsRepository.getAllFeaturesStream()

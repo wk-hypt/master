@@ -40,7 +40,8 @@ object AppViewModelProvider {
             AdminHomeViewModel(
                 submissionRepository = app.container.submissionRepository,
                 taskRepository = app.container.taskRepository,
-                userRepository = app.container.userRepository
+                userRepository = app.container.userRepository,
+                adsRepository = app.container.ecoAdsRepository
             )
         }
 

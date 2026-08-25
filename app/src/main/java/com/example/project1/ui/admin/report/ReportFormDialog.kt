@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePickerDialog
@@ -31,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -63,34 +65,11 @@ private val TextGrey = Color(0xFF6C757D)
 private val BgColor = Color(0xFFF6F8F5)
 private val CardBorder = Color(0xFFEDF1EC)
 
-internal val ReportPurposeOptions = listOf(
-    "Monthly review",
-    "Semester summary",
-    "Campus briefing",
-    "Audit / compliance",
-    "Student record",
-    "Other"
-)
+internal val ReportPurposeOptions = listOf("Monthly review", "Semester summary", "Campus briefing", "Audit / compliance", "Student record", "Other")
 
-internal val ReportAudienceOptions = listOf(
-    "Internal staff",
-    "Campus management",
-    "Faculty",
-    "Student"
-)
+internal val ReportAudienceOptions = listOf("Internal staff", "Campus management", "Faculty", "Student")
 
-internal val ReportDepartmentOptions = listOf(
-    "Sustainability Office",
-    "Campus Admin",
-    "FOCS",
-    "FAFB",
-    "FOAS",
-    "FOBE",
-    "FOET",
-    "FCCI",
-    "FSSH",
-    "Other"
-)
+internal val ReportDepartmentOptions = listOf("Sustainability Office", "Campus Admin", "FOCS", "FAFB", "FOAS", "FOBE", "FOET", "FCCI", "FSSH", "Other")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,36 +81,74 @@ fun ReportFormDialog(
     onDismiss: () -> Unit,
     onConfirm: (ReportFormInput) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { it != SheetValue.Hidden }
+    )
     val existingNarrative = remember(existing) { existing?.narrative() ?: ReportNarrative() }
 
-    var title by remember { mutableStateOf(existing?.title.orEmpty()) }
-    var preparedBy by remember {
-        mutableStateOf(existingNarrative.preparedBy.orEmpty().ifBlank { defaultPreparedBy })
-    }
-    var department by remember {
-        mutableStateOf(existingNarrative.department.orEmpty().ifBlank { defaultDepartment })
-    }
-    var purpose by remember { mutableStateOf(existingNarrative.purpose.orEmpty()) }
-    var audience by remember { mutableStateOf(existingNarrative.audience.orEmpty()) }
-    var summary by remember { mutableStateOf(existingNarrative.summary.orEmpty()) }
-    var findings by remember { mutableStateOf(existingNarrative.findings.orEmpty()) }
-    var recommendations by remember { mutableStateOf(existingNarrative.recommendations.orEmpty()) }
-    var notes by remember { mutableStateOf(existingNarrative.notes.orEmpty()) }
+    val initialTitle = existing?.title.orEmpty()
+    val initialPreparedBy = existingNarrative.preparedBy.orEmpty().ifBlank { defaultPreparedBy }
+    val initialDepartment = existingNarrative.department.orEmpty().ifBlank { defaultDepartment }
+    val initialPurpose = existingNarrative.purpose.orEmpty()
+    val initialAudience = existingNarrative.audience.orEmpty()
+    val initialSummary = existingNarrative.summary.orEmpty()
+    val initialFindings = existingNarrative.findings.orEmpty()
+    val initialRecommendations = existingNarrative.recommendations.orEmpty()
+    val initialNotes = existingNarrative.notes.orEmpty()
+    val initialIsStudentReport = existing?.reportType == REPORT_TYPE_STUDENT
+    val initialStudentId = existing?.studentId
+    val initialStartDate = existing?.periodStart
+    val initialEndDate = existing?.periodEnd
 
-    var isStudentReport by remember { mutableStateOf(existing?.reportType == REPORT_TYPE_STUDENT) }
+    var title by remember { mutableStateOf(initialTitle) }
+    var preparedBy by remember { mutableStateOf(initialPreparedBy) }
+    var department by remember { mutableStateOf(initialDepartment) }
+    var purpose by remember { mutableStateOf(initialPurpose) }
+    var audience by remember { mutableStateOf(initialAudience) }
+    var summary by remember { mutableStateOf(initialSummary) }
+    var findings by remember { mutableStateOf(initialFindings) }
+    var recommendations by remember { mutableStateOf(initialRecommendations) }
+    var notes by remember { mutableStateOf(initialNotes) }
+
+    var isStudentReport by remember { mutableStateOf(initialIsStudentReport) }
     var selectedStudent by remember {
         mutableStateOf(existing?.studentId?.let { id -> students.find { it.studentId == id } })
     }
-    var startDate by remember { mutableStateOf(existing?.periodStart) }
-    var endDate by remember { mutableStateOf(existing?.periodEnd) }
+    var startDate by remember { mutableStateOf(initialStartDate) }
+    var endDate by remember { mutableStateOf(initialEndDate) }
     var showDateRangePicker by remember { mutableStateOf(false) }
+    var showDiscardDialog by remember { mutableStateOf(false) }
+
+    val hasUnsavedChanges =
+        title != initialTitle ||
+            preparedBy != initialPreparedBy ||
+            department != initialDepartment ||
+            purpose != initialPurpose ||
+            audience != initialAudience ||
+            summary != initialSummary ||
+            findings != initialFindings ||
+            recommendations != initialRecommendations ||
+            notes != initialNotes ||
+            isStudentReport != initialIsStudentReport ||
+            selectedStudent?.studentId != initialStudentId ||
+            startDate != initialStartDate ||
+            endDate != initialEndDate
+
+    fun requestClose() {
+        if (hasUnsavedChanges) {
+            showDiscardDialog = true
+        } else {
+            onDismiss()
+        }
+    }
 
     val isValid = title.isNotBlank() && (!isStudentReport || selectedStudent != null || existing != null)
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {},
         sheetState = sheetState,
+        dragHandle = null,
         containerColor = Color.White
     ) {
         Column(
@@ -167,7 +184,7 @@ fun ReportFormDialog(
                         lineHeight = 16.sp
                     )
                 }
-                IconButton(onClick = onDismiss) {
+                IconButton(onClick = { requestClose() }) {
                     Icon(Icons.Default.Close, contentDescription = "Close")
                 }
             }
@@ -295,6 +312,29 @@ fun ReportFormDialog(
                 )
             }
         }
+    }
+
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text("Discard this report?") },
+            text = {
+                Text("If you leave now, the details you entered will be lost and you will have to fill them in again.")
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDiscardDialog = false
+                    onDismiss()
+                }) {
+                    Text("Discard", color = Color(0xFFDC3545), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text("Stay")
+                }
+            }
+        )
     }
 
     if (showDateRangePicker) {
