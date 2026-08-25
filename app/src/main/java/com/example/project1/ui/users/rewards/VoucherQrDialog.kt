@@ -25,8 +25,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.project1.common.generateQrBitmap
 import com.example.project1.data.model.VoucherEntity
-import com.example.project1.ui.common.generateQrBitmap
 
 private val PrimaryGreen = Color(0xFF2E7D32)
 
