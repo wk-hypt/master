@@ -1,39 +1,52 @@
-package com.example.project1.ui.admin.home
+﻿package com.example.project1.ui.admin.home
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DesktopWindows
 import androidx.compose.material.icons.filled.Inbox
-import androidx.compose.material.icons.filled.MoveToInbox
-import androidx.compose.material.icons.filled.PendingActions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.project1.R
+import com.example.project1.data.model.BannerItem
 import com.example.project1.data.model.EcoSubmissionEntity
 import com.example.project1.data.model.TaskEntity
 import com.example.project1.ui.adaptive.HeightSize
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
+import com.example.project1.ui.common.launchImagePicker
+import com.example.project1.ui.common.rememberImagePicker
+import com.example.project1.ui.users.home.resolveImageModel
+import java.util.UUID
 
 @Composable
 fun AdminHomeFunct(
     pendingSubmissions: List<EcoSubmissionEntity>,
     pendingTasks: List<TaskEntity>,
+    banners: List<BannerItem>,
+    isSavingBanner: Boolean,
+    onAddBanner: (bytes: ByteArray, fileName: String) -> Unit,
+    onDeleteBanner: (id: String) -> Unit,
     onApproveSubmission: (submissionId: Int, studentId: String, points: Int, plasticSaved: Int) -> Unit,
     onRejectSubmission: (submissionId: Int, feedback: String) -> Unit,
     onApproveTask: (task: TaskEntity, points: Int, plasticSaved: Int) -> Unit,
@@ -48,10 +61,18 @@ fun AdminHomeFunct(
     var selectedTask by remember { mutableStateOf<TaskEntity?>(null) }
     var approvingTask by remember { mutableStateOf<TaskEntity?>(null) }
     var rejectingTask by remember { mutableStateOf<TaskEntity?>(null) }
+    var bannerToDelete by remember { mutableStateOf<BannerItem?>(null) }
 
     val totalPendingCount = pendingSubmissions.size + pendingTasks.size
     val window = LocalAppWindowInfo.current
     val compactHeader = window.heightSize == HeightSize.Compact
+    val context = LocalContext.current
+    val imagePicker = rememberImagePicker { uri: Uri ->
+        val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+        if (bytes != null) {
+            onAddBanner(bytes, "banner-${UUID.randomUUID()}.jpg")
+        }
+    }
 
     Column(modifier = modifier.fillMaxSize().background(BgColor)) {
         Column(
@@ -59,30 +80,49 @@ fun AdminHomeFunct(
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(horizontal = 18.dp)
         ) {
-            Spacer(modifier = Modifier.height(if (compactHeader) 8.dp else 20.dp))
+            Spacer(modifier = Modifier.height(if (compactHeader) 6.dp else 12.dp))
 
-            Text("Staff Control Desk", fontSize = if (compactHeader) 18.sp else 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
-            if (!compactHeader) {
-                Text("SDG 12 Verification Portal", fontSize = 12.sp, color = TextGrey)
-                Spacer(modifier = Modifier.height(16.dp))
-            } else {
-                Text(
-                    "$totalPendingCount pending",
-                    fontSize = 12.sp,
-                    color = TextGrey,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Filled.DesktopWindows, contentDescription = null)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Approval Page",
+                        fontSize = if (compactHeader) 20.sp else 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
+                    )
+                    Text(
+                        "Do your best, then leave the rest",
+                        fontSize = 14.sp,
+                        color = TextGrey
+                    )
+                }
+                if (totalPendingCount > 0) {
+                    Surface(color = Color(0xFFFFF3E0), shape = RoundedCornerShape(20.dp)) {
+                        Text(
+                            "$totalPendingCount pending",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AmberPending,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                        )
+                    }
+                }
             }
 
-            if (!compactHeader) {
-                PendingQueueHeader(
-                    totalPendingCount = totalPendingCount,
-                    submissionCount = pendingSubmissions.size,
-                    taskCount = pendingTasks.size,
-                    onSelectSubmissions = { selectedTab = 0 },
-                    onSelectTasks = { selectedTab = 1 }
-                )
-            }
+            Spacer(modifier = Modifier.height(10.dp))
+
+            HomeBannerManager(
+                banners = banners,
+                isSaving = isSavingBanner,
+                onAddClick = { launchImagePicker(imagePicker) },
+                onDeleteClick = { bannerToDelete = it }
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
 
             TabRow(
                 selectedTabIndex = selectedTab,
@@ -120,7 +160,7 @@ fun AdminHomeFunct(
                 PendingList(pendingSubmissions, "No pending eco submissions.") { submission ->
                     AdminSummaryCard(
                         userId = submission.userId,
-                        subtitle = "${submission.actionType} \u00b7 \u00d7${submission.quantity} \u00b7 ${submission.stallName}",
+                        subtitle = submission.actionType,
                         status = submission.status,
                         thumbnailUrl = submission.imagePath,
                         onClick = { selectedSubmission = submission }
@@ -130,7 +170,7 @@ fun AdminHomeFunct(
                 PendingList(pendingTasks, "No pending tasks proofs.") { task ->
                     AdminSummaryCard(
                         userId = task.userId,
-                        subtitle = "${task.title} \u00b7 Task: ${task.taskQuantity}",
+                        subtitle = task.title,
                         status = task.status,
                         thumbnailUrl = task.imagePath?.takeIf { it.isNotBlank() },
                         onClick = { selectedTask = task }
@@ -138,6 +178,27 @@ fun AdminHomeFunct(
                 }
             }
         }
+    }
+
+    bannerToDelete?.let { banner ->
+        AlertDialog(
+            onDismissRequest = { bannerToDelete = null },
+            title = { Text("Remove this banner?") },
+            text = { Text("It will disappear from the student home slider.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDeleteBanner(banner.id)
+                    bannerToDelete = null
+                }) {
+                    Text("Delete", color = RedRejected, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { bannerToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     selectedSubmission?.let { s ->
@@ -203,108 +264,93 @@ fun AdminHomeFunct(
 }
 
 @Composable
-private fun PendingQueueHeader(
-    totalPendingCount: Int,
-    submissionCount: Int,
-    taskCount: Int,
-    onSelectSubmissions: () -> Unit,
-    onSelectTasks: () -> Unit
+private fun HomeBannerManager(
+    banners: List<BannerItem>,
+    isSaving: Boolean,
+    onAddClick: () -> Unit,
+    onDeleteClick: (BannerItem) -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(PrimaryGreen)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(110.dp)
-                .align(Alignment.TopEnd)
-                .offset(x = 20.dp, y = (-40).dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.07f))
+    Column {
+        Text(
+            "Home banners",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = TextGrey2
         )
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+        Spacer(modifier = Modifier.height(8.dp))
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Pending Actions Queue", fontSize = 12.sp, color = Color.White.copy(alpha = 0.85f), fontWeight = FontWeight.Medium)
-                Spacer(modifier = Modifier.height(2.dp))
-                Text("$totalPendingCount", fontSize = 32.sp, fontWeight = FontWeight.Medium, color = Color.White)
-                Text(
-                    "$submissionCount Submissions \u00b7 $taskCount Tasks",
-                    fontSize = 11.sp,
-                    color = Color.White.copy(alpha = 0.78f)
-                )
+            items(banners, key = { it.id }) { banner ->
+                Box(
+                    modifier = Modifier
+                        .width(140.dp)
+                        .height(96.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFF1F3F5))
+                ) {
+                    AsyncImage(
+                        model = resolveImageModel(banner.image, R.drawable.img_placeholder_voucher),
+                        contentDescription = banner.title ?: "Home banner",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    IconButton(
+                        onClick = { onDeleteClick(banner) },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(28.dp)
+                            .padding(4.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.55f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Remove banner",
+                                tint = Color.White,
+                                modifier = Modifier.size(12.dp)
+                            )
+                        }
+                    }
+                }
             }
-            Box(
-                modifier = Modifier.size(48.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.PendingActions, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+            item {
+                Box(
+                    modifier = Modifier
+                        .width(140.dp)
+                        .height(96.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFE8F5E9))
+                        .clickable(enabled = !isSaving, onClick = onAddClick),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            color = PrimaryGreen,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                Icons.Default.AddPhotoAlternate,
+                                contentDescription = "Add banner",
+                                tint = PrimaryGreen,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text("Add", fontSize = 10.sp, fontWeight = FontWeight.Medium, color = PrimaryGreen)
+                        }
+                    }
+                }
             }
         }
-    }
-
-    Spacer(modifier = Modifier.height(12.dp))
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        StatMiniCard(
-            modifier = Modifier.weight(1f),
-            icon = Icons.Default.MoveToInbox,
-            iconTint = PrimaryGreen,
-            iconBg = Color(0xFFE8F5E9),
-            label = "Pending Submissions",
-            value = submissionCount.toString(),
-            caption = "Needs review",
-            onClick = onSelectSubmissions
-        )
-        StatMiniCard(
-            modifier = Modifier.weight(1f),
-            icon = Icons.Default.PendingActions,
-            iconTint = AmberPending,
-            iconBg = Color(0xFFFFF3E0),
-            label = "Pending Tasks",
-            value = taskCount.toString(),
-            caption = "Needs action",
-            onClick = onSelectTasks
-        )
-    }
-
-    Spacer(modifier = Modifier.height(12.dp))
-}
-
-@Composable
-private fun StatMiniCard(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    iconTint: Color,
-    iconBg: Color,
-    label: String,
-    value: String,
-    caption: String,
-    onClick: (() -> Unit)? = null
-) {
-    Column(
-        modifier = modifier
-            .flatCard()
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(12.dp)
-    ) {
-        Box(
-            modifier = Modifier.size(32.dp).clip(RoundedCornerShape(9.dp)).background(iconBg),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(16.dp))
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(label, fontSize = 11.sp, color = TextGrey2, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
-        Text(caption, fontSize = 10.sp, color = TextGrey)
     }
 }
 
