@@ -21,6 +21,8 @@ data class EcoSubmissionEntity(
     @SerialName("review_timestamp") val reviewTimestamp: Long? = null
 )
 
+
+// add submission into supa
 @Serializable
 data class NewSubmission(
     @SerialName("user_id") val userId: String,
@@ -34,9 +36,11 @@ data class NewSubmission(
     val location: String? = null
 )
 
+// used to update the status of submission
 @Serializable
 data class StatusUpdate(val status: String)
 
+// update the attributes of the entity in supa
 @Serializable
 data class SubmissionReviewUpdate(
     val status: String,

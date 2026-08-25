@@ -17,6 +17,7 @@ data class BannerItem(
     val actionRoute: String? = null
 )
 
+// read & display data from supa
 @Serializable
 data class BannerEntity(
     val id: Long? = null,
@@ -25,6 +26,7 @@ data class BannerEntity(
     @SerialName("sort_order") val sortOrder: Int = 0
 )
 
+//add banner to supa
 @Serializable
 data class NewBanner(
     @SerialName("image_url") val imageUrl: String,
