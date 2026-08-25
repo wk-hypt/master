@@ -13,19 +13,25 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.FactCheck
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PendingActions
 import androidx.compose.material.icons.filled.Recycling
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StickyNote2
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.ui.draw.shadow
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -616,36 +622,74 @@ private fun ContributorRow(rank: Int, user: UserEntity) {
 
 @Composable
 private fun SavedReportsCard(reports: List<ReportEntity>, onView: (ReportEntity) -> Unit, onEdit: (ReportEntity) -> Unit, onDelete: (ReportEntity) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Bottom
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(text = "Official records", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextDark)
-                Text(text = "Tap a report to open the document", fontSize = 11.sp, color = TextGrey)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFFDCEEDD)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(imageVector = Icons.Filled.StickyNote2, contentDescription = null, tint = DarkGreen, modifier = Modifier.size(14.dp))
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(text = "Official records", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                    Text(text = "Tap a report to open the document", fontSize = 11.sp, color = TextGrey)
+                }
             }
-            Text(
-                text = "${reports.size} saved",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
-                color = PrimaryGreen
-            )
+            Surface(shape = ChipShape, color = Color(0xFFE8F5E9)) {
+                Text(
+                    text = "${reports.size} saved",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = PrimaryGreen,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                )
+            }
         }
 
         if (reports.isEmpty()) {
-            Box(modifier = Modifier.fillMaxWidth().flatCard()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .flatCard()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE8F5E9)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(imageVector = Icons.Filled.Description, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(22.dp))
+                }
+                Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "No reports yet. Tap Save to prepare a formal snapshot for campus records.",
+                    text = "No reports yet",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Tap Save to prepare a formal snapshot for campus records.",
                     fontSize = 12.sp,
                     color = TextGrey,
                     lineHeight = 17.sp,
-                    modifier = Modifier.padding(16.dp)
+                    textAlign = TextAlign.Center
                 )
             }
         } else {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 reports.forEach { report ->
                     SavedReportRow(
                         report = report,
@@ -665,120 +709,161 @@ private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: ()
     val narrative = remember(report) { report.narrative() }
     val isPersonal = report.reportType == REPORT_TYPE_STUDENT
     val accent = if (isPersonal) Color(0xFF5E35B1) else DarkGreen
+    val accentSoft = if (isPersonal) Color(0xFFF1EBFB) else Color(0xFFE3EFE4)
     val purposeLine = listOfNotNull(
         narrative.purpose?.takeIf { it.isNotBlank() },
         report.periodLabel()
     ).joinToString("  ·  ")
 
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .clip(RoundedCornerShape(16.dp))
+            .shadow(elevation = 3.dp, shape = CardShape, ambientColor = Color(0x14000000), spotColor = Color(0x14000000))
+            .clip(CardShape)
             .background(SurfaceColor)
-            .border(BorderStroke(1.dp, CardBorder), RoundedCornerShape(16.dp))
+            .border(BorderStroke(1.dp, CardBorder), CardShape)
+            .clickable { onClick() }
+            .padding(14.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .width(5.dp)
-                .fillMaxHeight()
-                .background(accent)
-        )
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .clickable { onClick() }
-                .padding(start = 12.dp, end = 4.dp, top = 12.dp, bottom = 12.dp)
+        // Top row: document icon, reference + type badge, chevron
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(accentSoft),
+                contentAlignment = Alignment.Center
             ) {
+                Icon(imageVector = Icons.Filled.Description, contentDescription = null, tint = accent, modifier = Modifier.size(18.dp))
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = report.displayReference(),
                     fontSize = 10.sp,
-                    letterSpacing = 0.8.sp,
+                    letterSpacing = 0.6.sp,
                     fontWeight = FontWeight.Bold,
                     color = accent
                 )
-                Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = accent.copy(alpha = 0.12f)
-                ) {
+                Text(
+                    text = report.title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Surface(shape = RoundedCornerShape(6.dp), color = accent.copy(alpha = 0.12f)) {
+                Text(
+                    text = if (isPersonal) "PERSONAL" else "OVERALL",
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = accent,
+                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                )
+            }
+        }
+
+        if ((isPersonal && !report.studentName.isNullOrBlank()) || purposeLine.isNotBlank()) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 46.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                if (isPersonal && !report.studentName.isNullOrBlank()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(imageVector = Icons.Filled.Person, contentDescription = null, tint = TextGrey2, modifier = Modifier.size(12.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = report.studentName,
+                            fontSize = 11.sp,
+                            color = TextGrey2,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                if (purposeLine.isNotBlank()) {
                     Text(
-                        text = if (isPersonal) "PERSONAL" else "OVERALL",
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = accent,
-                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                        text = purposeLine,
+                        fontSize = 11.sp,
+                        color = TextGrey,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = report.title,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextDark,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            if (isPersonal && !report.studentName.isNullOrBlank()) {
-                Text(
-                    text = report.studentName,
-                    fontSize = 11.sp,
-                    color = TextGrey2,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            if (purposeLine.isNotBlank()) {
-                Text(
-                    text = purposeLine,
-                    fontSize = 11.sp,
-                    color = TextGrey,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                MiniMetric(Modifier.weight(1f), "${report.totalSubmissions}", "Filed")
-                MiniMetric(Modifier.weight(1f), "${report.approvedCount}", "Approved")
-                MiniMetric(Modifier.weight(1f), "${report.totalPointsAwarded}", "Points")
-                MiniMetric(Modifier.weight(1f), "${report.totalPlasticsSaved}", "Plastics")
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = dateFormat.format(Date(report.createdAt)),
-                fontSize = 10.sp,
-                color = TextGrey
-            )
         }
-        Column(
-            modifier = Modifier.padding(top = 4.dp, end = 4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+
+        Spacer(modifier = Modifier.height(12.dp))
+        HorizontalDivider(color = CardBorder, thickness = 1.dp)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Stats strip
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            MiniMetric(Modifier.weight(1f), Icons.Filled.FactCheck, "${report.totalSubmissions}", "Filed", BlueAccent)
+            MiniMetric(Modifier.weight(1f), Icons.Filled.CheckCircle, "${report.approvedCount}", "Approved", PrimaryGreen)
+            MiniMetric(Modifier.weight(1f), Icons.Filled.Star, "${report.totalPointsAwarded}", "Points", Color(0xFFF9A825))
+            MiniMetric(Modifier.weight(1f), Icons.Filled.Recycling, "${report.totalPlasticsSaved}", "Plastics", Color(0xFF00897B))
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Footer: date + actions
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
-                Icon(imageVector = Icons.Filled.Edit, contentDescription = "Edit report", tint = BlueAccent, modifier = Modifier.size(16.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(imageVector = Icons.Filled.CalendarToday, contentDescription = null, tint = TextGrey, modifier = Modifier.size(11.dp))
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(
+                    text = dateFormat.format(Date(report.createdAt)),
+                    fontSize = 10.sp,
+                    color = TextGrey
+                )
             }
-            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-                Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete report", tint = RedRejected, modifier = Modifier.size(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                RowActionButton(icon = Icons.Filled.Edit, tint = BlueAccent, bg = Color(0xFFE8F0FB), contentDescription = "Edit report", onClick = onEdit)
+                RowActionButton(icon = Icons.Filled.Delete, tint = RedRejected, bg = Color(0xFFFBE9EA), contentDescription = "Delete report", onClick = onDelete)
             }
         }
     }
 }
 
 @Composable
-private fun MiniMetric(modifier: Modifier = Modifier, value: String, label: String) {
+private fun RowActionButton(icon: ImageVector, tint: Color, bg: Color, contentDescription: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(30.dp)
+            .clip(CircleShape)
+            .background(bg)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(imageVector = icon, contentDescription = contentDescription, tint = tint, modifier = Modifier.size(15.dp))
+    }
+}
+
+@Composable
+private fun MiniMetric(modifier: Modifier = Modifier, icon: ImageVector, value: String, label: String, accent: Color) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(BgColor)
-            .padding(horizontal = 6.dp, vertical = 8.dp),
+            .padding(horizontal = 6.dp, vertical = 9.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Icon(imageVector = icon, contentDescription = null, tint = accent, modifier = Modifier.size(13.dp))
+        Spacer(modifier = Modifier.height(3.dp))
         Text(text = value, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark, maxLines = 1)
         Text(text = label, fontSize = 9.sp, color = TextGrey, maxLines = 1)
     }
