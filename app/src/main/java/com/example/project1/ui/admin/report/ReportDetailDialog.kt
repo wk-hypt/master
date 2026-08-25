@@ -1,217 +1,303 @@
 package com.example.project1.ui.admin.report
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.PendingActions
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Recycling
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project1.data.model.ReportEntity
+import com.example.project1.data.model.displayReference
+import com.example.project1.data.model.narrative
+import com.example.project1.data.model.periodLabel
+import com.example.project1.ui.adaptive.AdaptiveDialogSurface
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val PrimaryGreen = Color(0xFF2E7D32)
-private val TextDark = Color(0xFF1B1F1C)
-private val TextGrey = Color(0xFF6C757D)
-private val BgColor = Color(0xFFF6F8F5)
-private val CardBorder = Color(0xFFEDF1EC)
-private val AmberPending = Color(0xFFEF6C00)
-private val RedRejected = Color(0xFFDC3545)
+private val Ink = Color(0xFF1A1F1C)
+private val Muted = Color(0xFF5F675F)
+private val Paper = Color(0xFFF7F4EE)
+private val Rule = Color(0xFFD8D2C6)
+private val Forest = Color(0xFF16382B)
+private val Gold = Color(0xFFC4A574)
+private val FigureBg = Color(0xFFEEF3EC)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val dateFormat = remember { SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()) }
-    val periodDateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+    val dateFormat = remember { SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault()) }
+    val narrative = remember(report) { report.narrative() }
     val isPersonal = report.reportType == REPORT_TYPE_STUDENT
+    val totalReviewed = (report.approvedCount + report.pendingCount + report.rejectedCount).coerceAtLeast(1)
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = Color.White
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 28.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+    AdaptiveDialogSurface(onDismiss = onDismiss, color = Paper) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Forest)
+                    .statusBarsPadding()
+                    .padding(start = 22.dp, end = 8.dp, top = 18.dp, bottom = 22.dp)
             ) {
-                Column {
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = if (isPersonal) Color(0xFFF3E5F5) else Color(0xFFE3F2FD)
-                    ) {
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
+                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White.copy(alpha = 0.85f))
+                }
+                Column(modifier = Modifier.padding(end = 36.dp)) {
+                    Text(
+                        text = "TAR UMT  ·  ECO CAMPUS",
+                        fontSize = 10.sp,
+                        letterSpacing = 1.6.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Gold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "SDG 12 IMPACT REPORT",
+                        fontSize = 11.sp,
+                        letterSpacing = 1.4.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.78f)
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = report.title,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        lineHeight = 28.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = if (isPersonal) "Personal record" else "Campus-wide snapshot",
+                        fontSize = 12.sp,
+                        color = Color.White.copy(alpha = 0.78f)
+                    )
+                    if (isPersonal && !report.studentName.isNullOrBlank()) {
                         Text(
-                            text = if (isPersonal) "PERSONAL REPORT" else "OVERALL REPORT",
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isPersonal) Color(0xFF6A1B9A) else Color(0xFF1565C0),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            text = "${report.studentName}  ·  ${report.studentId.orEmpty()}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
                         )
                     }
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(text = report.title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Box(
+                        modifier = Modifier
+                            .width(42.dp)
+                            .height(2.dp)
+                            .background(Gold)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = "Saved ${dateFormat.format(Date(report.createdAt))}",
+                        text = "${report.displayReference()}  ·  ${report.periodLabel()}",
                         fontSize = 11.sp,
-                        color = TextGrey
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
-                IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Close")
-                }
             }
 
-            val periodLabel = when {
-                report.periodStart != null && report.periodEnd != null ->
-                    "${periodDateFormat.format(Date(report.periodStart))} \u2013 ${periodDateFormat.format(Date(report.periodEnd))}"
-                report.periodStart != null -> "From ${periodDateFormat.format(Date(report.periodStart))}"
-                report.periodEnd != null -> "Until ${periodDateFormat.format(Date(report.periodEnd))}"
-                else -> "All time"
-            }
-            Surface(shape = RoundedCornerShape(8.dp), color = BgColor) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = TextGrey, modifier = Modifier.height(14.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = periodLabel, fontSize = 11.sp, color = TextGrey)
-                }
-            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 22.dp, vertical = 18.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
+            ) {
+                MetaGrid(
+                    preparedBy = narrative.preparedBy?.ifBlank { null } ?: report.createdBy,
+                    department = narrative.department,
+                    purpose = narrative.purpose,
+                    audience = narrative.audience,
+                    savedAt = dateFormat.format(Date(report.createdAt))
+                )
 
-            if (isPersonal && !report.studentName.isNullOrBlank()) {
-                Surface(shape = RoundedCornerShape(12.dp), color = Color(0xFFF3E5F5)) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF6A1B9A), modifier = Modifier.height(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column {
-                            Text(text = report.studentName, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = TextDark)
-                            if (!report.studentId.isNullOrBlank()) {
-                                Text(text = report.studentId, fontSize = 11.sp, color = TextGrey)
-                            }
-                        }
+                if (!narrative.summary.isNullOrBlank()) {
+                    DocumentSection(title = "Executive summary", body = narrative.summary)
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SectionHeading("Impact figures")
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        FigureCell(Modifier.weight(1f), "${report.totalSubmissions}", "Submissions")
+                        FigureCell(Modifier.weight(1f), "${report.approvedCount}", "Approved")
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        FigureCell(Modifier.weight(1f), "${report.totalPointsAwarded}", "Points awarded")
+                        FigureCell(Modifier.weight(1f), "${report.totalPlasticsSaved}", "Plastics saved")
                     }
                 }
-            }
 
-            if (!report.notes.isNullOrBlank()) {
-                Text(text = report.notes, fontSize = 12.sp, color = TextGrey, lineHeight = 17.sp)
-            }
-
-            Divider(color = CardBorder, thickness = 1.dp)
-
-            // Points / plastics summary
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatTile(
-                    modifier = Modifier,
-                    icon = Icons.Filled.Star,
-                    iconColor = PrimaryGreen,
-                    iconBg = Color(0xFFE8F5E9),
-                    value = "${report.totalPointsAwarded}",
-                    label = "Points awarded"
-                )
-                StatTile(
-                    modifier = Modifier,
-                    icon = Icons.Filled.Recycling,
-                    iconColor = Color(0xFF1565C0),
-                    iconBg = Color(0xFFE3F2FD),
-                    value = "${report.totalPlasticsSaved}",
-                    label = "Plastics saved"
-                )
-            }
-
-            // Submissions breakdown
-            Surface(shape = RoundedCornerShape(14.dp), color = BgColor) {
-                Column(modifier = Modifier.padding(14.dp)) {
-                    Text(text = "Submissions", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextDark)
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        BreakdownItem(icon = Icons.Filled.Inventory2, tint = TextDark, value = "${report.totalSubmissions}", label = "Total")
-                        BreakdownItem(icon = Icons.Filled.CheckCircle, tint = PrimaryGreen, value = "${report.approvedCount}", label = "Approved")
-                        BreakdownItem(icon = Icons.Filled.PendingActions, tint = AmberPending, value = "${report.pendingCount}", label = "Pending")
-                        BreakdownItem(icon = Icons.Filled.Close, tint = RedRejected, value = "${report.rejectedCount}", label = "Rejected")
-                    }
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionHeading("Submission outcomes")
+                    OutcomeRow("Approved", report.approvedCount, totalReviewed)
+                    OutcomeRow("Pending", report.pendingCount, totalReviewed)
+                    OutcomeRow("Rejected", report.rejectedCount, totalReviewed)
                 }
+
+                if (!narrative.findings.isNullOrBlank()) {
+                    DocumentSection(title = "Key findings", body = narrative.findings)
+                }
+                if (!narrative.recommendations.isNullOrBlank()) {
+                    DocumentSection(title = "Recommendations", body = narrative.recommendations)
+                }
+                if (!narrative.notes.isNullOrBlank()) {
+                    DocumentSection(title = "Additional notes", body = narrative.notes)
+                }
+
+                HorizontalDivider(color = Rule, thickness = 1.dp)
+                Text(
+                    text = "Figures in this document are a frozen snapshot from the moment it was generated. Later campus activity does not change these numbers.",
+                    fontSize = 10.sp,
+                    color = Muted,
+                    lineHeight = 14.sp
+                )
+                Text(
+                    text = "Prepared for internal campus use  ·  Eco Campus Administration",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Forest
+                )
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
 }
 
 @Composable
-private fun StatTile(
-    modifier: Modifier = Modifier,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    iconColor: Color,
-    iconBg: Color,
-    value: String,
-    label: String
+private fun MetaGrid(
+    preparedBy: String,
+    department: String?,
+    purpose: String?,
+    audience: String?,
+    savedAt: String
 ) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(14.dp),
-        color = BgColor
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color.White)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(shape = RoundedCornerShape(8.dp), color = iconBg) {
-                    Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.padding(6.dp).height(14.dp))
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = value, fontSize = 18.sp, fontWeight = FontWeight.Medium, color = TextDark)
-            Text(text = label, fontSize = 11.sp, color = TextGrey)
+        Row(modifier = Modifier.fillMaxWidth()) {
+            MetaCell(Modifier.weight(1f), "Prepared by", preparedBy)
+            MetaCell(Modifier.weight(1f), "Department", department?.ifBlank { null } ?: "—")
         }
+        HorizontalDivider(color = Rule, thickness = 1.dp)
+        Row(modifier = Modifier.fillMaxWidth()) {
+            MetaCell(Modifier.weight(1f), "Purpose", purpose?.ifBlank { null } ?: "—")
+            MetaCell(Modifier.weight(1f), "Audience", audience?.ifBlank { null } ?: "—")
+        }
+        HorizontalDivider(color = Rule, thickness = 1.dp)
+        MetaCell(Modifier.fillMaxWidth(), "Issued", savedAt)
     }
 }
 
 @Composable
-private fun BreakdownItem(icon: androidx.compose.ui.graphics.vector.ImageVector, tint: Color, value: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.height(16.dp))
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(text = value, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = TextDark)
-        Text(text = label, fontSize = 9.sp, color = TextGrey)
+private fun MetaCell(modifier: Modifier = Modifier, label: String, value: String) {
+    Column(modifier = modifier.padding(end = 8.dp)) {
+        Text(
+            text = label.uppercase(),
+            fontSize = 9.sp,
+            letterSpacing = 0.8.sp,
+            fontWeight = FontWeight.Bold,
+            color = Muted
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = value,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = Ink,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
     }
+}
+
+@Composable
+private fun SectionHeading(title: String) {
+    Text(
+        text = title.uppercase(),
+        fontSize = 11.sp,
+        letterSpacing = 1.2.sp,
+        fontWeight = FontWeight.Bold,
+        color = Forest
+    )
+}
+
+@Composable
+private fun DocumentSection(title: String, body: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        SectionHeading(title)
+        Text(
+            text = body,
+            fontSize = 13.sp,
+            color = Ink,
+            lineHeight = 20.sp
+        )
+    }
+}
+
+@Composable
+private fun FigureCell(modifier: Modifier = Modifier, value: String, label: String) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(4.dp))
+            .background(FigureBg)
+            .padding(horizontal = 12.dp, vertical = 14.dp)
+    ) {
+        Text(text = value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Forest)
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(text = label, fontSize = 11.sp, color = Muted)
+    }
+}
+
+@Composable
+private fun OutcomeRow(label: String, count: Int, total: Int) {
+    val percent = ((count * 100f) / total.toFloat()).toInt()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = label, fontSize = 13.sp, color = Ink)
+        Text(
+            text = "$count   ·   $percent%",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = Forest
+        )
+    }
+    HorizontalDivider(color = Rule, thickness = 1.dp)
 }

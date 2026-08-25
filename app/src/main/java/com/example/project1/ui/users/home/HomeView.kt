@@ -2,15 +2,20 @@ package com.example.project1.ui.users.home
 
 import android.net.Uri
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.example.project1.Screen
 import com.example.project1.ui.AppViewModelProvider
 import io.github.jan.supabase.SupabaseClient
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeView(
@@ -31,7 +36,10 @@ fun HomeView(
 
     var showUploadDialog by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    Box(modifier = Modifier.fillMaxSize()) {
         HomeFunct(
             supabaseClient = supabaseClient,
             currentUserId = studentId,
@@ -57,7 +65,15 @@ fun HomeView(
                     launchSingleTop = true
                     restoreState = true
                 }
-            }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
         )
     }
 
@@ -78,6 +94,18 @@ fun HomeView(
                         description = submissionInput.description,
                         location = submissionInput.location
                     )
+
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Eco Log submitted successfully!"
+                        )
+                    }
+                } else {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Failed to load image. Please try again."
+                        )
+                    }
                 }
                 showUploadDialog = false
             }

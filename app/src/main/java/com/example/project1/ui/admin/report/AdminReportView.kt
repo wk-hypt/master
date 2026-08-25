@@ -27,6 +27,7 @@ fun AdminReportView(
 
     val uiState by viewModel.reportUiState.collectAsState()
     val savedReports by viewModel.savedReports.collectAsState()
+    val currentAdmin by viewModel.currentAdmin.collectAsState()
 
     // Create: showing the "Save current report" dialog
     var showSaveDialog by remember { mutableStateOf(false) }
@@ -58,16 +59,11 @@ fun AdminReportView(
         ReportFormDialog(
             existing = null,
             students = uiState.topContributors,
+            defaultPreparedBy = currentAdmin?.name.orEmpty(),
+            defaultDepartment = currentAdmin?.faculty.orEmpty(),
             onDismiss = { showSaveDialog = false },
-            onConfirm = { title, notes, studentId, studentName, startDate, endDate ->
-                viewModel.saveReport(
-                    title = title,
-                    notes = notes,
-                    studentId = studentId,
-                    studentName = studentName,
-                    startDate = startDate,
-                    endDate = endDate
-                )
+            onConfirm = { input ->
+                viewModel.saveReport(input)
                 showSaveDialog = false
             }
         )
@@ -77,9 +73,11 @@ fun AdminReportView(
         ReportFormDialog(
             existing = report,
             students = uiState.topContributors,
+            defaultPreparedBy = currentAdmin?.name.orEmpty(),
+            defaultDepartment = currentAdmin?.faculty.orEmpty(),
             onDismiss = { editingReport = null },
-            onConfirm = { title, notes, _, _, _, _ ->
-                viewModel.updateReport(report = report, title = title, notes = notes)
+            onConfirm = { input ->
+                viewModel.updateReport(report = report, title = input.title, narrative = input.narrative)
                 editingReport = null
             }
         )

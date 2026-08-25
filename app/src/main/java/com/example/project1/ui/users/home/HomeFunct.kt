@@ -74,7 +74,8 @@ fun HomeFunct(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScroll(rememberScrollState())
+                    .statusBarsPadding(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 EcoBannerSlider(banners = banners, height = bannerHeight)
@@ -86,7 +87,8 @@ fun HomeFunct(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScroll(rememberScrollState())
+                    .statusBarsPadding(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 EcoFeatureGrid(features = features, onFeatureClick = onFeatureClick)
@@ -103,7 +105,8 @@ fun HomeFunct(
             modifier = modifier
                 .fillMaxSize()
                 .background(Color.White)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .statusBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             EcoBannerSlider(banners = banners, height = bannerHeight)

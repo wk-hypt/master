@@ -58,7 +58,8 @@ object AppViewModelProvider {
                 taskRepository = app.container.taskRepository,
                 userRepository = app.container.userRepository,
                 offerRepository = app.container.offerRepository,
-                reportRepository = app.container.reportRepository
+                reportRepository = app.container.reportRepository,
+                adminRepository = app.container.adminRepository
             )
         }
 

@@ -47,6 +47,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -185,7 +186,16 @@ internal fun AdminInfoPage(
             onValueChange = {},
             readOnly = true,
             label = { Text("Admin ID") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFF2E7D32),
+                focusedLabelColor = Color.Black,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                unfocusedBorderColor = Color(0xFF424242),
+                unfocusedLabelColor = Color(0xFF424242),
+                unfocusedTrailingIconColor = Color(0xFF424242)
+            )
         )
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(
@@ -195,7 +205,16 @@ internal fun AdminInfoPage(
             singleLine = true,
             isError = isNameBlank,
             supportingText = { if (isNameBlank) Text("Name cannot be empty", color = ProfileColors.Danger) },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFF2E7D32),
+                focusedLabelColor = Color.Black,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                unfocusedBorderColor = Color(0xFF424242),
+                unfocusedLabelColor = Color(0xFF424242),
+                unfocusedTrailingIconColor = Color(0xFF424242)
+            )
         )
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(
@@ -204,7 +223,16 @@ internal fun AdminInfoPage(
             label = { Text("Faculty") },
             singleLine = true,
             supportingText = { Text("Defaults to \"FOCS\" if left blank") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFF2E7D32),
+                focusedLabelColor = Color.Black,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                unfocusedBorderColor = Color(0xFF424242),
+                unfocusedLabelColor = Color(0xFF424242),
+                unfocusedTrailingIconColor = Color(0xFF424242)
+            )
         )
         Spacer(modifier = Modifier.height(20.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,15 +26,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
+import com.example.project1.common.RequiredLabel
 import com.example.project1.ui.adaptive.AdaptiveDialogSurface
 import com.example.project1.ui.adaptive.HeightSize
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
@@ -133,10 +130,9 @@ fun EcoUploadDialog(
     val isFormValid = captured != null && actionType.isNotBlank() && stallName.isNotBlank() && terms
     val photoHeight = if (LocalAppWindowInfo.current.heightSize == HeightSize.Compact) 120.dp else 200.dp
 
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? -> selectedImageUri = uri }
+    ) { uri: Uri? -> captured = uri }
 
     AdaptiveDialogSurface(onDismiss = onDismiss) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -200,7 +196,10 @@ fun EcoUploadDialog(
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
                                     .padding(8.dp)
-                                    .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(50))
+                                    .background(
+                                        Color.Black.copy(alpha = 0.6f),
+                                        RoundedCornerShape(50)
+                                    )
                             ) {
                                 Icon(Icons.Default.Close, contentDescription = "Remove Photo", tint = Color.White)
                             }
@@ -220,7 +219,9 @@ fun EcoUploadDialog(
 
                     Button(
                         onClick = { launchCamera() },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
                         shape = RoundedCornerShape(24.dp)
                     ) {
@@ -374,7 +375,11 @@ fun EcoUploadDialog(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF2E7D32),
                             focusedLabelColor = Color.Black,
-                            focusedTextColor = Color.Black
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            unfocusedBorderColor = Color(0xFF424242),
+                            unfocusedLabelColor = Color(0xFF424242),
+                            unfocusedTrailingIconColor = Color(0xFF424242)
                         )
                     )
 
@@ -459,18 +464,6 @@ fun EcoUploadDialog(
     if (showTermsDialog) {
         TermsAndConditionsDialog(onDismiss = { showTermsDialog = false })
     }
-}
-
-@Composable
-private fun RequiredLabel(labelText: String) {
-    Text(
-        text = buildAnnotatedString {
-            append(labelText)
-            withStyle(style = SpanStyle(color = Color.Red)) {
-                append(" *")
-            }
-        }
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -3,22 +3,30 @@ package com.example.project1.ui.admin.report
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.project1.data.model.AdminEntity
 import com.example.project1.data.model.EcoSubmissionEntity
 import com.example.project1.data.model.NewReport
 import com.example.project1.data.model.ReportEntity
+import com.example.project1.data.model.ReportFormInput
+import com.example.project1.data.model.ReportNarrative
 import com.example.project1.data.model.TaskEntity
 import com.example.project1.data.model.UserEntity
 import com.example.project1.data.model.VoucherEntity
+import com.example.project1.data.model.encodeReportNarrative
+import com.example.project1.data.model.newReportReference
 import com.example.project1.data.model.pointsAwardedByUser
 import com.example.project1.data.model.pointsSpentByUser
 import com.example.project1.data.model.withAwardedPoints
+import com.example.project1.data.repository.AdminRepository
 import com.example.project1.data.repository.OfferRepository
 import com.example.project1.data.repository.ReportRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.TaskRepository
 import com.example.project1.data.repository.UserRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -81,13 +89,23 @@ class AdminReportViewModel(
     taskRepository: TaskRepository,
     userRepository: UserRepository,
     offerRepository: OfferRepository,
-    private val reportRepository: ReportRepository
+    private val reportRepository: ReportRepository,
+    private val adminRepository: AdminRepository
 ) : ViewModel() {
 
     private var currentAdminId: String = ""
+    private val _currentAdmin = MutableStateFlow<AdminEntity?>(null)
+    val currentAdmin: StateFlow<AdminEntity?> = _currentAdmin.asStateFlow()
 
     fun setCurrentAdmin(adminId: String) {
         currentAdminId = adminId
+        viewModelScope.launch {
+            try {
+                _currentAdmin.value = adminRepository.getAdminById(adminId)
+            } catch (e: Exception) {
+                Log.e("AdminReportViewModel", "Failed to load admin: ${e.message}")
+            }
+        }
     }
 
     private val rawData: StateFlow<RawReportData> = combine(
@@ -126,15 +144,9 @@ class AdminReportViewModel(
      * - startDate/endDate == null -> all-time totals (same as before).
      * - startDate/endDate set -> totals scoped to that date range only.
      */
-    fun saveReport(
-        title: String,
-        notes: String?,
-        studentId: String? = null,
-        studentName: String? = null,
-        startDate: Long? = null,
-        endDate: Long? = null
-    ) {
-        val hasRange = startDate != null || endDate != null
+    fun saveReport(input: ReportFormInput) {
+        val studentId = input.studentId
+        val hasRange = input.startDate != null || input.endDate != null
         val snapshot = if (studentId == null && !hasRange) {
             val overall = reportUiState.value
             ReportSnapshot(
@@ -146,17 +158,22 @@ class AdminReportViewModel(
                 totalPlasticsSaved = overall.totalPlasticsSaved
             )
         } else {
-            buildScopedSnapshot(rawData.value, studentId, startDate, endDate)
+            buildScopedSnapshot(rawData.value, studentId, input.startDate, input.endDate)
         }
+
+        val createdAt = System.currentTimeMillis()
+        val packedNotes = encodeReportNarrative(
+            input.narrative.copy(reference = input.narrative.reference ?: newReportReference(createdAt))
+        )
 
         viewModelScope.launch {
             try {
                 reportRepository.insertReport(
                     NewReport(
-                        title = title,
-                        notes = notes,
+                        title = input.title,
+                        notes = packedNotes,
                         createdBy = currentAdminId,
-                        createdAt = System.currentTimeMillis(),
+                        createdAt = createdAt,
                         totalSubmissions = snapshot.totalSubmissions,
                         approvedCount = snapshot.approvedCount,
                         pendingCount = snapshot.pendingCount,
@@ -165,9 +182,9 @@ class AdminReportViewModel(
                         totalPlasticsSaved = snapshot.totalPlasticsSaved,
                         reportType = if (studentId != null) REPORT_TYPE_STUDENT else REPORT_TYPE_OVERALL,
                         studentId = studentId,
-                        studentName = studentName,
-                        periodStart = startDate,
-                        periodEnd = endDate
+                        studentName = input.studentName,
+                        periodStart = input.startDate,
+                        periodEnd = input.endDate
                     )
                 )
             } catch (e: Exception) {
@@ -214,10 +231,10 @@ class AdminReportViewModel(
         )
     }
 
-    fun updateReport(report: ReportEntity, title: String, notes: String?) {
+    fun updateReport(report: ReportEntity, title: String, narrative: ReportNarrative) {
         viewModelScope.launch {
             try {
-                reportRepository.updateReport(report.id, title, notes)
+                reportRepository.updateReport(report.id, title, encodeReportNarrative(narrative))
             } catch (e: Exception) {
                 Log.e("AdminReportViewModel", "Failed to update report #${report.id}: ${e.message}")
             }

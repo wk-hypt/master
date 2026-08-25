@@ -6,14 +6,17 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +30,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.project1.common.RequiredLabel
 import com.example.project1.data.model.VoucherEntity
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -58,7 +62,7 @@ fun VoucherFormDialog(
     var title by remember { mutableStateOf(existing?.title.orEmpty()) }
     var cost by remember { mutableStateOf(existing?.pointsCost?.toString().orEmpty()) }
     var category by remember { mutableStateOf(existing?.category.orEmpty()) }
-    var quantity by remember { mutableStateOf(existing?.quantity?.toString() ?: "1") }
+    var quantity by remember { mutableIntStateOf(existing?.quantity?: 0) }
 
     // Date Picker State
     var expiryIsoString by remember { mutableStateOf(existing?.expiryDate) }
@@ -89,7 +93,7 @@ fun VoucherFormDialog(
             title.isNotBlank() &&
             category.isNotBlank() &&
             cost.toIntOrNull() != null && (cost.toIntOrNull()?:0) > 0 &&
-            quantity.toIntOrNull() != null && (quantity.toIntOrNull()?:0) >= 0
+            quantity >= 0
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -167,7 +171,7 @@ fun VoucherFormDialog(
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Voucher Title") },
+                label = { RequiredLabel("Voucher Title") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -180,7 +184,7 @@ fun VoucherFormDialog(
             OutlinedTextField(
                 value = merchant,
                 onValueChange = { merchant = it },
-                label = { Text("Merchant Name") },
+                label = { RequiredLabel("Merchant Name") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -193,7 +197,7 @@ fun VoucherFormDialog(
             OutlinedTextField(
                 value = category,
                 onValueChange = { category = it },
-                label = { Text("Category (e.g. Food, Beverage)") },
+                label = { RequiredLabel("Category (e.g. Food, Beverage)") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -205,7 +209,8 @@ fun VoucherFormDialog(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
                     value = cost,
@@ -214,34 +219,55 @@ fun VoucherFormDialog(
                             cost = input
                         }
                     },
-                    label = { Text("Points Cost") },
+                    label = { RequiredLabel("Points Cost") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color(0xFF2E7D32),
                         focusedLabelColor = Color.Black,
-                        focusedTextColor = Color.Black
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        unfocusedBorderColor = Color(0xFF424242),
+                        unfocusedLabelColor = Color(0xFF424242),
+                        unfocusedTrailingIconColor = Color(0xFF424242)
                     )
                 )
 
-                OutlinedTextField(
-                    value = quantity,
-                    onValueChange = { input ->
-                        if(input.all{it.isDigit()}){
-                            quantity = input
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        Text("Quantity", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = Color.DarkGray)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("(pcs/set)", fontSize = 12.sp, color = Color.Gray)
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedButton(
+                            onClick = { if (quantity > 1) quantity-- },
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(36.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                contentColor = Color.Black
+                            )
+                        ) {
+                            Icon(Icons.Default.Remove, contentDescription = "Decrease", modifier = Modifier.size(18.dp))
                         }
-                    },
-                    label = { Text("Quantity (Stock)") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f),
-                    colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF2E7D32),
-                    focusedLabelColor = Color.Black,
-                    focusedTextColor = Color.Black
-                )
-                )
+                        Text(
+                            text = quantity.toString(),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            color = Color.Black
+                        )
+                        OutlinedButton(
+                            onClick = { quantity++ },
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(36.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                contentColor = Color.Black
+                            )
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Increase", modifier = Modifier.size(18.dp))
+                        }
+                }
             }
 
             // Expiry Date Input Field
@@ -258,7 +284,11 @@ fun VoucherFormDialog(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color(0xFF2E7D32),
                         focusedLabelColor = Color.Black,
-                        focusedTextColor = Color.Black
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        unfocusedBorderColor = Color(0xFF424242),
+                        unfocusedLabelColor = Color(0xFF424242),
+                        unfocusedTrailingIconColor = Color(0xFF424242)
                     )
                 )
                 Box(
@@ -285,7 +315,7 @@ fun VoucherFormDialog(
                         title.trim(),
                         cost.toIntOrNull()!!,
                         category.trim(),
-                        quantity.toIntOrNull()!!,
+                        quantity,
                         expiryIsoString,
                         imageBytes,
                         fileName

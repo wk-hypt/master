@@ -11,21 +11,16 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import com.example.project1.common.RequiredLabel
 import com.example.project1.data.model.TaskEntity
 import com.example.project1.ui.adaptive.AdaptiveDialogSurface
 import java.text.SimpleDateFormat
@@ -73,156 +68,149 @@ fun TargetFormDialog(
     AdaptiveDialogSurface(onDismiss = onDismiss) {
         Column(modifier = Modifier.fillMaxSize()) {
 
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = if (isEditMode) "Edit Target" else "Set a New Target",
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onDismiss) {
-                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF2E7D32)
+            TopAppBar(
+                title = {
+                    Text(
+                        text = if (isEditMode) "Edit Target" else "Set a New Target",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF2E7D32)
+                )
+            )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { RequiredLabel("Target Title") },
+                    placeholder = { Text("e.g. No plastic straws this week") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF2E7D32),
+                        focusedLabelColor = Color.Black,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        unfocusedBorderColor = Color(0xFF424242),
+                        unfocusedLabelColor = Color(0xFF424242),
+                        unfocusedTrailingIconColor = Color(0xFF424242)
                     )
                 )
 
-                Column(
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Description (optional)") },
+                    placeholder = { Text("Tell us more about your target") },
                     modifier = Modifier
-                        .weight(1f)
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF2E7D32),
+                        focusedLabelColor = Color.Black,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        unfocusedBorderColor = Color(0xFF424242),
+                        unfocusedLabelColor = Color(0xFF424242),
+                        unfocusedTrailingIconColor = Color(0xFF424242)
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    OutlinedTextField(
-                        value = title,
-                        onValueChange = { title = it },
-                        label = {
-                            Text(
-                                buildAnnotatedString {
-                                    append("Target Title")
-                                    withStyle(style = SpanStyle(color = Color.Red)) { append(" *") }
-                                }
+                    RequiredLabel("Target Count")
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedButton(
+                            onClick = { if (quantity > 1) quantity-- },
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(36.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                contentColor = Color.Black
                             )
-                        },
-                        placeholder = { Text("e.g. No plastic straws this week") },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF2E7D32),
-                            focusedLabelColor = Color.Black,
-                            focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.Black,
-                            unfocusedBorderColor = Color(0xFF424242),
-                            unfocusedLabelColor = Color(0xFF424242),
-                            unfocusedTrailingIconColor = Color(0xFF424242)
+                        ) {
+                            Icon(Icons.Default.Remove, contentDescription = "Decrease", modifier = Modifier.size(18.dp))
+                        }
+                        Text(
+                            text = quantity.toString(),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            color = Color.Black
                         )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = { Text("Description (optional)") },
-                        placeholder = { Text("Tell us more about your target") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF2E7D32),
-                            focusedLabelColor = Color.Black,
-                            focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.Black,
-                            unfocusedBorderColor = Color(0xFF424242),
-                            unfocusedLabelColor = Color(0xFF424242),
-                            unfocusedTrailingIconColor = Color(0xFF424242)
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Target Count", fontSize = 14.sp, color = Color(0xFF495057))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            OutlinedButton(
-                                onClick = { if (quantity > 1) quantity-- },
-                                contentPadding = PaddingValues(0.dp),
-                                modifier = Modifier.size(36.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                        contentColor = Color.Black
-                                        )
-                            ) {
-                                Icon(Icons.Default.Remove, contentDescription = "Decrease", modifier = Modifier.size(18.dp))
-                            }
-                            Text(
-                                text = quantity.toString(),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 12.dp),
-                                color = Color.Black
+                        OutlinedButton(
+                            onClick = { quantity++ },
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(36.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                contentColor = Color.Black
                             )
-                            OutlinedButton(
-                                onClick = { quantity++ },
-                                contentPadding = PaddingValues(0.dp),
-                                modifier = Modifier.size(36.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    contentColor = Color.Black
-                                )
-                            ) {
-                                Icon(Icons.Default.Add, contentDescription = "Increase", modifier = Modifier.size(18.dp))
-                            }
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Increase", modifier = Modifier.size(18.dp))
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Text("Deadline", fontSize = 14.sp, color = Color(0xFF495057))
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    OutlinedButton(
-                        onClick = { openDatePicker() },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color(0xFF2E7D32))
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Text(
-                            text = dateFormatter.format(Date(deadlineMillis)),
-                            color = Color(0xFF212529)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Button(
-                        onClick = { onConfirm(title, description, quantity, deadlineMillis) },
-                        enabled = isFormValid,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF2E7D32),
-                            disabledContainerColor = Color(0xFFE0E0E0)
-                        ),
-                        shape = RoundedCornerShape(25.dp)
-                    ) {
-                        Text(
-                            text = if (isEditMode) "Save Changes" else "Confirm Target",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                RequiredLabel("Deadline")
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = { openDatePicker() },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color(0xFF2E7D32))
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = dateFormatter.format(Date(deadlineMillis)),
+                        color = Color(0xFF212529)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = { onConfirm(title, description, quantity, deadlineMillis) },
+                    enabled = isFormValid,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2E7D32),
+                        disabledContainerColor = Color(0xFFE0E0E0)
+                    ),
+                    shape = RoundedCornerShape(25.dp)
+                ) {
+                    Text(
+                        text = if (isEditMode) "Save Changes" else "Confirm Target",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
+        }
     }
 }

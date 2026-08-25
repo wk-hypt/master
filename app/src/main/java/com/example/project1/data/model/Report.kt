@@ -2,6 +2,99 @@ package com.example.project1.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+private val reportNarrativeJson = Json {
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+}
+
+/** Extra admin-authored fields packed into `notes` so no new database columns are required. */
+@Serializable
+data class ReportNarrative(
+    val kind: String = NARRATIVE_KIND,
+    val reference: String? = null,
+    val preparedBy: String? = null,
+    val department: String? = null,
+    val purpose: String? = null,
+    val audience: String? = null,
+    val summary: String? = null,
+    val findings: String? = null,
+    val recommendations: String? = null,
+    val notes: String? = null
+) {
+    companion object {
+        const val NARRATIVE_KIND = "eco_report_v1"
+    }
+}
+
+data class ReportFormInput(
+    val title: String,
+    val studentId: String? = null,
+    val studentName: String? = null,
+    val startDate: Long? = null,
+    val endDate: Long? = null,
+    val narrative: ReportNarrative = ReportNarrative()
+)
+
+fun encodeReportNarrative(narrative: ReportNarrative): String? {
+    val cleaned = narrative.copy(
+        preparedBy = narrative.preparedBy?.trim()?.ifBlank { null },
+        department = narrative.department?.trim()?.ifBlank { null },
+        purpose = narrative.purpose?.trim()?.ifBlank { null },
+        audience = narrative.audience?.trim()?.ifBlank { null },
+        summary = narrative.summary?.trim()?.ifBlank { null },
+        findings = narrative.findings?.trim()?.ifBlank { null },
+        recommendations = narrative.recommendations?.trim()?.ifBlank { null },
+        notes = narrative.notes?.trim()?.ifBlank { null },
+        reference = narrative.reference?.trim()?.ifBlank { null }
+    )
+    val hasExtras = listOf(
+        cleaned.preparedBy, cleaned.department, cleaned.purpose, cleaned.audience,
+        cleaned.summary, cleaned.findings, cleaned.recommendations, cleaned.reference
+    ).any { !it.isNullOrBlank() }
+    if (!hasExtras && cleaned.notes.isNullOrBlank()) return null
+    return reportNarrativeJson.encodeToString(ReportNarrative.serializer(), cleaned)
+}
+
+fun decodeReportNarrative(raw: String?): ReportNarrative {
+    if (raw.isNullOrBlank()) return ReportNarrative()
+    val trimmed = raw.trim()
+    if (!trimmed.startsWith("{")) return ReportNarrative(notes = raw)
+    return try {
+        val parsed = reportNarrativeJson.decodeFromString(ReportNarrative.serializer(), trimmed)
+        if (parsed.kind == ReportNarrative.NARRATIVE_KIND) parsed else ReportNarrative(notes = raw)
+    } catch (_: Exception) {
+        ReportNarrative(notes = raw)
+    }
+}
+
+fun ReportEntity.narrative(): ReportNarrative = decodeReportNarrative(notes)
+
+fun ReportEntity.displayReference(): String {
+    val stored = narrative().reference?.trim().orEmpty()
+    if (stored.isNotBlank()) return stored
+    return "RPT-" + id.toString().padStart(4, '0')
+}
+
+fun ReportEntity.periodLabel(): String {
+    val format = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+    return when {
+        periodStart != null && periodEnd != null ->
+            "${format.format(Date(periodStart))} \u2013 ${format.format(Date(periodEnd))}"
+        periodStart != null -> "From ${format.format(Date(periodStart))}"
+        periodEnd != null -> "Until ${format.format(Date(periodEnd))}"
+        else -> "All time"
+    }
+}
+
+fun newReportReference(nowMillis: Long = System.currentTimeMillis()): String {
+    val stamp = SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(Date(nowMillis))
+    return "RPT-$stamp"
+}
 
 @Serializable
 data class ReportEntity(

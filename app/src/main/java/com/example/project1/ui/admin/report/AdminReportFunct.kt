@@ -47,6 +47,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.project1.data.model.ReportEntity
 import com.example.project1.data.model.UserEntity
+import com.example.project1.data.model.displayReference
+import com.example.project1.data.model.narrative
+import com.example.project1.data.model.periodLabel
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
 import com.example.project1.ui.adaptive.WidthSize
 import java.text.SimpleDateFormat
@@ -613,28 +616,43 @@ private fun ContributorRow(rank: Int, user: UserEntity) {
 
 @Composable
 private fun SavedReportsCard(reports: List<ReportEntity>, onView: (ReportEntity) -> Unit, onEdit: (ReportEntity) -> Unit, onDelete: (ReportEntity) -> Unit) {
-    Box(modifier = Modifier.fillMaxWidth().flatCard()) {
-        Column(modifier = Modifier.padding(CardPadding)) {
-            CardHeaderIconRow(icon = Icons.Filled.Save, iconBg = Color(0xFFE3F2FD), iconTint = BlueAccent, title = "Saved reports", subtitle = "Tap a report to view it")
-            Spacer(modifier = Modifier.height(12.dp))
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Column {
+                Text(text = "Official records", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                Text(text = "Tap a report to open the document", fontSize = 11.sp, color = TextGrey)
+            }
+            Text(
+                text = "${reports.size} saved",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = PrimaryGreen
+            )
+        }
 
-            if (reports.isEmpty()) {
+        if (reports.isEmpty()) {
+            Box(modifier = Modifier.fillMaxWidth().flatCard()) {
                 Text(
-                    text = "No saved reports yet. Tap \"Save\" above to archive the current stats.",
+                    text = "No reports yet. Tap Save to prepare a formal snapshot for campus records.",
                     fontSize = 12.sp,
                     color = TextGrey,
-                    lineHeight = 17.sp
+                    lineHeight = 17.sp,
+                    modifier = Modifier.padding(16.dp)
                 )
-            } else {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    reports.forEach { report ->
-                        SavedReportRow(
-                            report = report,
-                            onClick = { onView(report) },
-                            onEdit = { onEdit(report) },
-                            onDelete = { onDelete(report) }
-                        )
-                    }
+            }
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                reports.forEach { report ->
+                    SavedReportRow(
+                        report = report,
+                        onClick = { onView(report) },
+                        onEdit = { onEdit(report) },
+                        onDelete = { onDelete(report) }
+                    )
                 }
             }
         }
@@ -643,64 +661,126 @@ private fun SavedReportsCard(reports: List<ReportEntity>, onView: (ReportEntity)
 
 @Composable
 private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
-    val dateFormat = remember { SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()) }
-    val periodDateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+    val dateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+    val narrative = remember(report) { report.narrative() }
+    val isPersonal = report.reportType == REPORT_TYPE_STUDENT
+    val accent = if (isPersonal) Color(0xFF5E35B1) else DarkGreen
+    val purposeLine = listOfNotNull(
+        narrative.purpose?.takeIf { it.isNotBlank() },
+        report.periodLabel()
+    ).joinToString("  ·  ")
 
-    Surface(modifier = Modifier.fillMaxWidth().clickable { onClick() }, shape = RoundedCornerShape(12.dp), color = BgColor) {
-        Row(modifier = Modifier.padding(start = 12.dp, end = 2.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                val isPersonal = report.reportType == REPORT_TYPE_STUDENT
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = if (isPersonal) Color(0xFFF3E5F5) else Color(0xFFE3F2FD)
-                    ) {
-                        Text(
-                            text = if (isPersonal) "PERSONAL" else "OVERALL",
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isPersonal) Color(0xFF6A1B9A) else BlueAccent,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = report.title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextDark, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-                if (isPersonal && !report.studentName.isNullOrBlank()) {
-                    Text(text = report.studentName, fontSize = 10.sp, color = TextGrey2, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-                val periodLabel = when {
-                    report.periodStart != null && report.periodEnd != null ->
-                        "${periodDateFormat.format(Date(report.periodStart))} \u2013 ${periodDateFormat.format(Date(report.periodEnd))}"
-                    report.periodStart != null -> "From ${periodDateFormat.format(Date(report.periodStart))}"
-                    report.periodEnd != null -> "Until ${periodDateFormat.format(Date(report.periodEnd))}"
-                    else -> "All time"
-                }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+            .clip(RoundedCornerShape(16.dp))
+            .background(SurfaceColor)
+            .border(BorderStroke(1.dp, CardBorder), RoundedCornerShape(16.dp))
+    ) {
+        Box(
+            modifier = Modifier
+                .width(5.dp)
+                .fillMaxHeight()
+                .background(accent)
+        )
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .clickable { onClick() }
+                .padding(start = 12.dp, end = 4.dp, top = 12.dp, bottom = 12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = "$periodLabel \u00b7 ${report.totalSubmissions} submissions \u00b7 ${report.approvedCount} approved",
+                    text = report.displayReference(),
                     fontSize = 10.sp,
-                    color = TextGrey,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    letterSpacing = 0.8.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = accent
                 )
-                Text(
-                    text = "Saved ${dateFormat.format(Date(report.createdAt))}",
-                    fontSize = 9.sp,
-                    color = TextGrey,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (!report.notes.isNullOrBlank()) {
-                    Text(text = report.notes, fontSize = 10.sp, color = TextGrey2, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = accent.copy(alpha = 0.12f)
+                ) {
+                    Text(
+                        text = if (isPersonal) "PERSONAL" else "OVERALL",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = accent,
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                    )
                 }
             }
-            IconButton(onClick = onEdit, modifier = Modifier.size(30.dp)) {
-                Icon(imageVector = Icons.Filled.Edit, contentDescription = "Edit report", tint = BlueAccent, modifier = Modifier.size(15.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = report.title,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextDark,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (isPersonal && !report.studentName.isNullOrBlank()) {
+                Text(
+                    text = report.studentName,
+                    fontSize = 11.sp,
+                    color = TextGrey2,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
-            IconButton(onClick = onDelete, modifier = Modifier.size(30.dp)) {
-                Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete report", tint = RedRejected, modifier = Modifier.size(15.dp))
+            if (purposeLine.isNotBlank()) {
+                Text(
+                    text = purposeLine,
+                    fontSize = 11.sp,
+                    color = TextGrey,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                MiniMetric(Modifier.weight(1f), "${report.totalSubmissions}", "Filed")
+                MiniMetric(Modifier.weight(1f), "${report.approvedCount}", "Approved")
+                MiniMetric(Modifier.weight(1f), "${report.totalPointsAwarded}", "Points")
+                MiniMetric(Modifier.weight(1f), "${report.totalPlasticsSaved}", "Plastics")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = dateFormat.format(Date(report.createdAt)),
+                fontSize = 10.sp,
+                color = TextGrey
+            )
+        }
+        Column(
+            modifier = Modifier.padding(top = 4.dp, end = 4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+                Icon(imageVector = Icons.Filled.Edit, contentDescription = "Edit report", tint = BlueAccent, modifier = Modifier.size(16.dp))
+            }
+            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete report", tint = RedRejected, modifier = Modifier.size(16.dp))
             }
         }
+    }
+}
+
+@Composable
+private fun MiniMetric(modifier: Modifier = Modifier, value: String, label: String) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(BgColor)
+            .padding(horizontal = 6.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = value, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark, maxLines = 1)
+        Text(text = label, fontSize = 9.sp, color = TextGrey, maxLines = 1)
     }
 }
 
