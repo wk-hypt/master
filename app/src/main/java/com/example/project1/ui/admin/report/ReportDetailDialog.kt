@@ -1,6 +1,8 @@
 package com.example.project1.ui.admin.report
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,13 +12,31 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.FactCheck
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.PendingActions
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Recycling
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StickyNote2
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,7 +46,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -43,10 +66,19 @@ import java.util.Locale
 private val Ink = Color(0xFF1A1F1C)
 private val Muted = Color(0xFF5F675F)
 private val Paper = Color(0xFFF7F4EE)
-private val Rule = Color(0xFFD8D2C6)
+private val Rule = Color(0xFFE7E1D4)
 private val Forest = Color(0xFF16382B)
+private val ForestLight = Color(0xFF1F4B39)
 private val Gold = Color(0xFFC4A574)
-private val FigureBg = Color(0xFFEEF3EC)
+private val CardBorder = Color(0xFFE9E4D8)
+
+// Figure / status accents
+private val BlueAccent = Color(0xFF1565C0)
+private val GreenAccent = Color(0xFF2E7D32)
+private val AmberAccent = Color(0xFFEF6C00)
+private val RedAccent = Color(0xFFDC3545)
+private val TealAccent = Color(0xFF00897B)
+private val PurpleAccent = Color(0xFF5E35B1)
 
 @Composable
 fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
@@ -54,13 +86,14 @@ fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
     val narrative = remember(report) { report.narrative() }
     val isPersonal = report.reportType == REPORT_TYPE_STUDENT
     val totalReviewed = (report.approvedCount + report.pendingCount + report.rejectedCount).coerceAtLeast(1)
+    val identityAccent = if (isPersonal) PurpleAccent else Gold
 
     AdaptiveDialogSurface(onDismiss = onDismiss, color = Paper) {
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Forest)
+                    .background(Brush.verticalGradient(listOf(ForestLight, Forest)))
                     .statusBarsPadding()
                     .padding(start = 22.dp, end = 8.dp, top = 18.dp, bottom = 22.dp)
             ) {
@@ -71,14 +104,26 @@ fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
                     Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White.copy(alpha = 0.85f))
                 }
                 Column(modifier = Modifier.padding(end = 36.dp)) {
-                    Text(
-                        text = "TAR UMT  ·  ECO CAMPUS",
-                        fontSize = 10.sp,
-                        letterSpacing = 1.6.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Gold
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(26.dp)
+                                .clip(RoundedCornerShape(7.dp))
+                                .background(Color.White.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Filled.Assessment, contentDescription = null, tint = Gold, modifier = Modifier.size(14.dp))
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "TAR UMT  ·  ECO CAMPUS",
+                            fontSize = 10.sp,
+                            letterSpacing = 1.6.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Gold
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
                     Text(
                         text = "SDG 12 IMPACT REPORT",
                         fontSize = 11.sp,
@@ -95,12 +140,22 @@ fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
                         lineHeight = 28.sp
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = if (isPersonal) "Personal record" else "Campus-wide snapshot",
-                        fontSize = 12.sp,
-                        color = Color.White.copy(alpha = 0.78f)
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(identityAccent)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (isPersonal) "Personal record" else "Campus-wide snapshot",
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.78f)
+                        )
+                    }
                     if (isPersonal && !report.studentName.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "${report.studentName}  ·  ${report.studentId.orEmpty()}",
                             fontSize = 12.sp,
@@ -129,7 +184,7 @@ fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 22.dp, vertical = 18.dp),
-                verticalArrangement = Arrangement.spacedBy(18.dp)
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 MetaGrid(
                     preparedBy = narrative.preparedBy?.ifBlank { null } ?: report.createdBy,
@@ -140,49 +195,65 @@ fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
                 )
 
                 if (!narrative.summary.isNullOrBlank()) {
-                    DocumentSection(title = "Executive summary", body = narrative.summary)
+                    DocumentSection(icon = Icons.Filled.Description, accent = Forest, title = "Executive summary", body = narrative.summary)
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SectionHeading("Impact figures")
+                    SectionHeading(icon = Icons.Filled.Assessment, accent = Forest, title = "Impact figures")
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        FigureCell(Modifier.weight(1f), "${report.totalSubmissions}", "Submissions")
-                        FigureCell(Modifier.weight(1f), "${report.approvedCount}", "Approved")
+                        FigureCell(Modifier.weight(1f), Icons.Filled.FactCheck, "${report.totalSubmissions}", "Submissions", BlueAccent)
+                        FigureCell(Modifier.weight(1f), Icons.Filled.CheckCircle, "${report.approvedCount}", "Approved", GreenAccent)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        FigureCell(Modifier.weight(1f), "${report.totalPointsAwarded}", "Points awarded")
-                        FigureCell(Modifier.weight(1f), "${report.totalPlasticsSaved}", "Plastics saved")
+                        FigureCell(Modifier.weight(1f), Icons.Filled.Star, "${report.totalPointsAwarded}", "Points awarded", AmberAccent)
+                        FigureCell(Modifier.weight(1f), Icons.Filled.Recycling, "${report.totalPlasticsSaved}", "Plastics saved", TealAccent)
                     }
                 }
 
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionHeading("Submission outcomes")
-                    OutcomeRow("Approved", report.approvedCount, totalReviewed)
-                    OutcomeRow("Pending", report.pendingCount, totalReviewed)
-                    OutcomeRow("Rejected", report.rejectedCount, totalReviewed)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color.White)
+                        .border(BorderStroke(1.dp, CardBorder), RoundedCornerShape(14.dp))
+                        .padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    SectionHeading(icon = Icons.Filled.FactCheck, accent = Forest, title = "Submission outcomes")
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutcomeRow(Icons.Filled.CheckCircle, GreenAccent, "Approved", report.approvedCount, totalReviewed)
+                    OutcomeRow(Icons.Filled.PendingActions, AmberAccent, "Pending", report.pendingCount, totalReviewed)
+                    OutcomeRow(Icons.Filled.Cancel, RedAccent, "Rejected", report.rejectedCount, totalReviewed, showDivider = false)
                 }
 
                 if (!narrative.findings.isNullOrBlank()) {
-                    DocumentSection(title = "Key findings", body = narrative.findings)
+                    DocumentSection(icon = Icons.Filled.Lightbulb, accent = AmberAccent, title = "Key findings", body = narrative.findings)
                 }
                 if (!narrative.recommendations.isNullOrBlank()) {
-                    DocumentSection(title = "Recommendations", body = narrative.recommendations)
+                    DocumentSection(icon = Icons.Filled.Flag, accent = TealAccent, title = "Recommendations", body = narrative.recommendations)
                 }
                 if (!narrative.notes.isNullOrBlank()) {
-                    DocumentSection(title = "Additional notes", body = narrative.notes)
+                    DocumentSection(icon = Icons.Filled.StickyNote2, accent = BlueAccent, title = "Additional notes", body = narrative.notes)
                 }
 
                 HorizontalDivider(color = Rule, thickness = 1.dp)
-                Text(
-                    text = "Figures in this document are a frozen snapshot from the moment it was generated. Later campus activity does not change these numbers.",
-                    fontSize = 10.sp,
-                    color = Muted,
-                    lineHeight = 14.sp
-                )
+                Row(
+                    verticalAlignment = Alignment.Top,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Filled.VerifiedUser, contentDescription = null, tint = Muted, modifier = Modifier.size(13.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Figures in this document are a frozen snapshot from the moment it was generated. Later campus activity does not change these numbers.",
+                        fontSize = 10.sp,
+                        color = Muted,
+                        lineHeight = 14.sp
+                    )
+                }
                 Text(
                     text = "Prepared for internal campus use  ·  Eco Campus Administration",
                     fontSize = 10.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Bold,
                     color = Forest
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -202,62 +273,96 @@ private fun MetaGrid(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(4.dp))
+            .shadow(elevation = 2.dp, shape = RoundedCornerShape(14.dp), ambientColor = Color(0x14000000), spotColor = Color(0x14000000))
+            .clip(RoundedCornerShape(14.dp))
             .background(Color.White)
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+            .border(BorderStroke(1.dp, CardBorder), RoundedCornerShape(14.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
-            MetaCell(Modifier.weight(1f), "Prepared by", preparedBy)
-            MetaCell(Modifier.weight(1f), "Department", department?.ifBlank { null } ?: "—")
+            MetaCell(Modifier.weight(1f), Icons.Filled.Person, BlueAccent, "Prepared by", preparedBy)
+            MetaCell(Modifier.weight(1f), Icons.Filled.Business, TealAccent, "Department", department?.ifBlank { null } ?: "—")
         }
         HorizontalDivider(color = Rule, thickness = 1.dp)
         Row(modifier = Modifier.fillMaxWidth()) {
-            MetaCell(Modifier.weight(1f), "Purpose", purpose?.ifBlank { null } ?: "—")
-            MetaCell(Modifier.weight(1f), "Audience", audience?.ifBlank { null } ?: "—")
+            MetaCell(Modifier.weight(1f), Icons.Filled.Flag, AmberAccent, "Purpose", purpose?.ifBlank { null } ?: "—")
+            MetaCell(Modifier.weight(1f), Icons.Filled.Groups, PurpleAccent, "Audience", audience?.ifBlank { null } ?: "—")
         }
         HorizontalDivider(color = Rule, thickness = 1.dp)
-        MetaCell(Modifier.fillMaxWidth(), "Issued", savedAt)
+        MetaCell(Modifier.fillMaxWidth(), Icons.Filled.CalendarToday, Forest, "Issued", savedAt)
     }
 }
 
 @Composable
-private fun MetaCell(modifier: Modifier = Modifier, label: String, value: String) {
-    Column(modifier = modifier.padding(end = 8.dp)) {
+private fun MetaCell(modifier: Modifier = Modifier, icon: ImageVector, accent: Color, label: String, value: String) {
+    Row(modifier = modifier.padding(end = 8.dp)) {
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clip(RoundedCornerShape(7.dp))
+                .background(accent.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.size(13.dp))
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
+            Text(
+                text = label.uppercase(),
+                fontSize = 9.sp,
+                letterSpacing = 0.8.sp,
+                fontWeight = FontWeight.Bold,
+                color = Muted
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = value,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = Ink,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun SectionHeading(icon: ImageVector, accent: Color, title: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(22.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .background(accent.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.size(12.dp))
+        }
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = label.uppercase(),
-            fontSize = 9.sp,
-            letterSpacing = 0.8.sp,
+            text = title.uppercase(),
+            fontSize = 11.sp,
+            letterSpacing = 1.2.sp,
             fontWeight = FontWeight.Bold,
-            color = Muted
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            text = value,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            color = Ink,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            color = Forest
         )
     }
 }
 
 @Composable
-private fun SectionHeading(title: String) {
-    Text(
-        text = title.uppercase(),
-        fontSize = 11.sp,
-        letterSpacing = 1.2.sp,
-        fontWeight = FontWeight.Bold,
-        color = Forest
-    )
-}
-
-@Composable
-private fun DocumentSection(title: String, body: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        SectionHeading(title)
+private fun DocumentSection(icon: ImageVector, accent: Color, title: String, body: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.White)
+            .border(BorderStroke(1.dp, CardBorder), RoundedCornerShape(14.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        SectionHeading(icon = icon, accent = accent, title = title)
         Text(
             text = body,
             fontSize = 13.sp,
@@ -268,36 +373,69 @@ private fun DocumentSection(title: String, body: String) {
 }
 
 @Composable
-private fun FigureCell(modifier: Modifier = Modifier, value: String, label: String) {
+private fun FigureCell(modifier: Modifier = Modifier, icon: ImageVector, value: String, label: String, accent: Color) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(4.dp))
-            .background(FigureBg)
+            .clip(RoundedCornerShape(14.dp))
+            .background(accent.copy(alpha = 0.08f))
+            .border(BorderStroke(1.dp, accent.copy(alpha = 0.18f)), RoundedCornerShape(14.dp))
             .padding(horizontal = 12.dp, vertical = 14.dp)
     ) {
-        Text(text = value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Forest)
+        Box(
+            modifier = Modifier
+                .size(26.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(accent.copy(alpha = 0.16f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.size(14.dp))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = accent)
         Spacer(modifier = Modifier.height(2.dp))
         Text(text = label, fontSize = 11.sp, color = Muted)
     }
 }
 
 @Composable
-private fun OutcomeRow(label: String, count: Int, total: Int) {
+private fun OutcomeRow(icon: ImageVector, accent: Color, label: String, count: Int, total: Int, showDivider: Boolean = true) {
     val percent = ((count * 100f) / total.toFloat()).toInt()
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = label, fontSize = 13.sp, color = Ink)
-        Text(
-            text = "$count   ·   $percent%",
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-            color = Forest
-        )
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.size(15.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = label, fontSize = 13.sp, color = Ink, fontWeight = FontWeight.Medium)
+            }
+            Text(
+                text = "$count   ·   $percent%",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = accent
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(accent.copy(alpha = 0.12f))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(fraction = (percent / 100f).coerceIn(0f, 1f))
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(accent)
+            )
+        }
     }
-    HorizontalDivider(color = Rule, thickness = 1.dp)
+    if (showDivider) {
+        HorizontalDivider(color = Rule, thickness = 1.dp)
+    }
 }

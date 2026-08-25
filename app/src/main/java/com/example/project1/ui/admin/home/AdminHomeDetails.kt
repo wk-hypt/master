@@ -165,7 +165,7 @@ fun SubmissionDetailDialog(
         SubmitterCard(submission.userId, submission.stallName)
 
         Spacer(modifier = Modifier.height(20.dp))
-        SectionLabel("AT A GLANCE")
+        SectionLabel("DETAILS")
         Spacer(modifier = Modifier.height(8.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StatChip(
@@ -302,13 +302,22 @@ fun TaskDetailDialog(task: TaskEntity, onDismiss: () -> Unit, onApprove: () -> U
 
 @Composable
 private fun SectionLabel(text: String) {
-    Text(
-        text,
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Bold,
-        color = TextGrey,
-        letterSpacing = 0.8.sp
-    )
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .width(3.dp)
+                .height(11.dp)
+                .background(PrimaryGreen, RoundedCornerShape(2.dp))
+        )
+        Spacer(modifier = Modifier.width(7.dp))
+        Text(
+            text,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextGrey,
+            letterSpacing = 0.8.sp
+        )
+    }
 }
 
 @Composable
@@ -326,6 +335,15 @@ private fun SubmitterCard(userId: String, subtitle: String) {
         Column(modifier = Modifier.weight(1f)) {
             Text(userId, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextDark)
             Text(subtitle, fontSize = 12.sp, color = TextGrey2, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        Box(
+            modifier = Modifier
+                .size(30.dp)
+                .clip(RoundedCornerShape(9.dp))
+                .background(Color(0xFFE8F5E9)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Default.PhotoCamera, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(15.dp))
         }
     }
 }
