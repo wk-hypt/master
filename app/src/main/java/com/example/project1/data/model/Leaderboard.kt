@@ -8,6 +8,8 @@ data class LeaderboardEntry(
     val isCurrentUser: Boolean
 )
 
+
+// class for LeaderBoard View Model to call the ui state
 sealed interface LeaderboardUiState {
     object Loading : LeaderboardUiState
     data class Success(val rankings: List<LeaderboardEntry>) : LeaderboardUiState

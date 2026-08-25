@@ -16,6 +16,7 @@ data class UserEntity(
     val birthday: String? = null
 )
 
+// add new user (through register)
 @Serializable
 data class NewUser(
     @SerialName("student_id") val studentId: String,
@@ -24,6 +25,7 @@ data class NewUser(
     val faculty: String
 )
 
+// user profile page (update info)
 @Serializable
 data class UserProfileInfoUpdate(
     val name: String,
@@ -33,17 +35,19 @@ data class UserProfileInfoUpdate(
     val birthday: String
 )
 
+// modify password
 @Serializable
 data class UserPasswordUpdate(
     val password: String
 )
+
 
 @Serializable
 data class UserPointsUpdate(
     @SerialName("total_points") val totalPoints: Int
 )
 
-/** Lifetime points awarded to each student. Spendable `totalPoints` can drop after a redeem. */
+// calculate total points earned from submissions and tasks
 fun pointsAwardedByUser(
     submissions: List<EcoSubmissionEntity>,
     tasks: List<TaskEntity>
@@ -58,6 +62,7 @@ fun pointsAwardedByUser(
     return awarded
 }
 
+// calculate total points spent to redeemed vouchers
 fun pointsSpentByUser(vouchers: List<VoucherEntity>): Map<String, Int> {
     val spent = mutableMapOf<String, Int>()
     vouchers.forEach { voucher ->
@@ -67,6 +72,7 @@ fun pointsSpentByUser(vouchers: List<VoucherEntity>): Map<String, Int> {
     return spent
 }
 
+// update user object with new total points
 fun UserEntity.withAwardedPoints(
     awarded: Map<String, Int>,
     spent: Map<String, Int> = emptyMap()

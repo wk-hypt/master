@@ -22,6 +22,7 @@ data class TaskEntity(
     @SerialName("review_timestamp") val reviewTimestamp: Long? = null
 )
 
+// add new task into supa
 @Serializable
 data class NewTask(
     @SerialName("user_id") val userId: String,
@@ -34,6 +35,7 @@ data class NewTask(
     val timestamp: Long
 )
 
+// update the progress abr of the task
 @Serializable
 data class TaskProgressUpdate(
     @SerialName("current_quantity") val currentQuantity: Int,
@@ -41,6 +43,7 @@ data class TaskProgressUpdate(
     val status: String = "InProgress"
 )
 
+// update the attribute as well
 @Serializable
 data class TaskReviewUpdate(
     val status: String,

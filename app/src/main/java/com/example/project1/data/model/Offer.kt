@@ -35,6 +35,7 @@ data class CampusVoucher(
     @SerialName("expiry_date") val expiryDate: String? = null
 )
 
+// add voucher into supa
 @Serializable
 data class NewVoucher(
     @SerialName("merchant_name") val merchantName: String,
@@ -47,15 +48,4 @@ data class NewVoucher(
     @SerialName("redeemed_by") val redeemedBy: String? = null,
     @SerialName("redeemed_at") val redeemedAt: String? = null,
     @SerialName("expiry_date") val expiryDate: String? = null
-)
-
-@Serializable
-data class VoucherRedeemUpdate(
-    @SerialName("redeemed_by") val redeemedBy: String,
-    @SerialName("redeemed_at") val redeemedAt: String
-)
-
-@Serializable
-data class VoucherUseUpdate(
-    @SerialName("is_redeemed") val isRedeemed: Boolean
 )
