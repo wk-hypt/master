@@ -3,8 +3,14 @@
 package com.example.project1.ui.users.profile
 
 import android.content.Intent
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Forest
@@ -32,20 +39,33 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Park
 import androidx.compose.material.icons.filled.Recycling
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -55,6 +75,8 @@ import androidx.compose.ui.unit.sp
 import com.example.project1.ui.common.ProfileColors
 import com.example.project1.ui.common.ProfileEcoMetric
 import com.example.project1.ui.common.ProfilePhotoAvatar
+
+private enum class BadgeBoardFilter { All, InProgress, Unlocked }
 
 private val BadgeIcons = listOf(
     Icons.Default.Eco,
@@ -81,13 +103,54 @@ internal fun AchievementsPage(
     plastics: Int,
     avatarColor: Color,
     profilePhotoPath: String?,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToLeaderboard: () -> Unit = {},
+    onNavigateToLogAction: () -> Unit = {},
+    claimedMilestones: Set<String> = emptySet(),
+    onClaimMilestone: (milestoneId: String, bonusPoints: Int) -> Unit = { _, _ -> },
+    collectedBadges: Set<String> = emptySet(),
+    onCollectBadge: (String) -> Unit = {},
+    showcaseBadgeId: String? = null,
+    onEquipBadge: (String?) -> Unit = {},
+    dailyQuestCompleted: Boolean = false,
+    completedDailyQuestId: String? = null,
+    onCompleteDailyQuest: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val tier = memberTierFor(points)
     val badges = badgesFor(points, plastics, ecoStats)
     val milestones = milestonesFor(points, plastics)
     val nextLabel = tier.nextThreshold?.let { "$points/$it points" } ?: "$points points"
+    var selectedBadge by remember { mutableStateOf<EcoBadge?>(null) }
+    var selectedMilestone by remember { mutableStateOf<EcoMilestone?>(null) }
+    var badgeFilter by remember { mutableStateOf(BadgeBoardFilter.All) }
+    var selectedWeekDay by remember { mutableIntStateOf(-1) }
+    val claimable = milestones.filter { !it.locked && it.id !in claimedMilestones }
+    val todaysQuest = remember { todaysEcoQuest() }
+    val nextChallenge = remember(badges) { nextBadgeChallenge(badges) }
+    val visibleBadges = when (badgeFilter) {
+        BadgeBoardFilter.All -> badges
+        BadgeBoardFilter.InProgress -> badges.filter { !it.unlocked }
+        BadgeBoardFilter.Unlocked -> badges.filter { it.unlocked }
+    }
+    val pulse by rememberInfiniteTransition(label = "claimPulse").animateFloat(
+        initialValue = 1f,
+        targetValue = 1.04f,
+        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
+        label = "claimPulseValue"
+    )
+
+    fun shareText(message: String) {
+        context.startActivity(
+            Intent.createChooser(
+                Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, message)
+                },
+                "Share my eco impact"
+            )
+        )
+    }
 
     Column(modifier = Modifier.fillMaxSize().background(ProfileColors.Cream)) {
         Box(
@@ -143,15 +206,95 @@ internal fun AchievementsPage(
                 }
             }
 
-            SectionTitle("UNLOCKED BADGES")
-            badges.chunked(2).forEachIndexed { rowIndex, rowItems ->
+            Spacer(modifier = Modifier.height(12.dp))
+            DailyQuestCard(
+                quest = todaysQuest,
+                completed = dailyQuestCompleted || completedDailyQuestId == todaysQuest.id,
+                onComplete = { onCompleteDailyQuest(todaysQuest.id) },
+                onLogAction = onNavigateToLogAction
+            )
+
+            nextChallenge?.let { challenge ->
+                Spacer(modifier = Modifier.height(12.dp))
+                NextChallengeCard(challenge, onNavigateToLogAction)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = onNavigateToLogAction,
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.weight(1f).height(44.dp)
+                ) {
+                    Icon(Icons.Default.Eco, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Log an action", color = ProfileColors.PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                }
+                OutlinedButton(
+                    onClick = onNavigateToLeaderboard,
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.weight(1f).height(44.dp)
+                ) {
+                    Icon(Icons.Default.Leaderboard, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Leaderboard", color = ProfileColors.PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                }
+            }
+
+            SectionTitle("BADGE BOARD")
+            Text(
+                "Collect unlocked badges, wear one on your profile, or tap a locked badge to go earn it.",
+                fontSize = 11.sp,
+                color = ProfileColors.TextGrey
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                BadgeBoardFilter.entries.forEach { option ->
+                    FilterChip(
+                        selected = badgeFilter == option,
+                        onClick = { badgeFilter = option },
+                        label = {
+                            Text(
+                                when (option) {
+                                    BadgeBoardFilter.All -> "All"
+                                    BadgeBoardFilter.InProgress -> "In progress"
+                                    BadgeBoardFilter.Unlocked -> "Unlocked"
+                                },
+                                fontSize = 12.sp
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = ProfileColors.SoftGreen,
+                            selectedLabelColor = ProfileColors.DarkGreen
+                        )
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            if (visibleBadges.isEmpty()) {
+                Text("Nothing in this filter yet. Log an eco action to start unlocking badges.", fontSize = 12.sp, color = ProfileColors.TextGrey)
+            }
+            visibleBadges.chunked(2).forEach { rowItems ->
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                    rowItems.forEachIndexed { itemIndex, badge ->
-                        val index = rowIndex * 2 + itemIndex
+                    rowItems.forEach { badge ->
+                        val index = badges.indexOf(badge)
+                        val collected = badge.id in collectedBadges
+                        val equipped = badge.id == showcaseBadgeId
                         Card(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f).clickable { selectedBadge = badge },
                             shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White)
+                            colors = CardDefaults.cardColors(
+                                containerColor = when {
+                                    equipped -> ProfileColors.SoftGreen
+                                    collected -> Color.White
+                                    else -> Color.White
+                                }
+                            ),
+                            border = when {
+                                equipped -> BorderStroke(2.dp, ProfileColors.PrimaryGreen)
+                                collected -> BorderStroke(1.dp, ProfileColors.PrimaryGreen)
+                                else -> null
+                            }
                         ) {
                             Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(
@@ -162,8 +305,21 @@ internal fun AchievementsPage(
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(badge.title, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                LinearProgressIndicator(
+                                    progress = { badge.progress },
+                                    modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(4.dp)),
+                                    color = if (badge.unlocked) ProfileColors.PrimaryGreen else Color(0xFFBDBDBD),
+                                    trackColor = Color(0xFFEDEDED)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    if (badge.unlocked) "Complete" else "Locked",
+                                    when {
+                                        equipped -> "Wearing"
+                                        collected -> "Collected"
+                                        badge.unlocked -> "Tap to collect"
+                                        else -> badge.progressLabel
+                                    },
                                     fontSize = 10.sp,
                                     color = if (badge.unlocked) ProfileColors.PrimaryGreen else Color(0xFF9E9E9E)
                                 )
@@ -197,23 +353,61 @@ internal fun AchievementsPage(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            WeeklyEcoActivityCard(ecoStats)
+            WeeklyEcoActivityCard(
+                stats = ecoStats,
+                selectedDay = selectedWeekDay,
+                onSelectDay = { selectedWeekDay = if (selectedWeekDay == it) -1 else it }
+            )
 
             SectionTitle("MY ECO GOALS")
             goalsFor(points, plastics, ecoStats).forEach { goal ->
-                GoalDetailCard(goal)
+                GoalDetailCard(goal, onClick = if (!goal.completed) onNavigateToLogAction else null)
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
             SectionTitle("UPCOMING MILESTONES")
+            if (claimable.isNotEmpty()) {
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = ProfileColors.SoftGreen),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            if (claimable.size == 1) "1 reward ready to claim!" else "${claimable.size} rewards ready to claim!",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ProfileColors.DarkGreen,
+                            modifier = Modifier.weight(1f)
+                        )
+                        TextButton(onClick = {
+                            claimable.forEach { onClaimMilestone(it.id, it.bonusPoints) }
+                        }) {
+                            Text("Claim all", fontWeight = FontWeight.Bold, color = ProfileColors.PrimaryGreen)
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+            }
             milestones.chunked(2).forEach { rowItems ->
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                     rowItems.forEach { milestone ->
                         val globalIndex = milestones.indexOf(milestone)
+                        val claimed = milestone.id in claimedMilestones
+                        val readyToClaim = !milestone.locked && !claimed
                         Card(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .scale(if (readyToClaim) pulse else 1f)
+                                .clickable { selectedMilestone = milestone },
                             shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF3A3A3A))
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (readyToClaim) ProfileColors.PrimaryGreen else Color(0xFF3A3A3A)
+                            )
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -223,22 +417,32 @@ internal fun AchievementsPage(
                                         tint = Color.White,
                                         modifier = Modifier.size(20.dp)
                                     )
-                                    if (milestone.locked) {
-                                        Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFFBDBDBD), modifier = Modifier.size(16.dp))
+                                    when {
+                                        claimed -> Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                                        milestone.locked -> Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFFBDBDBD), modifier = Modifier.size(16.dp))
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(milestone.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                                Text("${(milestone.progress * 100).toInt()}%", color = Color(0xFFB2DFDB), fontSize = 11.sp)
+                                Text(
+                                    if (claimed) "Claimed" else "${(milestone.progress * 100).toInt()}%",
+                                    color = Color(0xFFB2DFDB),
+                                    fontSize = 11.sp
+                                )
                                 Spacer(modifier = Modifier.height(6.dp))
                                 LinearProgressIndicator(
                                     progress = { milestone.progress },
                                     modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(6.dp)),
-                                    color = Color(0xFF81C784),
+                                    color = if (readyToClaim) Color.White else Color(0xFF81C784),
                                     trackColor = Color(0xFF616161)
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Text(milestone.detail, color = Color(0xFFBDBDBD), fontSize = 10.sp)
+                                Text(
+                                    if (readyToClaim) "Tap to claim +${milestone.bonusPoints} pts" else milestone.detail,
+                                    color = if (readyToClaim) Color.White else Color(0xFFBDBDBD),
+                                    fontSize = 10.sp,
+                                    fontWeight = if (readyToClaim) FontWeight.Bold else FontWeight.Normal
+                                )
                             }
                         }
                     }
@@ -249,16 +453,9 @@ internal fun AchievementsPage(
 
             OutlinedButton(
                 onClick = {
-                    val shareText = "I've earned $points eco points and saved $plastics plastic items " +
-                            "through ECO TARUMT! Currently ranked as a ${tier.name}. Join me in going green."
-                    context.startActivity(
-                        Intent.createChooser(
-                            Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_TEXT, shareText)
-                            },
-                            "Share my eco impact"
-                        )
+                    shareText(
+                        "I've earned $points eco points and saved $plastics plastic items " +
+                                "through ECO TARUMT! Currently ranked as a ${tier.name}. Join me in going green."
                     )
                 },
                 shape = RoundedCornerShape(24.dp),
@@ -268,6 +465,211 @@ internal fun AchievementsPage(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Share my impact", color = ProfileColors.PrimaryGreen, fontWeight = FontWeight.Medium)
             }
+        }
+    }
+
+    selectedBadge?.let { badge ->
+        val collected = badge.id in collectedBadges
+        val equipped = badge.id == showcaseBadgeId
+        AlertDialog(
+            onDismissRequest = { selectedBadge = null },
+            title = { Text(badge.title, fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Text(badge.description, fontSize = 13.sp, color = ProfileColors.TextGrey)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    LinearProgressIndicator(
+                        progress = { badge.progress },
+                        modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(8.dp)),
+                        color = ProfileColors.PrimaryGreen,
+                        trackColor = Color(0xFFE0E0E0)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        when {
+                            equipped -> "This badge is on your profile."
+                            collected -> "Collected · wear it or share it."
+                            badge.unlocked -> "Unlocked · collect it to add it to your board."
+                            else -> "Progress: ${badge.progressLabel}"
+                        },
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = ProfileColors.PrimaryGreen
+                    )
+                }
+            },
+            confirmButton = {
+                when {
+                    !badge.unlocked -> Button(
+                        onClick = {
+                            selectedBadge = null
+                            onNavigateToLogAction()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                    ) { Text("Log an action") }
+                    !collected -> Button(
+                        onClick = {
+                            onCollectBadge(badge.id)
+                            selectedBadge = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                    ) { Text("Collect badge") }
+                    equipped -> Button(
+                        onClick = {
+                            onEquipBadge(null)
+                            selectedBadge = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                    ) { Text("Unequip") }
+                    else -> Button(
+                        onClick = {
+                            onEquipBadge(badge.id)
+                            selectedBadge = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                    ) { Text("Wear on profile") }
+                }
+            },
+            dismissButton = {
+                if (badge.unlocked && collected) {
+                    TextButton(onClick = {
+                        shareText("I unlocked the ${badge.title} badge on ECO TARUMT!")
+                        selectedBadge = null
+                    }) { Text("Share") }
+                } else {
+                    TextButton(onClick = { selectedBadge = null }) { Text("Close") }
+                }
+            }
+        )
+    }
+
+    selectedMilestone?.let { milestone ->
+        val claimed = milestone.id in claimedMilestones
+        val readyToClaim = !milestone.locked && !claimed
+        AlertDialog(
+            onDismissRequest = { selectedMilestone = null },
+            title = { Text(milestone.title, fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Text(
+                        if (claimed) "Reward already claimed." else "Reach this milestone to claim a +${milestone.bonusPoints} point bonus.",
+                        fontSize = 13.sp,
+                        color = ProfileColors.TextGrey
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    LinearProgressIndicator(
+                        progress = { milestone.progress },
+                        modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(8.dp)),
+                        color = ProfileColors.PrimaryGreen,
+                        trackColor = Color(0xFFE0E0E0)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        when {
+                            claimed -> "Claimed"
+                            !milestone.locked -> "Milestone reached · reward unclaimed"
+                            else -> milestone.detail
+                        },
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = ProfileColors.PrimaryGreen
+                    )
+                }
+            },
+            confirmButton = {
+                when {
+                    readyToClaim -> Button(
+                        onClick = {
+                            onClaimMilestone(milestone.id, milestone.bonusPoints)
+                            selectedMilestone = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                    ) { Text("Claim +${milestone.bonusPoints} pts") }
+                    milestone.locked -> Button(
+                        onClick = {
+                            selectedMilestone = null
+                            onNavigateToLogAction()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                    ) { Text("Log an action") }
+                    else -> TextButton(onClick = { selectedMilestone = null }) { Text("Nice!") }
+                }
+            },
+            dismissButton = {
+                if (milestone.locked || readyToClaim) {
+                    TextButton(onClick = { selectedMilestone = null }) { Text("Close") }
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun DailyQuestCard(
+    quest: DailyEcoQuest,
+    completed: Boolean,
+    onComplete: () -> Unit,
+    onLogAction: () -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = if (completed) ProfileColors.SoftGreen else Color.White),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("TODAY'S QUEST", color = ProfileColors.PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(quest.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(quest.hint, fontSize = 12.sp, color = ProfileColors.TextGrey)
+            Spacer(modifier = Modifier.height(10.dp))
+            if (completed) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Done · +5 pts added", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = ProfileColors.DarkGreen)
+                }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = onComplete,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                    ) { Text("I did this") }
+                    OutlinedButton(onClick = onLogAction, modifier = Modifier.weight(1f)) {
+                        Text("Submit proof", color = ProfileColors.PrimaryGreen)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NextChallengeCard(badge: EcoBadge, onLogAction: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp),
+        modifier = Modifier.clickable(onClick = onLogAction)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Star, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("NEXT CHALLENGE", color = ProfileColors.PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(badge.title, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Text(badge.description, fontSize = 12.sp, color = ProfileColors.TextGrey)
+            Spacer(modifier = Modifier.height(8.dp))
+            LinearProgressIndicator(
+                progress = { badge.progress },
+                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(8.dp)),
+                color = ProfileColors.PrimaryGreen,
+                trackColor = Color(0xFFE0E0E0)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text("${badge.progressLabel} · tap to log an action", fontSize = 11.sp, color = ProfileColors.TextGrey)
         }
     }
 }
@@ -280,7 +682,11 @@ private fun SectionTitle(text: String) {
 }
 
 @Composable
-private fun WeeklyEcoActivityCard(stats: EcoProfileStats) {
+private fun WeeklyEcoActivityCard(
+    stats: EcoProfileStats,
+    selectedDay: Int,
+    onSelectDay: (Int) -> Unit
+) {
     val maxValue = stats.weeklyActivity.maxOrNull()?.coerceAtLeast(1) ?: 1
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -299,10 +705,13 @@ private fun WeeklyEcoActivityCard(stats: EcoProfileStats) {
                 verticalAlignment = Alignment.Bottom
             ) {
                 stats.weeklyActivity.forEachIndexed { index, count ->
+                    val selected = selectedDay == index
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Bottom,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { onSelectDay(index) }
                     ) {
                         Text(count.toString(), fontSize = 9.sp, color = ProfileColors.TextGrey)
                         Spacer(modifier = Modifier.height(4.dp))
@@ -311,7 +720,13 @@ private fun WeeklyEcoActivityCard(stats: EcoProfileStats) {
                                 .width(18.dp)
                                 .height((12 + (72 * count.toFloat() / maxValue)).dp)
                                 .clip(RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp))
-                                .background(if (count > 0) ProfileColors.PrimaryGreen else Color(0xFFDDE8DE))
+                                .background(
+                                    when {
+                                        selected -> ProfileColors.DarkGreen
+                                        count > 0 -> ProfileColors.PrimaryGreen
+                                        else -> Color(0xFFDDE8DE)
+                                    }
+                                )
                         )
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(stats.weeklyLabels.getOrElse(index) { "" }, fontSize = 9.sp, color = ProfileColors.TextGrey)
@@ -319,14 +734,26 @@ private fun WeeklyEcoActivityCard(stats: EcoProfileStats) {
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Text("Approved eco actions completed during the last 7 days.", fontSize = 10.sp, color = ProfileColors.TextGrey)
+            Text(
+                if (selectedDay in stats.weeklyActivity.indices) {
+                    val count = stats.weeklyActivity[selectedDay]
+                    val label = stats.weeklyLabels.getOrElse(selectedDay) { "that day" }
+                    if (count == 0) "No approved actions on $label. Tap Log an action to change that."
+                    else "$count approved action${if (count == 1) "" else "s"} on $label."
+                } else {
+                    "Tap a bar to inspect that day."
+                },
+                fontSize = 10.sp,
+                color = ProfileColors.TextGrey
+            )
         }
     }
 }
 
 @Composable
-private fun GoalDetailCard(goal: EcoGoal) {
+private fun GoalDetailCard(goal: EcoGoal, onClick: (() -> Unit)? = null) {
     Card(
+        modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = if (goal.completed) ProfileColors.SoftGreen else Color.White),
         border = if (goal.completed) null else BorderStroke(1.dp, Color(0xFFE0E7E0))
@@ -348,6 +775,10 @@ private fun GoalDetailCard(goal: EcoGoal) {
                 color = ProfileColors.PrimaryGreen,
                 trackColor = Color(0xFFE0E0E0)
             )
+            if (!goal.completed && onClick != null) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text("Tap to log an eco action towards this goal", fontSize = 10.sp, color = ProfileColors.TextGrey)
+            }
         }
     }
 }

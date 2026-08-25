@@ -77,6 +77,7 @@ internal fun ProfileHubPage(
     onBackgroundPhotoPicked: (android.net.Uri) -> Unit,
     onRemoveBackgroundPhoto: () -> Unit,
     pendingCount: Int,
+    showcaseBadgeTitle: String? = null,
     onOpenInfo: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenAchievements: () -> Unit,
@@ -136,6 +137,17 @@ internal fun ProfileHubPage(
                         fontSize = 13.sp,
                         color = ProfileColors.TextGrey
                     )
+                    if (!showcaseBadgeTitle.isNullOrBlank()) {
+                        Text(
+                            "Wearing: $showcaseBadgeTitle",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = ProfileColors.PrimaryGreen,
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .clickable(onClick = onOpenAchievements)
+                        )
+                    }
                     if (profilePhotoPath != null) {
                         Text(
                             "Remove photo",

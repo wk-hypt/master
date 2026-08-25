@@ -47,6 +47,17 @@ fun ProfileFunct(
     onLogout: () -> Unit,
     startOnHistory: Boolean = false,
     onToggleNotifications: (Boolean) -> Unit = {},
+    onNavigateToLeaderboard: () -> Unit = {},
+    onNavigateToLogAction: () -> Unit = {},
+    claimedMilestones: Set<String> = emptySet(),
+    onClaimMilestone: (milestoneId: String, bonusPoints: Int) -> Unit = { _, _ -> },
+    collectedBadges: Set<String> = emptySet(),
+    onCollectBadge: (String) -> Unit = {},
+    showcaseBadgeId: String? = null,
+    onEquipBadge: (String?) -> Unit = {},
+    dailyQuestCompleted: Boolean = false,
+    completedDailyQuestId: String? = null,
+    onCompleteDailyQuest: (String) -> Unit = {},
     snackbarHost: @Composable () -> Unit = {}
 ) {
     var page by remember {
@@ -86,6 +97,9 @@ fun ProfileFunct(
                     pendingCount = submissions.count { it.status.equals("Pending", ignoreCase = true) },
                     onOpenInfo = { page = UserProfilePage.Info },
                     onOpenHistory = { page = UserProfilePage.History },
+                    showcaseBadgeTitle = showcaseBadgeId?.let { id ->
+                        badgesFor(points, plastics, ecoStats).firstOrNull { it.id == id }?.title
+                    },
                     onOpenAchievements = { page = UserProfilePage.Achievements },
                     onOpenSettings = { page = UserProfilePage.Settings },
                     onLogout = { showLogoutConfirm = true }
@@ -113,7 +127,18 @@ fun ProfileFunct(
                     plastics = plastics,
                     avatarColor = avatarColor,
                     profilePhotoPath = profilePhotoPath,
-                    onBack = { page = UserProfilePage.Hub }
+                    onBack = { page = UserProfilePage.Hub },
+                    onNavigateToLeaderboard = onNavigateToLeaderboard,
+                    onNavigateToLogAction = onNavigateToLogAction,
+                    claimedMilestones = claimedMilestones,
+                    onClaimMilestone = onClaimMilestone,
+                    collectedBadges = collectedBadges,
+                    onCollectBadge = onCollectBadge,
+                    showcaseBadgeId = showcaseBadgeId,
+                    onEquipBadge = onEquipBadge,
+                    dailyQuestCompleted = dailyQuestCompleted,
+                    completedDailyQuestId = completedDailyQuestId,
+                    onCompleteDailyQuest = onCompleteDailyQuest
                 )
                 UserProfilePage.Settings -> SettingsPage(
                     notificationsEnabled = notificationsEnabled,
