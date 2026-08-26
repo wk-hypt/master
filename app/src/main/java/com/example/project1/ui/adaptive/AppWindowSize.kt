@@ -8,10 +8,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Material 3 window width buckets:
- * Compact  < 600dp  — phone portrait, folded outer screen
- * Medium   600–839  — phone landscape, unfolded foldable, 7" tablet
- * Expanded >= 840dp — iPad / 10"+ tablet, large unfolded foldable
+ * Material 3 window width buckets describe current width only.
+ * Phone landscape is still a phone: rail / two-pane use shortest side >= 600dp.
  */
 enum class WidthSize { Compact, Medium, Expanded }
 
@@ -44,25 +42,30 @@ data class AppWindowSize(
                 else -> HeightSize.Expanded
             }
             val isLandscape = widthDp > heightDp
+            // Phone landscape is still a phone: shortest side stays ~360dp.
+            // Only tablets (shortest side >= 600dp) get rail + two-pane layouts.
+            val isTablet = minOf(widthDp, heightDp) >= 600.dp
             return AppWindowSize(
                 widthDp = widthDp,
                 heightDp = heightDp,
                 widthSize = widthSize,
                 heightSize = heightSize,
                 isLandscape = isLandscape,
-                useNavigationRail = widthSize != WidthSize.Compact || isLandscape,
-                useTwoPane = widthSize != WidthSize.Compact,
-                gridColumns = when (widthSize) {
+                useNavigationRail = isTablet,
+                useTwoPane = isTablet,
+                gridColumns = if (!isTablet) {
+                    1
+                } else when (widthSize) {
                     WidthSize.Compact -> 1
                     WidthSize.Medium -> 2
                     WidthSize.Expanded -> 3
                 },
-                contentMaxWidth = when (widthSize) {
+                contentMaxWidth = if (!isTablet) widthDp else when (widthSize) {
                     WidthSize.Compact -> widthDp
                     WidthSize.Medium -> 840.dp
                     WidthSize.Expanded -> 1100.dp
                 },
-                useFullScreenDialog = widthSize == WidthSize.Compact && !isLandscape
+                useFullScreenDialog = !isTablet
             )
         }
     }

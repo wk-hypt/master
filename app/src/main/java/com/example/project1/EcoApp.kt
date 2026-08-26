@@ -1,5 +1,6 @@
 package com.example.project1
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
@@ -93,6 +94,7 @@ fun EcoApp() {
 
 @Composable
 private fun EcoAppContent(onEndSession: () -> Unit) {
+    BackHandler { }
     val navController = rememberNavController()
     val app = LocalContext.current.applicationContext as EcoApplication
     val notificationViewModel: NotificationViewModel = viewModel(factory = AppViewModelProvider.Factory)

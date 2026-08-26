@@ -85,11 +85,12 @@ fun EcoBottomBar(
     destinations: List<EcoNavDestination>,
     modifier: Modifier = Modifier
 ) {
+    val compactHeight = LocalAppWindowInfo.current.heightSize == HeightSize.Compact
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 0.dp,
         modifier = modifier
-            .height(120.dp)
+            .height(if (compactHeight) 72.dp else 120.dp)
             .border(width = 0.5.dp, color = EcoColors.NavBorder)
     ) {
         destinations.forEach { dest ->

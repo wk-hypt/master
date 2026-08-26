@@ -72,6 +72,7 @@ fun EcoUploadDialog(
 
     var terms by remember { mutableStateOf(false) }
     var showTermsDialog by remember { mutableStateOf(false) }
+    var showReplacePhotoDialog by remember { mutableStateOf(false) }
 
     val actionTypeOptions = listOf(
         "Bring Own Food Container",
@@ -134,7 +135,13 @@ fun EcoUploadDialog(
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? -> captured = uri }
+    ) { uri: Uri? ->
+        if (uri != null) captured = uri
+    }
+
+    fun openGallery() {
+        imagePickerLauncher.launch("image/*")
+    }
 
     AdaptiveDialogSurface(onDismiss = onDismiss) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -247,7 +254,11 @@ fun EcoUploadDialog(
                                 textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
                             ),
                             modifier = Modifier.clickable {
-                                imagePickerLauncher.launch("image/*")
+                                if (captured != null) {
+                                    showReplacePhotoDialog = true
+                                } else {
+                                    openGallery()
+                                }
                             }
                         )
                     }
@@ -295,7 +306,7 @@ fun EcoUploadDialog(
                         value = stallName,
                         onValueChange = { stallName = it.withoutEmoji() },
                         label = { RequiredLabel("Stall Name") },
-                        placeholder = { Text("e.g. Noodles Yum") },
+                        placeholder = { Text("e.g. Convenience Store Name") },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = EcoColors.PrimaryGreen,
@@ -461,6 +472,30 @@ fun EcoUploadDialog(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
+    }
+
+    if (showReplacePhotoDialog) {
+        AlertDialog(
+            onDismissRequest = { showReplacePhotoDialog = false },
+            title = { Text("Replace photo?", fontWeight = FontWeight.Bold, color = Color.Black) },
+            text = { Text("You already have a photo. Choose a new one from the gallery?", color = Color.Black) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showReplacePhotoDialog = false
+                        openGallery()
+                    }
+                ) {
+                    Text("Replace", color = EcoColors.PrimaryGreen, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showReplacePhotoDialog = false }) {
+                    Text("Cancel", color = Color.Red)
+                }
+            },
+            containerColor = Color.White
+        )
     }
 
     if (showTermsDialog) {

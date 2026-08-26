@@ -80,7 +80,10 @@ fun AdaptiveDialogFrame(
 ) {
     androidx.compose.ui.window.Dialog(
         onDismissRequest = onDismiss,
-        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+        properties = androidx.compose.ui.window.DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = false
+        )
     ) {
         val info = LocalAppWindowInfo.current
         if (info.useFullScreenDialog) {
