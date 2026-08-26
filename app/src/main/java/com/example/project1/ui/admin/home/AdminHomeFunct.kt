@@ -87,16 +87,17 @@ fun AdminHomeFunct(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(Icons.Filled.DesktopWindows, contentDescription = null)
+                Spacer(modifier = Modifier.width(if (compactHeader) 6.dp else 12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Approval Page",
-                        fontSize = if (compactHeader) 20.sp else 22.sp,
+                        fontSize = if (compactHeader) 16.sp else 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextDark
                     )
                     Text(
                         "Do your best, then leave the rest",
-                        fontSize = 14.sp,
+                        fontSize = 12.sp,
                         color = TextGrey
                     )
                 }
