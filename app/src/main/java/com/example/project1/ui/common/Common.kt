@@ -81,6 +81,12 @@ private val dateFormatter by lazy {
 
 fun Long.toFormattedDate(): String = dateFormatter.format(Date(this))
 
+private val dateTimeFormatter by lazy {
+    SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
+}
+
+fun Long.toFormattedDateTime(): String = dateTimeFormatter.format(Date(this))
+
 fun TaskEntity.normalizedStatusText(): String = when {
     status.equals("Approved", ignoreCase = true) -> "Approved"
     status.equals("Pending", ignoreCase = true) -> "Pending Approval"
