@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.project1.common.RequiredLabel
+import com.example.project1.common.withoutEmoji
 import com.example.project1.data.model.VoucherEntity
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -169,7 +170,7 @@ fun VoucherFormDialog(
 
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = { title = it.withoutEmoji() },
                 label = { RequiredLabel("Voucher Title") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -182,7 +183,7 @@ fun VoucherFormDialog(
 
             OutlinedTextField(
                 value = merchant,
-                onValueChange = { merchant = it },
+                onValueChange = { merchant = it.withoutEmoji() },
                 label = { RequiredLabel("Merchant Name") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -195,7 +196,7 @@ fun VoucherFormDialog(
 
             OutlinedTextField(
                 value = category,
-                onValueChange = { category = it },
+                onValueChange = { category = it.withoutEmoji() },
                 label = { RequiredLabel("Category (e.g. Food, Beverage)") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),

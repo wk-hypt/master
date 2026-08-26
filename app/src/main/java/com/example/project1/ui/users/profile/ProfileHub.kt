@@ -72,7 +72,6 @@ internal fun ProfileHubPage(
     completeness: Float,
     profilePhotoPath: String?,
     onProfilePhotoPicked: (android.net.Uri) -> Unit,
-    onRemoveProfilePhoto: () -> Unit,
     backgroundPhotoPath: String?,
     onBackgroundPhotoPicked: (android.net.Uri) -> Unit,
     onRemoveBackgroundPhoto: () -> Unit,
@@ -146,16 +145,6 @@ internal fun ProfileHubPage(
                             modifier = Modifier
                                 .padding(top = 4.dp)
                                 .clickable(onClick = onOpenAchievements)
-                        )
-                    }
-                    if (profilePhotoPath != null) {
-                        Text(
-                            "Remove photo",
-                            fontSize = 11.sp,
-                            color = Color(0xFF9E9E9E),
-                            modifier = Modifier
-                                .padding(top = 2.dp)
-                                .clickable(onClick = onRemoveProfilePhoto)
                         )
                     }
                 }

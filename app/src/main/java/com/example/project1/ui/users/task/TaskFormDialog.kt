@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project1.common.RequiredLabel
+import com.example.project1.common.withoutEmoji
 import com.example.project1.data.model.TaskEntity
 import com.example.project1.ui.adaptive.AdaptiveDialogSurface
 import java.text.SimpleDateFormat
@@ -95,7 +96,7 @@ fun TargetFormDialog(
             ) {
                 OutlinedTextField(
                     value = title,
-                    onValueChange = { title = it },
+                    onValueChange = { title = it.withoutEmoji() },
                     label = { RequiredLabel("Target Title") },
                     placeholder = { Text("e.g. No plastic straws this week") },
                     modifier = Modifier.fillMaxWidth(),
@@ -114,7 +115,7 @@ fun TargetFormDialog(
 
                 OutlinedTextField(
                     value = description,
-                    onValueChange = { description = it },
+                    onValueChange = { description = it.withoutEmoji() },
                     label = { Text("Description (optional)") },
                     placeholder = { Text("Tell us more about your target") },
                     modifier = Modifier

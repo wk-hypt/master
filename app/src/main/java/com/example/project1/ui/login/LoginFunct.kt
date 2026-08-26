@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.project1.common.withoutEmoji
 import com.example.project1.ui.adaptive.AdaptiveDialogFrame
 import com.example.project1.ui.adaptive.AdaptiveScrollColumn
 import com.example.project1.ui.adaptive.HeightSize
@@ -194,7 +195,7 @@ private fun ColumnScope.LoginFormFields(
 
     OutlinedTextField(
         value = uiState.studentId,
-        onValueChange = onIdChange,
+        onValueChange = { onIdChange(it.withoutEmoji()) },
         label = { Text("Student ID") },
         placeholder = { Text("e.g. 2503994") },
         modifier = Modifier.fillMaxWidth().widthIn(max = 480.dp),
@@ -210,7 +211,7 @@ private fun ColumnScope.LoginFormFields(
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = uiState.name,
-            onValueChange = onNameChange,
+            onValueChange = { onNameChange(it.withoutEmoji()) },
             label = { Text("Full Name") },
             modifier = Modifier.fillMaxWidth().widthIn(max = 480.dp),
             singleLine = true,
@@ -226,7 +227,7 @@ private fun ColumnScope.LoginFormFields(
 
     OutlinedTextField(
         value = uiState.password,
-        onValueChange = onPasswordChange,
+        onValueChange = { onPasswordChange(it.withoutEmoji()) },
         label = { Text("Password") },
         modifier = Modifier.fillMaxWidth().widthIn(max = 480.dp),
         singleLine = true,

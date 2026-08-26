@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.project1.common.withoutEmoji
 import com.example.project1.ui.theme.EcoColors
 
 private val QuickPointOptions = listOf(10, 20, 50, 100)
@@ -209,7 +210,7 @@ fun RejectFeedbackDialog(studentId: String, onDismiss: () -> Unit, onConfirm: (f
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = feedbackInput,
-                    onValueChange = { feedbackInput = it },
+                    onValueChange = { feedbackInput = it.withoutEmoji() },
                     label = { Text("Reason for rejection") },
                     placeholder = { Text("e.g. Proof incomplete, please resubmit") },
                     shape = RoundedCornerShape(12.dp),

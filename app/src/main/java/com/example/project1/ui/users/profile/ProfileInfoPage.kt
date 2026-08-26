@@ -2,8 +2,6 @@
 
 package com.example.project1.ui.users.profile
 
-import android.app.DatePickerDialog
-import android.util.Patterns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +21,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropUp
@@ -37,13 +36,18 @@ import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,19 +58,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.project1.common.withoutEmoji
 import com.example.project1.data.model.UserEntity
 import com.example.project1.ui.common.ProfileCameraBadge
 import com.example.project1.ui.common.ProfilePageHeader
 import com.example.project1.ui.common.ProfilePhotoAvatar
 import com.example.project1.ui.common.launchImagePicker
 import com.example.project1.ui.common.rememberImagePicker
-import java.util.Calendar
 import com.example.project1.ui.theme.EcoColors
+import java.util.Calendar
+import java.util.TimeZone
 
 private val TarUmtFaculties = listOf(
     "FAFB" to "Faculty of Accountancy, Finance and Business",
@@ -85,12 +91,37 @@ private fun facultyDisplayName(code: String): String {
     return if (match != null) "${match.first} - ${match.second}" else trimmed
 }
 
-private fun isValidEmail(email: String): Boolean =
-    email.isBlank() || Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
+private val BirthdayUtc = TimeZone.getTimeZone("UTC")
+private const val MinBirthdayYear = 1920
 
-private fun isValidPhone(phone: String): Boolean =
-    phone.isBlank() || Regex("^[+]?[0-9 ()-]{7,15}$").matches(phone.trim())
+private fun utcCalendar(): Calendar = Calendar.getInstance(BirthdayUtc)
 
+private fun birthdayToMillis(birthday: String): Long? {
+    val parts = birthday.trim().split("/")
+    if (parts.size != 3) return null
+    val day = parts[0].toIntOrNull() ?: return null
+    val month = parts[1].toIntOrNull() ?: return null
+    val year = parts[2].toIntOrNull() ?: return null
+    return utcCalendar().apply {
+        clear()
+        set(year, month - 1, day)
+    }.timeInMillis
+}
+
+private fun millisToBirthday(millis: Long): String {
+    val cal = utcCalendar().apply { timeInMillis = millis }
+    return "%02d/%02d/%04d".format(
+        cal.get(Calendar.DAY_OF_MONTH),
+        cal.get(Calendar.MONTH) + 1,
+        cal.get(Calendar.YEAR)
+    )
+}
+
+private fun defaultBirthdayMillis(): Long = utcCalendar().apply {
+    add(Calendar.YEAR, -18)
+}.timeInMillis
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ProfileInfoPage(
     user: UserEntity?,
@@ -103,7 +134,6 @@ internal fun ProfileInfoPage(
     onBack: () -> Unit,
     onSave: (name: String, faculty: String, phone: String, email: String, birthday: String) -> Unit
 ) {
-    val context = LocalContext.current
     val photoPicker = rememberImagePicker(onProfilePhotoPicked)
     var name by remember(user?.studentId, user?.name) { mutableStateOf(user?.name.orEmpty()) }
     var faculty by remember(user?.studentId, user?.faculty) {
@@ -113,13 +143,35 @@ internal fun ProfileInfoPage(
     var email by remember(user?.studentId, user?.email) { mutableStateOf(user?.email.orEmpty()) }
     var birthday by remember(user?.studentId, user?.birthday) { mutableStateOf(user?.birthday.orEmpty()) }
     var showColorPicker by remember { mutableStateOf(false) }
+    var showBirthdayPicker by remember { mutableStateOf(false) }
     var showFacultyPicker by remember { mutableStateOf(false) }
-    var touched by remember { mutableStateOf(false) }
+    var errorName by remember { mutableStateOf<String?>(null) }
+    var errorEmail by remember { mutableStateOf<String?>(null) }
+    var errorPhoneNumber by remember { mutableStateOf<String?>(null) }
 
-    val nameError = touched && name.isBlank()
-    val emailError = touched && !isValidEmail(email)
-    val phoneError = touched && !isValidPhone(phone)
-    val canSave = name.isNotBlank() && isValidEmail(email) && isValidPhone(phone)
+    fun validate(): Boolean {
+        errorName = when {
+            name.isBlank() -> "Name cannot be empty"
+            name.trim().length < 3 -> "Name must consists at least 3 characters"
+            !name.all { it.isLetter() || it.isWhitespace() } -> "Name can only consists character and space"
+            else -> null
+        }
+
+        errorEmail = when {
+            email.isBlank() -> null
+            !email.contains("@") || !email.contains(".com") -> "Invalid email, did not consists @ and .com"
+            else -> null
+        }
+
+        val phoneDigits = phone.filter { it.isDigit() }
+        errorPhoneNumber = when {
+            phone.isBlank() -> null
+            phoneDigits.length > 11 || phoneDigits.length < 10 -> "Invalid Phone Number, it is not a phone number!"
+            else -> null
+        }
+
+        return errorName == null && errorEmail == null && errorPhoneNumber == null
+    }
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         ProfilePageHeader(title = "Profile info", onBack = onBack)
@@ -174,33 +226,54 @@ internal fun ProfileInfoPage(
 
             Spacer(modifier = Modifier.height(20.dp))
             ProfileField(label = "Student ID", value = user?.studentId.orEmpty().ifBlank { "—" }, readOnly = true, enabled = false, headingIcon = Icons.Default.Badge)
-            ProfileField(label = "Name", value = name, isError = nameError, supportingText = if (nameError) "Name cannot be empty" else null, headingIcon = Icons.Default.Person, onValueChange = { name = it })
-            ProfileField(label = "Phone No", value = phone, isError = phoneError, supportingText = if (phoneError) "Enter a valid phone number" else "Optional", headingIcon = Icons.Default.Phone, onValueChange = { phone = it })
-            ProfileField(label = "Email", value = email, isError = emailError, supportingText = if (emailError) "Enter a valid email address" else "Optional", headingIcon = Icons.Default.Email, onValueChange = { email = it })
+            ProfileField(
+                label = "Name",
+                value = name,
+                isError = errorName != null,
+                supportingText = errorName,
+                headingIcon = Icons.Default.Person,
+                onValueChange = { name = it }
+            )
+
+            ProfileField(
+                label = "Phone No",
+                value = phone,
+                isError = errorPhoneNumber != null,
+                supportingText = errorPhoneNumber ?: "Optional",
+                headingIcon = Icons.Default.Phone,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                onValueChange = { input ->
+                    val filtered = input.filter { it.isDigit() || it == '-' }
+                    if (filtered.length <= 12) {
+                        phone = filtered
+                    }
+                }
+            )
+            ProfileField(
+                label = "Email",
+                value = email,
+                isError = errorEmail != null,
+                supportingText = errorEmail ?: "Optional",
+                headingIcon = Icons.Default.Email,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                onValueChange = { input ->
+                    email = input.trim()
+                }
+            )
             ProfileField(
                 label = "Birthday Date",
                 value = birthday,
                 readOnly = true,
                 headingIcon = Icons.Default.Cake,
                 trailingIcon = Icons.Default.ArrowDropUp,
-                onClick = {
-                    val cal = Calendar.getInstance()
-                    DatePickerDialog(
-                        context,
-                        { _, year, month, day -> birthday = "%02d/%02d/%04d".format(day, month + 1, year) },
-                        cal.get(Calendar.YEAR),
-                        cal.get(Calendar.MONTH),
-                        cal.get(Calendar.DAY_OF_MONTH)
-                    ).apply { datePicker.maxDate = System.currentTimeMillis() }.show()
-                }
+                onClick = { showBirthdayPicker = true }
             )
             ProfileField(label = "Faculty", value = facultyDisplayName(faculty), readOnly = true, headingIcon = Icons.Default.School, trailingIcon = Icons.Default.ArrowDropUp, onClick = { showFacultyPicker = true })
 
             Spacer(modifier = Modifier.height(24.dp))
             Button(
                 onClick = {
-                    touched = true
-                    if (canSave) onSave(name.trim(), faculty, phone.trim(), email.trim(), birthday.trim())
+                    if (validate()) onSave(name.trim(), faculty, phone.trim(), email.trim(), birthday.trim())
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
                 shape = RoundedCornerShape(24.dp),
@@ -249,10 +322,45 @@ internal fun ProfileInfoPage(
         )
     }
 
+    if (showBirthdayPicker) {
+        val currentYear = remember { Calendar.getInstance().get(Calendar.YEAR) }
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = birthdayToMillis(birthday) ?: defaultBirthdayMillis(),
+            yearRange = MinBirthdayYear..currentYear,
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean =
+                    utcTimeMillis <= System.currentTimeMillis()
+
+                override fun isSelectableYear(year: Int): Boolean =
+                    year in MinBirthdayYear..currentYear
+            }
+        )
+        DatePickerDialog(
+            onDismissRequest = { showBirthdayPicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { birthday = millisToBirthday(it) }
+                        showBirthdayPicker = false
+                    }
+                ) {
+                    Text("OK", color = EcoColors.PrimaryGreen)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showBirthdayPicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
     if (showFacultyPicker) {
         AlertDialog(
             onDismissRequest = { showFacultyPicker = false },
-            title = { Text("Choose your faculty", fontWeight = FontWeight.Bold) },
+            title = { Text("Choose your faculty", fontWeight = FontWeight.Bold, color = Color.Black) },
             text = {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                     TarUmtFaculties.forEach { (code, facultyName) ->
@@ -296,6 +404,7 @@ private fun ProfileField(
     supportingText: String? = null,
     headingIcon: ImageVector? = null,
     trailingIcon: ImageVector? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     onClick: (() -> Unit)? = null,
     onValueChange: (String) -> Unit = {}
 ) {
@@ -305,11 +414,12 @@ private fun ProfileField(
         Box(modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier) {
             OutlinedTextField(
                 value = value,
-                onValueChange = onValueChange,
+                onValueChange = { onValueChange(it.withoutEmoji()) },
                 readOnly = readOnly || onClick != null,
                 enabled = enabled && onClick == null,
                 isError = isError,
                 singleLine = true,
+                keyboardOptions = keyboardOptions,
                 modifier = Modifier.fillMaxWidth(),
                 leadingIcon = headingIcon?.let { icon ->
                     { Icon(imageVector = icon, contentDescription = label, tint = Color(0xFF424242)) }
@@ -318,7 +428,7 @@ private fun ProfileField(
                     { Icon(imageVector = icon, contentDescription = "Select $label", tint = Color(0xFF424242)) }
                 },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = EcoColors.PrimaryGreen,
+                    focusedBorderColor = Color(0xFF2E7D32),
                     focusedLabelColor = Color.Black,
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black,
@@ -334,7 +444,7 @@ private fun ProfileField(
                         Text(
                             text,
                             fontSize = 11.sp,
-                            color = if (isError) EcoColors.Danger else EcoColors.TextMuted
+                            color = if (isError) EcoColors.Danger else EcoColors.TextGrey
                         )
                     }
                 }

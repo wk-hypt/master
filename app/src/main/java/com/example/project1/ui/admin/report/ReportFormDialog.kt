@@ -50,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.project1.common.withoutEmoji
 import com.example.project1.data.model.ReportEntity
 import com.example.project1.data.model.ReportFormInput
 import com.example.project1.data.model.ReportNarrative
@@ -381,7 +382,7 @@ private fun FormTextField(
 ) {
     OutlinedTextField(
         value = value,
-        onValueChange = onValueChange,
+        onValueChange = { onValueChange(it.withoutEmoji()) },
         label = { Text(label) },
         singleLine = singleLine,
         minLines = minLines,

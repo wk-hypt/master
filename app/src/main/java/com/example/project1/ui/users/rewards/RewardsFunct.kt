@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -49,6 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -224,13 +226,13 @@ private fun MarketVoucherCard(
                     contentDescription = voucher.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(56.dp)
+                        .size(52.dp)
                         .clip(RoundedCornerShape(10.dp))
                 )
             } else {
                 Box(
                     modifier = Modifier
-                        .size(56.dp)
+                        .size(52.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .background(EcoColors.MintGreen),
                     contentAlignment = Alignment.Center
@@ -239,63 +241,84 @@ private fun MarketVoucherCard(
                         imageVector = Icons.Default.CardGiftcard,
                         contentDescription = null,
                         tint = EcoColors.PrimaryGreen,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(26.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(10.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = EcoColors.TextDark)
-                Text(text = voucher.merchantName, fontSize = 12.sp, color = Color(0xFF6B7280))
-                Spacer(modifier = Modifier.height(2.dp))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "${voucher.pointsCost} pts · ${voucher.category}",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = EcoColors.PrimaryGreen
-                    )
-                    Text(
-                        text = if (voucher.quantity > 0) "Stock: ${voucher.quantity}" else "Out of Stock",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (voucher.quantity > 0) EcoColors.Blue else EcoColors.Danger
-                    )
-                    Text(
-                        text = if (atHoldLimit) "Limit ($heldCount/${VoucherRules.MAX_HELD_PER_TYPE})"
-                        else "Held: $heldCount/${VoucherRules.MAX_HELD_PER_TYPE}",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (atHoldLimit) EcoColors.Danger else EcoColors.PrimaryGreen
-                    )
-                }
+                Text(
+                    text = voucher.title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = EcoColors.TextDark,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = voucher.merchantName,
+                    fontSize = 12.sp,
+                    color = Color(0xFF6B7280),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "${voucher.pointsCost} pts · ${voucher.category}",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = EcoColors.PrimaryGreen,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = if (voucher.quantity > 0) "Stock: ${voucher.quantity}" else "Out of Stock",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (voucher.quantity > 0) EcoColors.Blue else EcoColors.Danger
+                )
             }
 
-            Button(
-                onClick = onRedeemClick,
-                enabled = canRedeem,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = EcoColors.PrimaryGreen,
-                    disabledContainerColor = Color(0xFFE0E0E0),
-                    disabledContentColor = if (voucher.quantity <= 0 || atHoldLimit) EcoColors.Danger else Color(0xFF9E9E9E)
-                ),
-                shape = RoundedCornerShape(8.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
-                    text = when {
-                        voucher.quantity <= 0 -> "Sold Out"
-                        atHoldLimit -> "Limit"
-                        else -> "Redeem"
-                    },
-                    fontSize = 12.sp,
-                    fontWeight = if (voucher.quantity <= 0 || atHoldLimit) FontWeight.Bold else FontWeight.Normal
+                    text = if (atHoldLimit) "Limit $heldCount/${VoucherRules.MAX_HELD_PER_TYPE}"
+                    else "Held $heldCount/${VoucherRules.MAX_HELD_PER_TYPE}",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (atHoldLimit) EcoColors.Danger else EcoColors.PrimaryGreen,
+                    maxLines = 1,
+                    softWrap = false
                 )
+                Button(
+                    onClick = onRedeemClick,
+                    enabled = canRedeem,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = EcoColors.PrimaryGreen,
+                        disabledContainerColor = Color(0xFFE0E0E0),
+                        disabledContentColor = if (voucher.quantity <= 0 || atHoldLimit) EcoColors.Danger else Color(0xFF9E9E9E)
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                    modifier = Modifier.defaultMinSize(minWidth = 72.dp, minHeight = 36.dp)
+                ) {
+                    Text(
+                        text = when {
+                            voucher.quantity <= 0 -> "Sold Out"
+                            atHoldLimit -> "Limit"
+                            else -> "Redeem"
+                        },
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        fontWeight = if (voucher.quantity <= 0 || atHoldLimit) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
             }
         }
     }

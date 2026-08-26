@@ -33,6 +33,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.example.project1.common.RequiredLabel
+import com.example.project1.common.withoutEmoji
 import com.example.project1.ui.adaptive.AdaptiveDialogSurface
 import com.example.project1.ui.adaptive.HeightSize
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
@@ -292,7 +293,7 @@ fun EcoUploadDialog(
 
                     OutlinedTextField(
                         value = stallName,
-                        onValueChange = { stallName = it },
+                        onValueChange = { stallName = it.withoutEmoji() },
                         label = { RequiredLabel("Stall Name") },
                         placeholder = { Text("e.g. Noodles Yum") },
                         modifier = Modifier.fillMaxWidth(),
@@ -309,7 +310,7 @@ fun EcoUploadDialog(
 
                     OutlinedTextField(
                         value = location,
-                        onValueChange = { location = it },
+                        onValueChange = { location = it.withoutEmoji() },
                         label = { Text("Location (optional)") },
                         placeholder = { Text("e.g. Yum Yum Canteen") },
                         modifier = Modifier.fillMaxWidth(),
@@ -367,7 +368,7 @@ fun EcoUploadDialog(
 
                     OutlinedTextField(
                         value = description,
-                        onValueChange = { description = it },
+                        onValueChange = { description = it.withoutEmoji() },
                         label = { Text("Description (optional)") },
                         placeholder = { Text("Any additional notes") },
                         modifier = Modifier

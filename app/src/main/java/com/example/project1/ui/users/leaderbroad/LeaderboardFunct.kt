@@ -85,15 +85,27 @@ fun LeaderboardFunct(
                 .padding(innerPadding)
                 .background(Color(0xFFF4F9EF))
         ) {
+            val rankings = (uiState as? LeaderboardUiState.Success)?.rankings.orEmpty()
+            val top3 = rankings.filter { it.rank in 1..3 }
+            PodiumHeader(
+                podiumSlots = listOf(
+                    top3.find { it.rank == 2 },
+                    top3.find { it.rank == 1 },
+                    top3.find { it.rank == 3 }
+                ),
+                selectedTimeFrame = selectedTimeFrame,
+                onTimeFrameChange = onTimeFrameChange
+            )
+
             when (uiState) {
                 is LeaderboardUiState.Loading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = EcoColors.PrimaryGreen)
                     }
                 }
 
                 is LeaderboardUiState.Error -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(text = uiState.message, color = Color.Red)
                             Spacer(modifier = Modifier.height(12.dp))
@@ -107,30 +119,17 @@ fun LeaderboardFunct(
                 }
 
                 is LeaderboardUiState.Success -> {
-                    if (uiState.rankings.isEmpty()) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("No rankings available.", color = Color.Gray)
+                    if (rankings.isEmpty()) {
+                        Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Text("No rankings yet.", color = Color.Gray)
                         }
                     } else {
-                        val top3 = uiState.rankings.filter { it.rank in 1..3 }
-                        val podiumSlots = listOf(
-                            top3.find { it.rank == 2 },
-                            top3.find { it.rank == 1 },
-                            top3.find { it.rank == 3 }
-                        )
-
-                        PodiumHeader(
-                            podiumSlots = podiumSlots,
-                            selectedTimeFrame = selectedTimeFrame,
-                            onTimeFrameChange = onTimeFrameChange
-                        )
-
                         LazyColumn(
                             modifier = Modifier.weight(1f).fillMaxWidth(),
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            items(uiState.rankings, key = { it.userId }) { entry ->
+                            items(rankings, key = { it.userId }) { entry ->
                                 LeaderboardRowItem(entry = entry)
                             }
                         }

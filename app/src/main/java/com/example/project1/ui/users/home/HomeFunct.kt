@@ -178,7 +178,7 @@ fun EcoStatsDashboard(points: Int, plasticSaved: Int, modifier: Modifier = Modif
                             fontWeight = FontWeight.Black,
                             color = EcoColors.PrimaryGreen
                         )
-                        Text(text = "Total Points u holding", fontSize = 12.sp, color = Color.Gray)
+                        Text(text = "Total Points you currently holding", fontSize = 12.sp, color = Color.Gray)
                     }
                 } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {

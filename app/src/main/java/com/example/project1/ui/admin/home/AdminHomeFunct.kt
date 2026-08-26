@@ -87,7 +87,7 @@ fun AdminHomeFunct(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Filled.DesktopWindows, contentDescription = null)
+                Icon(Icons.Filled.DesktopWindows, contentDescription = null, tint = Color.Black)
                 Spacer(modifier = Modifier.width(if (compactHeader) 6.dp else 12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
