@@ -83,8 +83,32 @@ data class EcoProfileStats(
     val campusRank: Int = 0,
     val campusTotal: Int = 0,
     val weeklyActivity: List<Int> = List(7) { 0 },
-    val weeklyLabels: List<String> = listOf("M", "T", "W", "T", "F", "S", "S")
+    val weeklyPoints: List<Int> = List(7) { 0 },
+    val weeklyLabels: List<String> = listOf("M", "T", "W", "T", "F", "S", "S"),
+    val weeklyDays: List<WeeklyDayActivity> = emptyList()
 )
+
+enum class WeeklyActivitySource { Submission, Task }
+
+data class WeeklyActivityEntry(
+    val source: WeeklyActivitySource,
+    val title: String,
+    val subtitle: String,
+    val points: Int,
+    val timestamp: Long
+)
+
+data class WeeklyDayActivity(
+    val dayIndex: Int,
+    val shortLabel: String,
+    val fullLabel: String,
+    val entries: List<WeeklyActivityEntry>
+) {
+    val actionCount: Int get() = entries.size
+    val totalPoints: Int get() = entries.sumOf { it.points }
+    val submissionCount: Int get() = entries.count { it.source == WeeklyActivitySource.Submission }
+    val taskCount: Int get() = entries.count { it.source == WeeklyActivitySource.Task }
+}
 
 fun memberTierFor(points: Int): MemberTier {
     val tiers = listOf(
@@ -172,10 +196,47 @@ fun buildEcoProfileStats(
     } ?: 0
 
     val weekStart = startOfDay(now) - 6L * 24 * 60 * 60 * 1000
-    val weeklyActivity = MutableList(7) { 0 }
-    events.forEach { timestamp ->
-        val dayIndex = ((startOfDay(timestamp) - weekStart) / (24L * 60 * 60 * 1000)).toInt()
-        if (dayIndex in 0..6) weeklyActivity[dayIndex]++
+    val shortLabels = buildWeekLabels(now)
+    val fullLabels = buildWeekFullLabels(now)
+    val dayBuckets = List(7) { mutableListOf<WeeklyActivityEntry>() }
+
+    fun dayIndexFor(timestamp: Long): Int =
+        ((startOfDay(timestamp) - weekStart) / (24L * 60 * 60 * 1000)).toInt()
+
+    approvedSubmissions.forEach { submission ->
+        val timestamp = submission.reviewTimestamp ?: submission.timestamp
+        val dayIndex = dayIndexFor(timestamp)
+        if (dayIndex in 0..6) {
+            dayBuckets[dayIndex] += WeeklyActivityEntry(
+                source = WeeklyActivitySource.Submission,
+                title = submission.actionType,
+                subtitle = submission.stallName.ifBlank { "Eco submission" },
+                points = submission.points,
+                timestamp = timestamp
+            )
+        }
+    }
+    approvedTasks.forEach { task ->
+        val timestamp = task.reviewTimestamp ?: task.timestamp
+        val dayIndex = dayIndexFor(timestamp)
+        if (dayIndex in 0..6) {
+            dayBuckets[dayIndex] += WeeklyActivityEntry(
+                source = WeeklyActivitySource.Task,
+                title = task.title,
+                subtitle = "Eco task",
+                points = task.points,
+                timestamp = timestamp
+            )
+        }
+    }
+
+    val weeklyDays = dayBuckets.mapIndexed { index, entries ->
+        WeeklyDayActivity(
+            dayIndex = index,
+            shortLabel = shortLabels.getOrElse(index) { "" },
+            fullLabel = fullLabels.getOrElse(index) { shortLabels.getOrElse(index) { "" } },
+            entries = entries.sortedByDescending { it.timestamp }
+        )
     }
 
     return EcoProfileStats(
@@ -186,8 +247,10 @@ fun buildEcoProfileStats(
         currentStreak = calculateCurrentStreak(events, now),
         campusRank = rank,
         campusTotal = allUsers.size,
-        weeklyActivity = weeklyActivity,
-        weeklyLabels = buildWeekLabels(now)
+        weeklyActivity = weeklyDays.map { it.actionCount },
+        weeklyPoints = weeklyDays.map { it.totalPoints },
+        weeklyLabels = shortLabels,
+        weeklyDays = weeklyDays
     )
 }
 
@@ -214,6 +277,18 @@ private fun calculateCurrentStreak(events: List<Long>, now: Long): Int {
         cursor -= 24L * 60 * 60 * 1000
     }
     return streak
+}
+
+private fun buildWeekFullLabels(now: Long): List<String> {
+    val labels = mutableListOf<String>()
+    val format = java.text.SimpleDateFormat("EEEE, d MMM", java.util.Locale.getDefault())
+    for (offset in 6 downTo 0) {
+        val c = Calendar.getInstance().apply {
+            timeInMillis = now - offset * 24L * 60 * 60 * 1000
+        }
+        labels += format.format(c.time)
+    }
+    return labels
 }
 
 private fun buildWeekLabels(now: Long): List<String> {

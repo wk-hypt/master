@@ -30,6 +30,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Forest
@@ -37,9 +38,11 @@ import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Park
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Recycling
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbSunny
@@ -50,10 +53,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -72,6 +77,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.example.project1.common.toFormattedDateTime
 import com.example.project1.ui.common.ProfileColors
 import com.example.project1.ui.common.ProfileEcoMetric
 import com.example.project1.ui.common.ProfilePhotoAvatar
@@ -125,6 +133,7 @@ internal fun AchievementsPage(
     var selectedMilestone by remember { mutableStateOf<EcoMilestone?>(null) }
     var badgeFilter by remember { mutableStateOf(BadgeBoardFilter.All) }
     var selectedWeekDay by remember { mutableIntStateOf(-1) }
+    var showWeekDayDetail by remember { mutableStateOf(false) }
     val claimable = milestones.filter { !it.locked && it.id !in claimedMilestones }
     val todaysQuest = remember { todaysEcoQuest() }
     val nextChallenge = remember(badges) { nextBadgeChallenge(badges) }
@@ -356,7 +365,10 @@ internal fun AchievementsPage(
             WeeklyEcoActivityCard(
                 stats = ecoStats,
                 selectedDay = selectedWeekDay,
-                onSelectDay = { selectedWeekDay = if (selectedWeekDay == it) -1 else it }
+                onSelectDay = {
+                    selectedWeekDay = it
+                    showWeekDayDetail = true
+                }
             )
 
             SectionTitle("MY ECO GOALS")
@@ -602,6 +614,16 @@ internal fun AchievementsPage(
             }
         )
     }
+
+    if (showWeekDayDetail && selectedWeekDay >= 0) {
+        val day = ecoStats.weeklyDays.getOrNull(selectedWeekDay) ?: WeeklyDayActivity(
+            dayIndex = selectedWeekDay,
+            shortLabel = ecoStats.weeklyLabels.getOrElse(selectedWeekDay) { "" },
+            fullLabel = ecoStats.weeklyLabels.getOrElse(selectedWeekDay) { "That day" },
+            entries = emptyList()
+        )
+        WeeklyDayDetailDialog(day = day, onDismiss = { showWeekDayDetail = false })
+    }
 }
 
 @Composable
@@ -687,7 +709,9 @@ private fun WeeklyEcoActivityCard(
     selectedDay: Int,
     onSelectDay: (Int) -> Unit
 ) {
-    val maxValue = stats.weeklyActivity.maxOrNull()?.coerceAtLeast(1) ?: 1
+    val usePoints = stats.weeklyPoints.any { it > 0 }
+    val values = if (usePoints) stats.weeklyPoints else stats.weeklyActivity
+    val maxValue = values.maxOrNull()?.coerceAtLeast(1) ?: 1
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -700,12 +724,13 @@ private fun WeeklyEcoActivityCard(
             }
             Spacer(modifier = Modifier.height(14.dp))
             Row(
-                modifier = Modifier.fillMaxWidth().height(100.dp),
+                modifier = Modifier.fillMaxWidth().height(108.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.Bottom
             ) {
-                stats.weeklyActivity.forEachIndexed { index, count ->
+                values.forEachIndexed { index, value ->
                     val selected = selectedDay == index
+                    val points = stats.weeklyPoints.getOrElse(index) { 0 }
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Bottom,
@@ -713,38 +738,173 @@ private fun WeeklyEcoActivityCard(
                             .weight(1f)
                             .clickable { onSelectDay(index) }
                     ) {
-                        Text(count.toString(), fontSize = 9.sp, color = ProfileColors.TextGrey)
+                        Text(
+                            if (points > 0) "+$points" else "0",
+                            fontSize = 9.sp,
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                            color = if (selected) ProfileColors.DarkGreen else ProfileColors.TextGrey
+                        )
                         Spacer(modifier = Modifier.height(4.dp))
                         Box(
                             modifier = Modifier
                                 .width(18.dp)
-                                .height((12 + (72 * count.toFloat() / maxValue)).dp)
+                                .height((12 + (72 * value.toFloat() / maxValue)).dp)
                                 .clip(RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp))
                                 .background(
                                     when {
                                         selected -> ProfileColors.DarkGreen
-                                        count > 0 -> ProfileColors.PrimaryGreen
+                                        value > 0 -> ProfileColors.PrimaryGreen
                                         else -> Color(0xFFDDE8DE)
                                     }
                                 )
                         )
                         Spacer(modifier = Modifier.height(5.dp))
-                        Text(stats.weeklyLabels.getOrElse(index) { "" }, fontSize = 9.sp, color = ProfileColors.TextGrey)
+                        Text(
+                            stats.weeklyLabels.getOrElse(index) { "" },
+                            fontSize = 9.sp,
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                            color = if (selected) ProfileColors.DarkGreen else ProfileColors.TextGrey
+                        )
                     }
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                if (selectedDay in stats.weeklyActivity.indices) {
-                    val count = stats.weeklyActivity[selectedDay]
-                    val label = stats.weeklyLabels.getOrElse(selectedDay) { "that day" }
-                    if (count == 0) "No approved actions on $label. Tap Log an action to change that."
-                    else "$count approved action${if (count == 1) "" else "s"} on $label."
-                } else {
-                    "Tap a bar to inspect that day."
-                },
+                "Tap a bar to see points from that day's submissions and tasks.",
                 fontSize = 10.sp,
                 color = ProfileColors.TextGrey
+            )
+        }
+    }
+}
+
+@Composable
+private fun WeeklyDayDetailDialog(day: WeeklyDayActivity, onDismiss: () -> Unit) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = Color.White,
+            shadowElevation = 10.dp,
+            modifier = Modifier.fillMaxWidth(0.92f)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "DAY BREAKDOWN",
+                            color = ProfileColors.PrimaryGreen,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            letterSpacing = 0.8.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(day.fullLabel, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = ProfileColors.TextDark)
+                    }
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = ProfileColors.TextGrey)
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    DayStatChip(Modifier.weight(1f), "+${day.totalPoints}", "Points earned")
+                    DayStatChip(Modifier.weight(1f), day.actionCount.toString(), "Approved actions")
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "${day.submissionCount} submission${if (day.submissionCount == 1) "" else "s"} · ${day.taskCount} task${if (day.taskCount == 1) "" else "s"}",
+                    fontSize = 12.sp,
+                    color = ProfileColors.TextGrey
+                )
+                Spacer(modifier = Modifier.height(14.dp))
+                if (day.entries.isEmpty()) {
+                    Text(
+                        "No approved submissions or tasks on this day.",
+                        fontSize = 13.sp,
+                        color = ProfileColors.TextGrey
+                    )
+                } else {
+                    day.entries.forEachIndexed { index, entry ->
+                        WeeklyEntryRow(entry)
+                        if (index != day.entries.lastIndex) {
+                            HorizontalDivider(color = Color(0xFFE8ECE8), thickness = 1.dp)
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("Close", fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DayStatChip(modifier: Modifier, value: String, label: String) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(ProfileColors.SoftGreen)
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+    ) {
+        Text(value, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = ProfileColors.DarkGreen)
+        Text(label, fontSize = 11.sp, color = ProfileColors.TextGrey)
+    }
+}
+
+@Composable
+private fun WeeklyEntryRow(entry: WeeklyActivityEntry) {
+    val isSubmission = entry.source == WeeklyActivitySource.Submission
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(ProfileColors.SoftGreen),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                if (isSubmission) Icons.Default.PhotoCamera else Icons.Default.TaskAlt,
+                contentDescription = null,
+                tint = ProfileColors.PrimaryGreen,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(entry.title, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = ProfileColors.TextDark)
+            Text(
+                "${if (isSubmission) "Submission" else "Task"} · ${entry.subtitle}",
+                fontSize = 11.sp,
+                color = ProfileColors.TextGrey
+            )
+            Text(entry.timestamp.toFormattedDateTime(), fontSize = 10.sp, color = ProfileColors.TextGrey)
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Stars, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(14.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                "+${entry.points}",
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                color = ProfileColors.PrimaryGreen
             )
         }
     }

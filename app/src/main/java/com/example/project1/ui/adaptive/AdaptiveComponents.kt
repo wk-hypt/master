@@ -30,30 +30,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun AdaptivePage(
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit
-) {
-    val maxWidth = LocalAppWindowInfo.current.contentMaxWidth
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        Box(
-            modifier = Modifier
-                .widthIn(max = maxWidth)
-                .fillMaxSize(),
-            content = content
-        )
-    }
-}
-
-fun Modifier.adaptiveDialogSize(): Modifier {
-    // Size is applied from a composable wrapper so LocalAppWindowInfo can be read.
-    return this
-}
-
-@Composable
 fun adaptiveDialogModifier(): Modifier {
     val info = LocalAppWindowInfo.current
     return if (info.useFullScreenDialog) {
@@ -66,10 +42,6 @@ fun adaptiveDialogModifier(): Modifier {
     }
 }
 
-/**
- * Centers content when it is shorter than the screen, and scrolls from the top
- * when it is taller — avoids Arrangement.Center + verticalScroll clipping.
- */
 @Composable
 fun AdaptiveScrollColumn(
     modifier: Modifier = Modifier,
@@ -122,38 +94,4 @@ fun AdaptiveDialogFrame(
             }
         }
     }
-}
-
-@Composable
-fun <T> AdaptiveCardGrid(
-    items: List<T>,
-    modifier: Modifier = Modifier,
-    key: ((T) -> Any)? = null,
-    contentPadding: PaddingValues = PaddingValues(16.dp),
-    verticalSpacing: Dp = 10.dp,
-    horizontalSpacing: Dp = 10.dp,
-    header: (LazyGridScope.() -> Unit)? = null,
-    footer: (LazyGridScope.() -> Unit)? = null,
-    itemContent: @Composable (T) -> Unit
-) {
-    val columns = LocalAppWindowInfo.current.gridColumns.coerceAtLeast(1)
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
-        modifier = modifier,
-        contentPadding = contentPadding,
-        verticalArrangement = Arrangement.spacedBy(verticalSpacing),
-        horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
-    ) {
-        header?.invoke(this)
-        if (key != null) {
-            items(items, key = key) { itemContent(it) }
-        } else {
-            items(items) { itemContent(it) }
-        }
-        footer?.invoke(this)
-    }
-}
-
-fun LazyGridScope.adaptiveFullWidthItem(content: @Composable () -> Unit) {
-    item(span = { GridItemSpan(maxLineSpan) }) { content() }
 }
