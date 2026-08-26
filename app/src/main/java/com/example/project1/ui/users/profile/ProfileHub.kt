@@ -60,6 +60,8 @@ import com.example.project1.ui.common.rememberImagePicker
 import java.io.File
 import java.util.Calendar
 import com.example.project1.ui.theme.EcoColors
+import com.example.project1.ui.adaptive.HeightSize
+import com.example.project1.ui.adaptive.LocalAppWindowInfo
 
 @Composable
 internal fun ProfileHubPage(
@@ -201,10 +203,11 @@ private fun HubHeader(
     onPickBackground: () -> Unit,
     onRemoveBackground: () -> Unit
 ) {
+    val compact = LocalAppWindowInfo.current.heightSize == HeightSize.Compact
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(190.dp)
+            .height(if (compact) 112.dp else 190.dp)
             .background(
                 if (backgroundPhotoPath == null) {
                     Brush.verticalGradient(listOf(Color(0xFF4CAF50), EcoColors.DarkGreen))

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -32,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -200,6 +202,15 @@ private fun ColumnScope.LoginFormFields(
         placeholder = { Text("e.g. 2503994") },
         modifier = Modifier.fillMaxWidth().widthIn(max = 480.dp),
         singleLine = true,
+        isError = uiState.studentIdError != null,
+        supportingText = {
+            if (uiState.studentIdError != null) {
+                Text(text = uiState.studentIdError, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+            }
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = if (uiState.isRegisterMode) KeyboardType.Number else KeyboardType.Text
+        ),
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = Color.Black,
@@ -215,6 +226,12 @@ private fun ColumnScope.LoginFormFields(
             label = { Text("Full Name") },
             modifier = Modifier.fillMaxWidth().widthIn(max = 480.dp),
             singleLine = true,
+            isError = uiState.nameError != null,
+            supportingText = {
+                if (uiState.nameError != null) {
+                    Text(text = uiState.nameError, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                }
+            },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
@@ -231,13 +248,20 @@ private fun ColumnScope.LoginFormFields(
         label = { Text("Password") },
         modifier = Modifier.fillMaxWidth().widthIn(max = 480.dp),
         singleLine = true,
-        isError = uiState.errorMessage != null,
+        isError = uiState.passwordError != null || uiState.errorMessage != null,
         supportingText = {
-            if (uiState.errorMessage != null) {
+            val message = uiState.passwordError ?: uiState.errorMessage
+            if (message != null) {
                 Text(
-                    text = uiState.errorMessage,
+                    text = message,
                     color = MaterialTheme.colorScheme.error,
                     fontSize = 12.sp
+                )
+            } else if (uiState.isRegisterMode) {
+                Text(
+                    text = "At least 8 characters, with capital, small letter, number and special character",
+                    fontSize = 11.sp,
+                    color = Color.Gray
                 )
             }
         },
@@ -267,8 +291,7 @@ private fun ColumnScope.LoginFormFields(
             .widthIn(max = 480.dp)
             .height(50.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen, disabledContainerColor = Color(0xFFE0E0E0)),
-        enabled = uiState.studentId.isNotBlank() && uiState.password.isNotBlank() || uiState.name.isNotBlank()
+        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen, disabledContainerColor = Color(0xFFE0E0E0))
     ) {
         Text(
             text = if (uiState.isRegisterMode) "Register" else "Login",

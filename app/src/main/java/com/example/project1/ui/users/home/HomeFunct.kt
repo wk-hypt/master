@@ -128,6 +128,8 @@ fun HomeFunct(
 fun EcoStatsDashboard(points: Int, plasticSaved: Int, modifier: Modifier = Modifier) {
     var selectedTab by remember { mutableIntStateOf(0) } // default first tab (Eco Points)
     val tabs = listOf("Eco Points", "Plastic Saved") //tab name
+    val compact = LocalAppWindowInfo.current.heightSize == HeightSize.Compact
+    val pointsSize = if (compact) 28.sp else 36.sp
 
     Card(
         modifier = modifier
@@ -174,7 +176,7 @@ fun EcoStatsDashboard(points: Int, plasticSaved: Int, modifier: Modifier = Modif
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "$points",
-                            fontSize = 36.sp,
+                            fontSize = pointsSize,
                             fontWeight = FontWeight.Black,
                             color = EcoColors.PrimaryGreen
                         )
@@ -184,7 +186,7 @@ fun EcoStatsDashboard(points: Int, plasticSaved: Int, modifier: Modifier = Modif
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "${plasticSaved}g",
-                            fontSize = 36.sp,
+                            fontSize = pointsSize,
                             fontWeight = FontWeight.Black,
                             color = EcoColors.Blue
                         )
@@ -198,12 +200,13 @@ fun EcoStatsDashboard(points: Int, plasticSaved: Int, modifier: Modifier = Modif
 
 @Composable
 fun EcoUploadArea(onUploadClick: () -> Unit, modifier: Modifier = Modifier) {
+    val compact = LocalAppWindowInfo.current.heightSize == HeightSize.Compact
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .height(130.dp)
+            .height(if (compact) 72.dp else 130.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(Color(0xFFFAFAFA))
             .drawBehind {
@@ -219,23 +222,44 @@ fun EcoUploadArea(onUploadClick: () -> Unit, modifier: Modifier = Modifier) {
             .clickable { onUploadClick() },
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Upload Icon",
-                tint = EcoColors.PrimaryGreen,
-                modifier = Modifier.size(32.dp)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Tap to upload eco log submission",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Gray
-            )
+        if (compact) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Upload Icon",
+                    tint = EcoColors.PrimaryGreen,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Tap to upload eco log submission",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Gray
+                )
+            }
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Upload Icon",
+                    tint = EcoColors.PrimaryGreen,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Tap to upload eco log submission",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Gray
+                )
+            }
         }
     }
 }
@@ -299,7 +323,10 @@ fun EcoFeatureGrid(features: List<FeatureCardItem>, onFeatureClick: (String) -> 
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(end = 8.dp)
+        ) {
             items(features) { feature ->
                 EcoFeatureTile(
                     feature = feature,

@@ -151,54 +151,84 @@ fun PodiumHeader(
     onTimeFrameChange: (LeaderboardTimeFrame) -> Unit
 ) {
     val compact = LocalAppWindowInfo.current.heightSize == HeightSize.Compact
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(if (compact) 156.dp else 240.dp)
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFF7CB342), Color(0xFF33691E))
-                ),
-                shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
-            )
-    ) {
-        Row(
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .align(Alignment.TopCenter)
-                .padding(top = 28.dp, start = 24.dp, end = 24.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .then(if (compact) Modifier else Modifier.height(240.dp))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color(0xFF7CB342), Color(0xFF33691E))
+                    ),
+                    shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
+                )
+                .padding(
+                    top = if (compact) 8.dp else 28.dp,
+                    bottom = if (compact) 16.dp else 0.dp,
+                    start = 24.dp,
+                    end = 24.dp
+                )
         ) {
-            podiumSlots.forEachIndexed { index, entry ->
-                val isFirst = index == 1
-                PodiumSlot(entry = entry, isFirst = isFirst)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(if (compact) Modifier else Modifier.align(Alignment.TopCenter)),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                podiumSlots.forEachIndexed { index, entry ->
+                    PodiumSlot(entry = entry, isFirst = index == 1, compact = compact)
+                }
+            }
+
+            if (!compact) {
+                TimeFrameToggle(
+                    selectedTimeFrame = selectedTimeFrame,
+                    onTimeFrameChange = onTimeFrameChange,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .offset(y = 26.dp)
+                )
             }
         }
 
-        Surface(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .offset(y = 26.dp)
-                .padding(horizontal = 60.dp),
-            shape = RoundedCornerShape(24.dp),
-            color = Color(0xFFDCEDC8),
-            shadowElevation = 3.dp
-        ) {
-            Row(modifier = Modifier.padding(4.dp)) {
-                TimeFrameChip(
-                    label = "Monthly",
-                    selected = selectedTimeFrame == LeaderboardTimeFrame.MONTHLY,
-                    onClick = { onTimeFrameChange(LeaderboardTimeFrame.MONTHLY) }
-                )
-                TimeFrameChip(
-                    label = "Daily",
-                    selected = selectedTimeFrame == LeaderboardTimeFrame.DAILY,
-                    onClick = { onTimeFrameChange(LeaderboardTimeFrame.DAILY) }
-                )
-            }
+        if (compact) {
+            TimeFrameToggle(
+                selectedTimeFrame = selectedTimeFrame,
+                onTimeFrameChange = onTimeFrameChange,
+                modifier = Modifier.offset(y = (-14).dp)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+        } else {
+            Spacer(modifier = Modifier.height(34.dp))
         }
     }
-    Spacer(modifier = Modifier.height(34.dp))
+}
+
+@Composable
+private fun TimeFrameToggle(
+    selectedTimeFrame: LeaderboardTimeFrame,
+    onTimeFrameChange: (LeaderboardTimeFrame) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.padding(horizontal = 60.dp),
+        shape = RoundedCornerShape(24.dp),
+        color = Color(0xFFDCEDC8),
+        shadowElevation = 3.dp
+    ) {
+        Row(modifier = Modifier.padding(4.dp)) {
+            TimeFrameChip(
+                label = "Monthly",
+                selected = selectedTimeFrame == LeaderboardTimeFrame.MONTHLY,
+                onClick = { onTimeFrameChange(LeaderboardTimeFrame.MONTHLY) }
+            )
+            TimeFrameChip(
+                label = "Daily",
+                selected = selectedTimeFrame == LeaderboardTimeFrame.DAILY,
+                onClick = { onTimeFrameChange(LeaderboardTimeFrame.DAILY) }
+            )
+        }
+    }
 }
 
 @Composable
@@ -219,9 +249,14 @@ fun TimeFrameChip(label: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun PodiumSlot(entry: LeaderboardEntry?, isFirst: Boolean) {
-    val avatarSize = if (isFirst) 76.dp else 58.dp
-    val topOffset = if (isFirst) 0.dp else 26.dp
+fun PodiumSlot(entry: LeaderboardEntry?, isFirst: Boolean, compact: Boolean = false) {
+    val avatarSize = when {
+        compact && isFirst -> 44.dp
+        compact -> 36.dp
+        isFirst -> 76.dp
+        else -> 58.dp
+    }
+    val topOffset = if (compact || isFirst) 0.dp else 26.dp
     val rankLabel = entry?.rank?.let {
         when (it) {
             1 -> "1st"
@@ -236,8 +271,13 @@ fun PodiumSlot(entry: LeaderboardEntry?, isFirst: Boolean) {
         modifier = Modifier.padding(top = topOffset)
     ) {
         if (rankLabel.isNotEmpty()) {
-            Text(rankLabel, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
-            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                rankLabel,
+                fontSize = if (compact) 11.sp else 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(if (compact) 2.dp else 6.dp))
         }
 
         Box(
@@ -251,24 +291,31 @@ fun PodiumSlot(entry: LeaderboardEntry?, isFirst: Boolean) {
                 text = entry?.userName?.take(1)?.uppercase() ?: "?",
                 color = Color.White,
                 fontWeight = FontWeight.Black,
-                fontSize = if (isFirst) 26.sp else 20.sp
+                fontSize = when {
+                    compact && isFirst -> 16.sp
+                    compact -> 14.sp
+                    isFirst -> 26.sp
+                    else -> 20.sp
+                }
             )
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(if (compact) 2.dp else 6.dp))
 
         Text(
             text = entry?.userName ?: "-",
             color = Color.White,
             fontWeight = FontWeight.Bold,
-            fontSize = if (isFirst) 15.sp else 13.sp,
+            fontSize = if (compact) 12.sp else if (isFirst) 15.sp else 13.sp,
             maxLines = 1
         )
-        Text(
-            text = entry?.let { "${it.points} pts" } ?: "",
-            color = Color.White.copy(alpha = 0.85f),
-            fontSize = 11.sp
-        )
+        if (!compact) {
+            Text(
+                text = entry?.let { "${it.points} pts" } ?: "",
+                color = Color.White.copy(alpha = 0.85f),
+                fontSize = 11.sp
+            )
+        }
     }
 }
 
