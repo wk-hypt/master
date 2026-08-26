@@ -58,12 +58,7 @@ import com.example.project1.data.model.narrative
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-private val PrimaryGreen = Color(0xFF2E7D32)
-private val TextDark = Color(0xFF1B1F1C)
-private val TextGrey = Color(0xFF6C757D)
-private val BgColor = Color(0xFFF6F8F5)
-private val CardBorder = Color(0xFFEDF1EC)
+import com.example.project1.ui.theme.EcoColors
 
 internal val ReportPurposeOptions = listOf("Monthly review", "Semester summary", "Campus briefing", "Audit / compliance", "Student record", "Other")
 
@@ -171,7 +166,7 @@ fun ReportFormDialog(
                         text = if (existing == null) "Prepare Report" else "Edit Report",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = EcoColors.TextDark
                     )
                     Text(
                         text = if (existing == null) {
@@ -180,7 +175,7 @@ fun ReportFormDialog(
                             "Update the document details. Snapshot figures stay fixed."
                         },
                         fontSize = 12.sp,
-                        color = TextGrey,
+                        color = EcoColors.TextGrey2,
                         lineHeight = 16.sp
                     )
                 }
@@ -302,7 +297,7 @@ fun ReportFormDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
@@ -326,7 +321,7 @@ fun ReportFormDialog(
                     showDiscardDialog = false
                     onDismiss()
                 }) {
-                    Text("Discard", color = Color(0xFFDC3545), fontWeight = FontWeight.Bold)
+                    Text("Discard", color = EcoColors.Rejected, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -371,7 +366,7 @@ private fun FormSectionLabel(text: String) {
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp,
-        color = PrimaryGreen,
+        color = EcoColors.PrimaryGreen,
         modifier = Modifier.padding(top = 4.dp)
     )
 }
@@ -391,8 +386,8 @@ private fun FormTextField(
         singleLine = singleLine,
         minLines = minLines,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = TextDark,
-            unfocusedTextColor = TextDark
+            focusedTextColor = EcoColors.TextDark,
+            unfocusedTextColor = EcoColors.TextDark
         ),
         modifier = Modifier.fillMaxWidth()
     )
@@ -410,14 +405,14 @@ private fun DateRangeField(startDate: Long?, endDate: Long?, onClick: () -> Unit
     val hasRange = startDate != null || endDate != null
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(text = "Coverage period", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextDark)
+        Text(text = "Coverage period", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.TextDark)
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onClick() },
             shape = RoundedCornerShape(10.dp),
-            color = BgColor,
-            border = BorderStroke(1.dp, CardBorder)
+            color = EcoColors.AdminBg,
+            border = BorderStroke(1.dp, EcoColors.CardBorder)
         ) {
             Row(
                 modifier = Modifier
@@ -427,12 +422,12 @@ private fun DateRangeField(startDate: Long?, endDate: Long?, onClick: () -> Unit
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = TextGrey, modifier = Modifier.height(16.dp))
+                    Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = EcoColors.TextGrey2, modifier = Modifier.height(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = label,
                         fontSize = 13.sp,
-                        color = if (hasRange) TextDark else TextGrey,
+                        color = if (hasRange) EcoColors.TextDark else EcoColors.TextGrey2,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -442,7 +437,7 @@ private fun DateRangeField(startDate: Long?, endDate: Long?, onClick: () -> Unit
                         text = "Clear",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = PrimaryGreen,
+                        color = EcoColors.PrimaryGreen,
                         modifier = Modifier.clickable { onClear() }
                     )
                 }
@@ -456,14 +451,14 @@ private fun ReportTypeChip(label: String, selected: Boolean, modifier: Modifier 
     Surface(
         modifier = modifier.clickable { onClick() },
         shape = RoundedCornerShape(10.dp),
-        color = if (selected) Color(0xFFE8F5E9) else BgColor,
-        border = BorderStroke(1.dp, if (selected) PrimaryGreen else CardBorder)
+        color = if (selected) EcoColors.ApprovedBg else EcoColors.AdminBg,
+        border = BorderStroke(1.dp, if (selected) EcoColors.PrimaryGreen else EcoColors.CardBorder)
     ) {
         Text(
             text = label,
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
-            color = if (selected) PrimaryGreen else TextGrey,
+            color = if (selected) EcoColors.PrimaryGreen else EcoColors.TextGrey2,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -486,14 +481,14 @@ private fun OptionDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(text = label, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextDark)
+        Text(text = label, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.TextDark)
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { expanded = true },
             shape = RoundedCornerShape(10.dp),
-            color = BgColor,
-            border = BorderStroke(1.dp, CardBorder)
+            color = EcoColors.AdminBg,
+            border = BorderStroke(1.dp, EcoColors.CardBorder)
         ) {
             Row(
                 modifier = Modifier
@@ -505,12 +500,12 @@ private fun OptionDropdown(
                 Text(
                     text = value.ifBlank { placeholder },
                     fontSize = 13.sp,
-                    color = if (value.isNotBlank()) TextDark else TextGrey,
+                    color = if (value.isNotBlank()) EcoColors.TextDark else EcoColors.TextGrey2,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = TextGrey)
+                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = EcoColors.TextGrey2)
             }
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
@@ -541,14 +536,14 @@ private fun StudentDropdown(students: List<UserEntity>, selected: UserEntity?, o
     var expanded by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(text = "Student", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextDark)
+        Text(text = "Student", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.TextDark)
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(enabled = students.isNotEmpty()) { expanded = true },
             shape = RoundedCornerShape(10.dp),
-            color = BgColor,
-            border = BorderStroke(1.dp, CardBorder)
+            color = EcoColors.AdminBg,
+            border = BorderStroke(1.dp, EcoColors.CardBorder)
         ) {
             Row(
                 modifier = Modifier
@@ -564,12 +559,12 @@ private fun StudentDropdown(students: List<UserEntity>, selected: UserEntity?, o
                         else -> "Select a student"
                     },
                     fontSize = 13.sp,
-                    color = if (selected != null) TextDark else TextGrey,
+                    color = if (selected != null) EcoColors.TextDark else EcoColors.TextGrey2,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = TextGrey)
+                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = EcoColors.TextGrey2)
             }
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {

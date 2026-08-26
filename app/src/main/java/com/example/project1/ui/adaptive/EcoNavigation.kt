@@ -2,6 +2,7 @@ package com.example.project1.ui.adaptive
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -29,12 +31,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.project1.common.NotificationDot
+import com.example.project1.ui.theme.EcoColors
 
 data class EcoNavDestination(
     val title: String,
     val selected: Boolean,
     val filledIcon: ImageVector,
     val outlineIcon: ImageVector,
+    val showBadge: Boolean = false,
     val onClick: () -> Unit
 )
 
@@ -57,6 +62,25 @@ private val RailItemColors
     )
 
 @Composable
+private fun NavIconWithDot(
+    dest: EcoNavDestination,
+    selected: Boolean
+) {
+    Box {
+        Icon(
+            imageVector = if (selected) dest.filledIcon else dest.outlineIcon,
+            contentDescription = dest.title
+        )
+        NotificationDot(
+            show = dest.showBadge,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = 3.dp, y = (-2).dp)
+        )
+    }
+}
+
+@Composable
 fun EcoBottomBar(
     destinations: List<EcoNavDestination>,
     modifier: Modifier = Modifier
@@ -66,14 +90,14 @@ fun EcoBottomBar(
         tonalElevation = 0.dp,
         modifier = modifier
             .height(120.dp)
-            .border(width = 0.5.dp, color = Color(0xFFE5E5E5))
+            .border(width = 0.5.dp, color = EcoColors.NavBorder)
     ) {
         destinations.forEach { dest ->
             NavigationBarItem(
                 icon = {
-                    Icon(
-                        imageVector = if (dest.selected) dest.filledIcon else dest.outlineIcon,
-                        contentDescription = dest.title
+                    NavIconWithDot(
+                        dest = dest,
+                        selected = dest.selected
                     )
                 },
                 label = { Text(text = dest.title, fontSize = 11.sp) },
@@ -96,7 +120,7 @@ fun EcoNavRail(
         containerColor = Color.White,
         modifier = modifier
             .fillMaxHeight()
-            .border(width = 0.5.dp, color = Color(0xFFE5E5E5))
+            .border(width = 0.5.dp, color = EcoColors.NavBorder)
     ) {
         Column(
             modifier = Modifier
@@ -108,9 +132,9 @@ fun EcoNavRail(
             destinations.forEach { dest ->
                 NavigationRailItem(
                     icon = {
-                        Icon(
-                            imageVector = if (dest.selected) dest.filledIcon else dest.outlineIcon,
-                            contentDescription = dest.title
+                        NavIconWithDot(
+                            dest = dest,
+                            selected = dest.selected
                         )
                     },
                     label = { Text(text = dest.title, fontSize = 11.sp) },

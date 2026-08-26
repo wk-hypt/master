@@ -1,7 +1,9 @@
 package com.example.project1.common
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -20,7 +22,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.project1.data.model.EcoSubmissionEntity
 import com.example.project1.data.model.TaskEntity
+import com.example.project1.data.model.VoucherEntity
+import com.example.project1.data.model.VoucherRules
+import com.example.project1.ui.theme.EcoColors
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
@@ -41,9 +47,9 @@ fun StatusBadge(
     }
 
     val (bg, fg, icon) = when (formatted) {
-        "Approved" -> Triple(Color(0xFFE8F5E9), Color(0xFF1B5E20), Icons.Default.CheckCircle)
-        "Pending Approval" -> Triple(Color(0xFFFFF8E1), Color(0xFF8D6E00), Icons.Default.HourglassEmpty)
-        else -> Triple(Color(0xFFF1F3F5), Color(0xFF2E7D32), Icons.Default.PlayArrow)
+        "Approved" -> Triple(EcoColors.ApprovedBg, EcoColors.DarkGreen, Icons.Default.CheckCircle)
+        "Pending Approval" -> Triple(EcoColors.PendingYellowBg, EcoColors.PendingYellowFg, Icons.Default.HourglassEmpty)
+        else -> Triple(EcoColors.InProgressBg, EcoColors.PrimaryGreen, Icons.Default.PlayArrow)
     }
 
     Surface(
@@ -101,6 +107,58 @@ val TaskEntity.isPending: Boolean
 
 val TaskEntity.isTargetReached: Boolean
     get() = currentQuantity >= taskQuantity
+
+val TaskEntity.canSubmitToAdmin: Boolean
+    get() = isTargetReached && !isPending && !isApproved
+
+fun TaskEntity.approvedAtMillis(): Long = reviewTimestamp ?: timestamp
+
+fun latestApprovedTaskAt(tasks: List<TaskEntity>): Long =
+    tasks.filter { it.isApproved }.maxOfOrNull { it.approvedAtMillis() } ?: 0L
+
+fun isRewardExpired(expiryDateStr: String?): Boolean = VoucherRules.isExpired(expiryDateStr)
+
+fun tabShowsRedDot(notificationsEnabled: Boolean, hasAlert: Boolean): Boolean =
+    notificationsEnabled && hasAlert
+
+fun studentCanRedeem(
+    points: Int,
+    available: List<VoucherEntity>,
+    wallet: List<VoucherEntity>
+): Boolean {
+    val heldByTitle = VoucherRules.heldCountByTitle(wallet)
+    return available.any { voucher ->
+        voucher.quantity > 0 &&
+            points >= voucher.pointsCost &&
+            !isRewardExpired(voucher.expiryDate) &&
+            !VoucherRules.isAtHoldLimit(heldByTitle[voucher.title] ?: 0)
+    }
+}
+
+fun hasStudentTaskAlert(tasks: List<TaskEntity>, lastSeenApprovedAt: Long): Boolean =
+    tasks.any { it.canSubmitToAdmin } ||
+        tasks.any { it.isApproved && it.approvedAtMillis() > lastSeenApprovedAt }
+
+fun hasAdminPendingQueue(
+    pendingSubmissions: List<EcoSubmissionEntity>,
+    pendingTasks: List<TaskEntity>
+): Boolean = pendingSubmissions.isNotEmpty() || pendingTasks.isNotEmpty()
+
+fun hasExpiredCatalogRewards(vouchers: List<VoucherEntity>): Boolean =
+    vouchers.any { isRewardExpired(it.expiryDate) }
+
+@Composable
+fun NotificationDot(
+    show: Boolean,
+    modifier: Modifier = Modifier
+) {
+    if (!show) return
+    Box(
+        modifier = modifier
+            .size(8.dp)
+            .background(EcoColors.NotificationRed, CircleShape)
+    )
+}
 
 fun generateQrBitmap(content: String, size: Int = 720): Bitmap {
     val hints = mapOf(

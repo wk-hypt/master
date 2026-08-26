@@ -36,8 +36,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-
-private val PrimaryGreen = Color(0xFF2E7D32)
+import com.example.project1.ui.theme.EcoColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,7 +116,7 @@ fun VoucherFormDialog(
                     text = if (existing == null) "Create New Voucher" else "Edit Voucher",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1B1F1C)
+                    color = EcoColors.TextDark
                 )
                 IconButton(onClick = onDismiss) {
                     Icon(Icons.Default.Close, contentDescription = "Close")
@@ -128,7 +127,7 @@ fun VoucherFormDialog(
                 text = "Voucher Cover Image",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF1B1F1C)
+                color = EcoColors.TextDark
             )
 
             val displayImage = selectedImageUri ?: existing?.imageUrl
@@ -138,7 +137,7 @@ fun VoucherFormDialog(
                     .fillMaxWidth()
                     .height(140.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFF1F8E9))
+                    .background(EcoColors.MintGreen)
                     .clickable { imagePickerLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
@@ -154,14 +153,14 @@ fun VoucherFormDialog(
                         Icon(
                             imageVector = Icons.Default.AddPhotoAlternate,
                             contentDescription = null,
-                            tint = PrimaryGreen,
+                            tint = EcoColors.PrimaryGreen,
                             modifier = Modifier.size(36.dp)
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = "Tap to upload photo",
                             fontSize = 12.sp,
-                            color = PrimaryGreen,
+                            color = EcoColors.PrimaryGreen,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -175,7 +174,7 @@ fun VoucherFormDialog(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF2E7D32),
+                    focusedBorderColor = EcoColors.PrimaryGreen,
                     focusedLabelColor = Color.Black,
                     focusedTextColor = Color.Black
                 )
@@ -188,7 +187,7 @@ fun VoucherFormDialog(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF2E7D32),
+                    focusedBorderColor = EcoColors.PrimaryGreen,
                     focusedLabelColor = Color.Black,
                     focusedTextColor = Color.Black
                 )
@@ -201,7 +200,7 @@ fun VoucherFormDialog(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF2E7D32),
+                    focusedBorderColor = EcoColors.PrimaryGreen,
                     focusedLabelColor = Color.Black,
                     focusedTextColor = Color.Black
                 )
@@ -224,7 +223,7 @@ fun VoucherFormDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF2E7D32),
+                        focusedBorderColor = EcoColors.PrimaryGreen,
                         focusedLabelColor = Color.Black,
                         focusedTextColor = Color.Black,
                         unfocusedTextColor = Color.Black,
@@ -282,7 +281,7 @@ fun VoucherFormDialog(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF2E7D32),
+                        focusedBorderColor = EcoColors.PrimaryGreen,
                         focusedLabelColor = Color.Black,
                         focusedTextColor = Color.Black,
                         unfocusedTextColor = Color.Black,
@@ -325,7 +324,7 @@ fun VoucherFormDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
                 shape = RoundedCornerShape(10.dp)
             ) {
                 Text(
@@ -353,7 +352,7 @@ fun VoucherFormDialog(
                         showDatePicker = false
                     }
                 ) {
-                    Text("OK", color = PrimaryGreen)
+                    Text("OK", color = EcoColors.PrimaryGreen)
                 }
             },
             dismissButton = {

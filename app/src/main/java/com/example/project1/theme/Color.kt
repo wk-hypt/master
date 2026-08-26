@@ -2,23 +2,67 @@ package com.example.project1.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+/** Shared app colors. Screens should use these instead of repeating hex values. */
+object EcoColors {
+    val PrimaryGreen = Color(0xFF2E7D32)
+    val DarkGreen = Color(0xFF1B5E20)
+    val SoftGreen = Color(0xFFE8F5E9)
+    val MintGreen = Color(0xFFF1F8E9)
+
+    val PageBg = Color(0xFFF4F6F5)
+    val AdminBg = Color(0xFFF6F8F5)
+    val Cream = Color(0xFFF6F1E8)
+    val Surface = Color.White
+
+    val TextDark = Color(0xFF1B1F1C)
+    val TextGrey = Color(0xFF8B948E)
+    val TextGrey2 = Color(0xFF6C757D)
+    val TextMuted = Color(0xFF6B7280)
+
+    val Amber = Color(0xFFEF6C00)
+    val Blue = Color(0xFF1565C0)
+    val Danger = Color(0xFFC62828)
+    val Rejected = Color(0xFFDC3545)
+    val NotificationRed = Color(0xFFE53935)
+
+    val CardBorder = Color(0xFFEDF1EC)
+    val NavBorder = Color(0xFFE5E5E5)
+
+    val ApprovedBg = Color(0xFFE8F5E9)
+    val PendingYellowBg = Color(0xFFFFF8E1)
+    val PendingYellowFg = Color(0xFF8D6E00)
+    val InProgressBg = Color(0xFFF1F3F5)
+    val RejectedBg = Color(0xFFFDECEA)
+    val PendingAmberBg = Color(0xFFFFF3E0)
+    val ExpiredBg = Color(0xFFFFEBEE)
+
+    val AvatarPalette = listOf(
+        PrimaryGreen,
+        Blue,
+        Amber,
+        Color(0xFF6A1B9A),
+        Danger,
+        Color(0xFF00838F)
+    )
+}
+
 // Light Scheme Colors
-val primaryLight = Color(0xFF2E7D32)
+val primaryLight = EcoColors.PrimaryGreen
 val onPrimaryLight = Color(0xFFFFFFFF)
 val primaryContainerLight = Color(0xFFC8E6C9)
 val onPrimaryContainerLight = Color(0xFF003300)
 
-val secondaryLight = Color(0xFF1565C0)
+val secondaryLight = EcoColors.Blue
 val onSecondaryLight = Color(0xFFFFFFFF)
 val secondaryContainerLight = Color(0xFFBBDEFB)
 val onSecondaryContainerLight = Color(0xFF001D4A)
 
-val tertiaryLight = Color(0xFFEF6C00)
+val tertiaryLight = EcoColors.Amber
 val onTertiaryLight = Color(0xFFFFFFFF)
 val tertiaryContainerLight = Color(0xFFFFE0B2)
 val onTertiaryContainerLight = Color(0xFF4E2600)
 
-val errorLight = Color(0xFFC62828)
+val errorLight = EcoColors.Danger
 val onErrorLight = Color(0xFFFFFFFF)
 val errorContainerLight = Color(0xFFFFCDD2)
 val onErrorContainerLight = Color(0xFF4A0002)
@@ -76,7 +120,7 @@ val outlineVariantDark = Color(0xFF434843)
 val scrimDark = Color(0xFF000000)
 val inverseSurfaceDark = Color(0xFFE1E3DF)
 val inverseOnSurfaceDark = Color(0xFF2E312E)
-val inversePrimaryDark = Color(0xFF2E7D32)
+val inversePrimaryDark = EcoColors.PrimaryGreen
 
 val surfaceDimDark = Color(0xFF111411)
 val surfaceBrightDark = Color(0xFF373A36)

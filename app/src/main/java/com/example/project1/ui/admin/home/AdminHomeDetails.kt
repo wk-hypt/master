@@ -64,6 +64,7 @@ import com.example.project1.data.model.TaskEntity
 import com.example.project1.ui.adaptive.AdaptiveDialogSurface
 import com.example.project1.ui.adaptive.HeightSize
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
+import com.example.project1.ui.theme.EcoColors
 
 @Composable
 internal fun DetailDialogScaffold(
@@ -75,9 +76,9 @@ internal fun DetailDialogScaffold(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val fullScreen = LocalAppWindowInfo.current.useFullScreenDialog
-    AdaptiveDialogSurface(onDismiss = onDismiss, color = BgColor) {
+    AdaptiveDialogSurface(onDismiss = onDismiss, color = EcoColors.AdminBg) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Surface(color = PrimaryGreen, shadowElevation = 0.dp) {
+            Surface(color = EcoColors.PrimaryGreen, shadowElevation = 0.dp) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -131,7 +132,7 @@ internal fun DetailDialogScaffold(
                 content = content
             )
 
-            Surface(color = SurfaceColor, shadowElevation = 8.dp) {
+            Surface(color = EcoColors.Surface, shadowElevation = 8.dp) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -141,8 +142,8 @@ internal fun DetailDialogScaffold(
                 ) {
                     OutlinedButton(
                         onClick = onReject,
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = RedRejected),
-                        border = BorderStroke(1.dp, RedRejected.copy(alpha = 0.4f)),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = EcoColors.Rejected),
+                        border = BorderStroke(1.dp, EcoColors.Rejected.copy(alpha = 0.4f)),
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier.weight(1f).height(52.dp)
                     ) {
@@ -152,7 +153,7 @@ internal fun DetailDialogScaffold(
                     }
                     Button(
                         onClick = onApprove,
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier.weight(1f).height(52.dp)
                     ) {
@@ -247,7 +248,7 @@ private fun ProofPhoto(imagePath: String, contentDescription: String, status: St
             .fillMaxWidth()
             .height(if (compact) 160.dp else 240.dp)
             .clip(RoundedCornerShape(18.dp))
-            .background(Color(0xFFF1F3F5))
+            .background(EcoColors.InProgressBg)
             .clickable { showFullImage = true }
     ) {
         AsyncImage(
@@ -330,15 +331,15 @@ private fun MissingProofBanner(status: String) {
             modifier = Modifier
                 .size(52.dp)
                 .clip(RoundedCornerShape(14.dp))
-                .background(Color(0xFFE8F5E9)),
+                .background(EcoColors.ApprovedBg),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Default.PhotoCamera, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(24.dp))
+            Icon(Icons.Default.PhotoCamera, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(24.dp))
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text("No proof photo attached", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextDark)
-            Text("Review the details below before deciding.", fontSize = 12.sp, color = TextGrey2)
+            Text("No proof photo attached", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = EcoColors.TextDark)
+            Text("Review the details below before deciding.", fontSize = 12.sp, color = EcoColors.TextGrey2)
         }
         StatusPill(status = status)
     }
@@ -368,10 +369,10 @@ private fun InfoRow(icon: ImageVector, label: String, value: String, showDivider
             modifier = Modifier
                 .size(32.dp)
                 .clip(RoundedCornerShape(9.dp))
-                .background(Color(0xFFE8F5E9)),
+                .background(EcoColors.ApprovedBg),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp))
+            Icon(icon, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(16.dp))
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -380,19 +381,19 @@ private fun InfoRow(icon: ImageVector, label: String, value: String, showDivider
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.6.sp,
-                color = TextGrey
+                color = EcoColors.TextGrey
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 value,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = TextDark
+                color = EcoColors.TextDark
             )
         }
     }
     if (showDivider) {
-        HorizontalDivider(color = CardBorder, thickness = 1.dp)
+        HorizontalDivider(color = EcoColors.CardBorder, thickness = 1.dp)
     }
 }
 
@@ -430,7 +431,7 @@ private fun DescriptionCard(text: String) {
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.6.sp,
-            color = TextGrey
+            color = EcoColors.TextGrey
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(

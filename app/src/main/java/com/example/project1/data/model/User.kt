@@ -41,7 +41,6 @@ data class UserPasswordUpdate(
     val password: String
 )
 
-
 @Serializable
 data class UserPointsUpdate(
     @SerialName("total_points") val totalPoints: Int

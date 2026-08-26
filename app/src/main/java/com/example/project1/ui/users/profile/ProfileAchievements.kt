@@ -80,9 +80,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.project1.common.toFormattedDateTime
-import com.example.project1.ui.common.ProfileColors
 import com.example.project1.ui.common.ProfileEcoMetric
 import com.example.project1.ui.common.ProfilePhotoAvatar
+import com.example.project1.ui.theme.EcoColors
 
 private enum class BadgeBoardFilter { All, InProgress, Unlocked }
 
@@ -161,11 +161,11 @@ internal fun AchievementsPage(
         )
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(ProfileColors.Cream)) {
+    Column(modifier = Modifier.fillMaxSize().background(EcoColors.Cream)) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(ProfileColors.DarkGreen)
+                .background(EcoColors.DarkGreen)
                 .padding(top = 8.dp, bottom = 16.dp)
         ) {
             IconButton(onClick = onBack) {
@@ -198,7 +198,7 @@ internal fun AchievementsPage(
                         Text("$displayName's Journey", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                         Text(
                             "${tier.name.uppercase()} (Tier ${tier.level}/${tier.totalLevels})",
-                            color = ProfileColors.PrimaryGreen,
+                            color = EcoColors.PrimaryGreen,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -206,11 +206,11 @@ internal fun AchievementsPage(
                         LinearProgressIndicator(
                             progress = { tier.progress(points) },
                             modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(8.dp)),
-                            color = ProfileColors.PrimaryGreen,
+                            color = EcoColors.PrimaryGreen,
                             trackColor = Color(0xFFE0E0E0)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(nextLabel, fontSize = 11.sp, color = ProfileColors.TextGrey)
+                        Text(nextLabel, fontSize = 11.sp, color = EcoColors.TextMuted)
                     }
                 }
             }
@@ -235,18 +235,18 @@ internal fun AchievementsPage(
                     shape = RoundedCornerShape(24.dp),
                     modifier = Modifier.weight(1f).height(44.dp)
                 ) {
-                    Icon(Icons.Default.Eco, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Eco, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Log an action", color = ProfileColors.PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Text("Log an action", color = EcoColors.PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 }
                 OutlinedButton(
                     onClick = onNavigateToLeaderboard,
                     shape = RoundedCornerShape(24.dp),
                     modifier = Modifier.weight(1f).height(44.dp)
                 ) {
-                    Icon(Icons.Default.Leaderboard, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Leaderboard, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Leaderboard", color = ProfileColors.PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Text("Leaderboard", color = EcoColors.PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 }
             }
 
@@ -254,7 +254,7 @@ internal fun AchievementsPage(
             Text(
                 "Collect unlocked badges, wear one on your profile, or tap a locked badge to go earn it.",
                 fontSize = 11.sp,
-                color = ProfileColors.TextGrey
+                color = EcoColors.TextMuted
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -273,15 +273,15 @@ internal fun AchievementsPage(
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = ProfileColors.SoftGreen,
-                            selectedLabelColor = ProfileColors.DarkGreen
+                            selectedContainerColor = EcoColors.SoftGreen,
+                            selectedLabelColor = EcoColors.DarkGreen
                         )
                     )
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
             if (visibleBadges.isEmpty()) {
-                Text("Nothing in this filter yet. Log an eco action to start unlocking badges.", fontSize = 12.sp, color = ProfileColors.TextGrey)
+                Text("Nothing in this filter yet. Log an eco action to start unlocking badges.", fontSize = 12.sp, color = EcoColors.TextMuted)
             }
             visibleBadges.chunked(2).forEach { rowItems ->
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
@@ -294,14 +294,14 @@ internal fun AchievementsPage(
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = when {
-                                    equipped -> ProfileColors.SoftGreen
+                                    equipped -> EcoColors.SoftGreen
                                     collected -> Color.White
                                     else -> Color.White
                                 }
                             ),
                             border = when {
-                                equipped -> BorderStroke(2.dp, ProfileColors.PrimaryGreen)
-                                collected -> BorderStroke(1.dp, ProfileColors.PrimaryGreen)
+                                equipped -> BorderStroke(2.dp, EcoColors.PrimaryGreen)
+                                collected -> BorderStroke(1.dp, EcoColors.PrimaryGreen)
                                 else -> null
                             }
                         ) {
@@ -309,7 +309,7 @@ internal fun AchievementsPage(
                                 Icon(
                                     BadgeIcons.getOrElse(index) { Icons.Default.Eco },
                                     contentDescription = null,
-                                    tint = if (badge.unlocked) ProfileColors.PrimaryGreen else Color(0xFFBDBDBD),
+                                    tint = if (badge.unlocked) EcoColors.PrimaryGreen else Color(0xFFBDBDBD),
                                     modifier = Modifier.size(28.dp)
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
@@ -318,7 +318,7 @@ internal fun AchievementsPage(
                                 LinearProgressIndicator(
                                     progress = { badge.progress },
                                     modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(4.dp)),
-                                    color = if (badge.unlocked) ProfileColors.PrimaryGreen else Color(0xFFBDBDBD),
+                                    color = if (badge.unlocked) EcoColors.PrimaryGreen else Color(0xFFBDBDBD),
                                     trackColor = Color(0xFFEDEDED)
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
@@ -330,7 +330,7 @@ internal fun AchievementsPage(
                                         else -> badge.progressLabel
                                     },
                                     fontSize = 10.sp,
-                                    color = if (badge.unlocked) ProfileColors.PrimaryGreen else Color(0xFF9E9E9E)
+                                    color = if (badge.unlocked) EcoColors.PrimaryGreen else Color(0xFF9E9E9E)
                                 )
                             }
                         }
@@ -381,7 +381,7 @@ internal fun AchievementsPage(
             if (claimable.isNotEmpty()) {
                 Card(
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = ProfileColors.SoftGreen),
+                    colors = CardDefaults.cardColors(containerColor = EcoColors.SoftGreen),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -393,13 +393,13 @@ internal fun AchievementsPage(
                             if (claimable.size == 1) "1 reward ready to claim!" else "${claimable.size} rewards ready to claim!",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = ProfileColors.DarkGreen,
+                            color = EcoColors.DarkGreen,
                             modifier = Modifier.weight(1f)
                         )
                         TextButton(onClick = {
                             claimable.forEach { onClaimMilestone(it.id, it.bonusPoints) }
                         }) {
-                            Text("Claim all", fontWeight = FontWeight.Bold, color = ProfileColors.PrimaryGreen)
+                            Text("Claim all", fontWeight = FontWeight.Bold, color = EcoColors.PrimaryGreen)
                         }
                     }
                 }
@@ -418,7 +418,7 @@ internal fun AchievementsPage(
                                 .clickable { selectedMilestone = milestone },
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = if (readyToClaim) ProfileColors.PrimaryGreen else Color(0xFF3A3A3A)
+                                containerColor = if (readyToClaim) EcoColors.PrimaryGreen else Color(0xFF3A3A3A)
                             )
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
@@ -473,9 +473,9 @@ internal fun AchievementsPage(
                 shape = RoundedCornerShape(24.dp),
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             ) {
-                Icon(Icons.Default.Share, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Share, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Share my impact", color = ProfileColors.PrimaryGreen, fontWeight = FontWeight.Medium)
+                Text("Share my impact", color = EcoColors.PrimaryGreen, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -488,12 +488,12 @@ internal fun AchievementsPage(
             title = { Text(badge.title, fontWeight = FontWeight.Bold) },
             text = {
                 Column {
-                    Text(badge.description, fontSize = 13.sp, color = ProfileColors.TextGrey)
+                    Text(badge.description, fontSize = 13.sp, color = EcoColors.TextMuted)
                     Spacer(modifier = Modifier.height(12.dp))
                     LinearProgressIndicator(
                         progress = { badge.progress },
                         modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(8.dp)),
-                        color = ProfileColors.PrimaryGreen,
+                        color = EcoColors.PrimaryGreen,
                         trackColor = Color(0xFFE0E0E0)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
@@ -506,7 +506,7 @@ internal fun AchievementsPage(
                         },
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = ProfileColors.PrimaryGreen
+                        color = EcoColors.PrimaryGreen
                     )
                 }
             },
@@ -517,28 +517,28 @@ internal fun AchievementsPage(
                             selectedBadge = null
                             onNavigateToLogAction()
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
                     ) { Text("Log an action") }
                     !collected -> Button(
                         onClick = {
                             onCollectBadge(badge.id)
                             selectedBadge = null
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
                     ) { Text("Collect badge") }
                     equipped -> Button(
                         onClick = {
                             onEquipBadge(null)
                             selectedBadge = null
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
                     ) { Text("Unequip") }
                     else -> Button(
                         onClick = {
                             onEquipBadge(badge.id)
                             selectedBadge = null
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
                     ) { Text("Wear on profile") }
                 }
             },
@@ -566,13 +566,13 @@ internal fun AchievementsPage(
                     Text(
                         if (claimed) "Reward already claimed." else "Reach this milestone to claim a +${milestone.bonusPoints} point bonus.",
                         fontSize = 13.sp,
-                        color = ProfileColors.TextGrey
+                        color = EcoColors.TextMuted
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     LinearProgressIndicator(
                         progress = { milestone.progress },
                         modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(8.dp)),
-                        color = ProfileColors.PrimaryGreen,
+                        color = EcoColors.PrimaryGreen,
                         trackColor = Color(0xFFE0E0E0)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
@@ -584,7 +584,7 @@ internal fun AchievementsPage(
                         },
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = ProfileColors.PrimaryGreen
+                        color = EcoColors.PrimaryGreen
                     )
                 }
             },
@@ -595,14 +595,14 @@ internal fun AchievementsPage(
                             onClaimMilestone(milestone.id, milestone.bonusPoints)
                             selectedMilestone = null
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
                     ) { Text("Claim +${milestone.bonusPoints} pts") }
                     milestone.locked -> Button(
                         onClick = {
                             selectedMilestone = null
                             onNavigateToLogAction()
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
                     ) { Text("Log an action") }
                     else -> TextButton(onClick = { selectedMilestone = null }) { Text("Nice!") }
                 }
@@ -635,30 +635,30 @@ private fun DailyQuestCard(
 ) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = if (completed) ProfileColors.SoftGreen else Color.White),
+        colors = CardDefaults.cardColors(containerColor = if (completed) EcoColors.SoftGreen else Color.White),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("TODAY'S QUEST", color = ProfileColors.PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Text("TODAY'S QUEST", color = EcoColors.PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             Spacer(modifier = Modifier.height(6.dp))
             Text(quest.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Text(quest.hint, fontSize = 12.sp, color = ProfileColors.TextGrey)
+            Text(quest.hint, fontSize = 12.sp, color = EcoColors.TextMuted)
             Spacer(modifier = Modifier.height(10.dp))
             if (completed) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Done · +5 pts added", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = ProfileColors.DarkGreen)
+                    Text("Done · +5 pts added", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = EcoColors.DarkGreen)
                 }
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                     Button(
                         onClick = onComplete,
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
                     ) { Text("I did this") }
                     OutlinedButton(onClick = onLogAction, modifier = Modifier.weight(1f)) {
-                        Text("Submit proof", color = ProfileColors.PrimaryGreen)
+                        Text("Submit proof", color = EcoColors.PrimaryGreen)
                     }
                 }
             }
@@ -676,22 +676,22 @@ private fun NextChallengeCard(badge: EcoBadge, onLogAction: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Star, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Star, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("NEXT CHALLENGE", color = ProfileColors.PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text("NEXT CHALLENGE", color = EcoColors.PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             }
             Spacer(modifier = Modifier.height(6.dp))
             Text(badge.title, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            Text(badge.description, fontSize = 12.sp, color = ProfileColors.TextGrey)
+            Text(badge.description, fontSize = 12.sp, color = EcoColors.TextMuted)
             Spacer(modifier = Modifier.height(8.dp))
             LinearProgressIndicator(
                 progress = { badge.progress },
                 modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(8.dp)),
-                color = ProfileColors.PrimaryGreen,
+                color = EcoColors.PrimaryGreen,
                 trackColor = Color(0xFFE0E0E0)
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text("${badge.progressLabel} · tap to log an action", fontSize = 11.sp, color = ProfileColors.TextGrey)
+            Text("${badge.progressLabel} · tap to log an action", fontSize = 11.sp, color = EcoColors.TextMuted)
         }
     }
 }
@@ -699,7 +699,7 @@ private fun NextChallengeCard(badge: EcoBadge, onLogAction: () -> Unit) {
 @Composable
 private fun SectionTitle(text: String) {
     Spacer(modifier = Modifier.height(16.dp))
-    Text(text, color = ProfileColors.PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+    Text(text, color = EcoColors.PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
     Spacer(modifier = Modifier.height(10.dp))
 }
 
@@ -719,8 +719,8 @@ private fun WeeklyEcoActivityCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("WEEKLY ECO ACTIVITY", color = ProfileColors.PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                Icon(Icons.Default.BarChart, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(20.dp))
+                Text("WEEKLY ECO ACTIVITY", color = EcoColors.PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Icon(Icons.Default.BarChart, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(20.dp))
             }
             Spacer(modifier = Modifier.height(14.dp))
             Row(
@@ -742,7 +742,7 @@ private fun WeeklyEcoActivityCard(
                             if (points > 0) "+$points" else "0",
                             fontSize = 9.sp,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (selected) ProfileColors.DarkGreen else ProfileColors.TextGrey
+                            color = if (selected) EcoColors.DarkGreen else EcoColors.TextMuted
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Box(
@@ -752,8 +752,8 @@ private fun WeeklyEcoActivityCard(
                                 .clip(RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp))
                                 .background(
                                     when {
-                                        selected -> ProfileColors.DarkGreen
-                                        value > 0 -> ProfileColors.PrimaryGreen
+                                        selected -> EcoColors.DarkGreen
+                                        value > 0 -> EcoColors.PrimaryGreen
                                         else -> Color(0xFFDDE8DE)
                                     }
                                 )
@@ -763,7 +763,7 @@ private fun WeeklyEcoActivityCard(
                             stats.weeklyLabels.getOrElse(index) { "" },
                             fontSize = 9.sp,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (selected) ProfileColors.DarkGreen else ProfileColors.TextGrey
+                            color = if (selected) EcoColors.DarkGreen else EcoColors.TextMuted
                         )
                     }
                 }
@@ -772,7 +772,7 @@ private fun WeeklyEcoActivityCard(
             Text(
                 "Tap a bar to see points from that day's submissions and tasks.",
                 fontSize = 10.sp,
-                color = ProfileColors.TextGrey
+                color = EcoColors.TextMuted
             )
         }
     }
@@ -800,16 +800,16 @@ private fun WeeklyDayDetailDialog(day: WeeklyDayActivity, onDismiss: () -> Unit)
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             "DAY BREAKDOWN",
-                            color = ProfileColors.PrimaryGreen,
+                            color = EcoColors.PrimaryGreen,
                             fontWeight = FontWeight.Bold,
                             fontSize = 11.sp,
                             letterSpacing = 0.8.sp
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(day.fullLabel, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = ProfileColors.TextDark)
+                        Text(day.fullLabel, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = EcoColors.TextDark)
                     }
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "Close", tint = ProfileColors.TextGrey)
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = EcoColors.TextMuted)
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -821,14 +821,14 @@ private fun WeeklyDayDetailDialog(day: WeeklyDayActivity, onDismiss: () -> Unit)
                 Text(
                     "${day.submissionCount} submission${if (day.submissionCount == 1) "" else "s"} · ${day.taskCount} task${if (day.taskCount == 1) "" else "s"}",
                     fontSize = 12.sp,
-                    color = ProfileColors.TextGrey
+                    color = EcoColors.TextMuted
                 )
                 Spacer(modifier = Modifier.height(14.dp))
                 if (day.entries.isEmpty()) {
                     Text(
                         "No approved submissions or tasks on this day.",
                         fontSize = 13.sp,
-                        color = ProfileColors.TextGrey
+                        color = EcoColors.TextMuted
                     )
                 } else {
                     day.entries.forEachIndexed { index, entry ->
@@ -842,7 +842,7 @@ private fun WeeklyDayDetailDialog(day: WeeklyDayActivity, onDismiss: () -> Unit)
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth().height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen),
+                    colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
                     shape = RoundedCornerShape(14.dp)
                 ) {
                     Text("Close", fontWeight = FontWeight.Bold)
@@ -857,11 +857,11 @@ private fun DayStatChip(modifier: Modifier, value: String, label: String) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(ProfileColors.SoftGreen)
+            .background(EcoColors.SoftGreen)
             .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
-        Text(value, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = ProfileColors.DarkGreen)
-        Text(label, fontSize = 11.sp, color = ProfileColors.TextGrey)
+        Text(value, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = EcoColors.DarkGreen)
+        Text(label, fontSize = 11.sp, color = EcoColors.TextMuted)
     }
 }
 
@@ -876,35 +876,35 @@ private fun WeeklyEntryRow(entry: WeeklyActivityEntry) {
             modifier = Modifier
                 .size(40.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(ProfileColors.SoftGreen),
+                .background(EcoColors.SoftGreen),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 if (isSubmission) Icons.Default.PhotoCamera else Icons.Default.TaskAlt,
                 contentDescription = null,
-                tint = ProfileColors.PrimaryGreen,
+                tint = EcoColors.PrimaryGreen,
                 modifier = Modifier.size(18.dp)
             )
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(entry.title, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = ProfileColors.TextDark)
+            Text(entry.title, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = EcoColors.TextDark)
             Text(
                 "${if (isSubmission) "Submission" else "Task"} · ${entry.subtitle}",
                 fontSize = 11.sp,
-                color = ProfileColors.TextGrey
+                color = EcoColors.TextMuted
             )
-            Text(entry.timestamp.toFormattedDateTime(), fontSize = 10.sp, color = ProfileColors.TextGrey)
+            Text(entry.timestamp.toFormattedDateTime(), fontSize = 10.sp, color = EcoColors.TextMuted)
         }
         Spacer(modifier = Modifier.width(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Stars, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(14.dp))
+            Icon(Icons.Default.Stars, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(14.dp))
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 "+${entry.points}",
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp,
-                color = ProfileColors.PrimaryGreen
+                color = EcoColors.PrimaryGreen
             )
         }
     }
@@ -915,7 +915,7 @@ private fun GoalDetailCard(goal: EcoGoal, onClick: (() -> Unit)? = null) {
     Card(
         modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = if (goal.completed) ProfileColors.SoftGreen else Color.White),
+        colors = CardDefaults.cardColors(containerColor = if (goal.completed) EcoColors.SoftGreen else Color.White),
         border = if (goal.completed) null else BorderStroke(1.dp, Color(0xFFE0E7E0))
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -925,19 +925,19 @@ private fun GoalDetailCard(goal: EcoGoal, onClick: (() -> Unit)? = null) {
                     if (goal.completed) "Completed" else "${goal.current}/${goal.target}",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = ProfileColors.PrimaryGreen
+                    color = EcoColors.PrimaryGreen
                 )
             }
             Spacer(modifier = Modifier.height(6.dp))
             LinearProgressIndicator(
                 progress = { goal.progress },
                 modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(6.dp)),
-                color = ProfileColors.PrimaryGreen,
+                color = EcoColors.PrimaryGreen,
                 trackColor = Color(0xFFE0E0E0)
             )
             if (!goal.completed && onClick != null) {
                 Spacer(modifier = Modifier.height(6.dp))
-                Text("Tap to log an eco action towards this goal", fontSize = 10.sp, color = ProfileColors.TextGrey)
+                Text("Tap to log an eco action towards this goal", fontSize = 10.sp, color = EcoColors.TextMuted)
             }
         }
     }
@@ -957,7 +957,7 @@ private fun EnvironmentalImpactCard(points: Int, plastics: Int) {
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Here's the real-world difference your actions add up to.", fontSize = 11.sp, color = ProfileColors.TextGrey)
+            Text("Here's the real-world difference your actions add up to.", fontSize = 11.sp, color = EcoColors.TextMuted)
             Spacer(modifier = Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                 ImpactStat(Modifier.weight(1f), Icons.Default.CloudDone, co2Label, "CO₂ avoided")
@@ -978,13 +978,13 @@ private fun ImpactStat(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(ProfileColors.SoftGreen)
+            .background(EcoColors.SoftGreen)
             .padding(vertical = 12.dp, horizontal = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(icon, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(20.dp))
+        Icon(icon, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(20.dp))
         Spacer(modifier = Modifier.height(4.dp))
-        Text(value, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = ProfileColors.DarkGreen, textAlign = TextAlign.Center)
-        Text(label, fontSize = 9.sp, color = ProfileColors.TextGrey, textAlign = TextAlign.Center)
+        Text(value, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = EcoColors.DarkGreen, textAlign = TextAlign.Center)
+        Text(label, fontSize = 9.sp, color = EcoColors.TextMuted, textAlign = TextAlign.Center)
     }
 }

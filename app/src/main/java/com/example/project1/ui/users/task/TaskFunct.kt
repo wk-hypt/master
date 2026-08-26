@@ -27,9 +27,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.project1.common.*
 import com.example.project1.data.model.TaskEntity
-
-private val PrimaryGreen = Color(0xFF2E7D32)
-private val DarkGreen = Color(0xFF1B5E20)
+import com.example.project1.ui.theme.EcoColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,15 +60,15 @@ fun TaskFunct(
 
     Scaffold(
         modifier = modifier,
-        containerColor = Color(0xFFF4F6F5),
+        containerColor = EcoColors.PageBg,
         topBar = {
             TopAppBar(
                 title = {
-                    Text("My Tasks & Goals", fontWeight = FontWeight.Bold, color = DarkGreen)
+                    Text("My Tasks & Goals", fontWeight = FontWeight.Bold, color = EcoColors.DarkGreen)
                 },
                 actions = {
                     IconButton(onClick = onOpenLeaderboard) {
-                        Icon(Icons.Default.Leaderboard, contentDescription = "Check Ranking", tint = PrimaryGreen)
+                        Icon(Icons.Default.Leaderboard, contentDescription = "Check Ranking", tint = EcoColors.PrimaryGreen)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
@@ -79,7 +77,7 @@ fun TaskFunct(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddClick,
-                containerColor = PrimaryGreen,
+                containerColor = EcoColors.PrimaryGreen,
                 contentColor = Color.White,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                 text = { Text("New Task", fontWeight = FontWeight.Bold) }
@@ -111,7 +109,7 @@ fun TaskFunct(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = PrimaryGreen,
+                        focusedBorderColor = EcoColors.PrimaryGreen,
                         unfocusedBorderColor = Color(0xFFE0E0E0)
                     ),
                     modifier = Modifier.fillMaxWidth()
@@ -127,9 +125,9 @@ fun TaskFunct(
                             label = { Text("All") },
                             shape = RoundedCornerShape(20.dp),
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = PrimaryGreen,
+                                selectedContainerColor = EcoColors.PrimaryGreen,
                                 selectedLabelColor = Color.White,
-                                containerColor = Color(0xFFF1F3F5),
+                                containerColor = EcoColors.InProgressBg,
                                 labelColor = Color(0xFF495057)
                             )
                         )
@@ -141,9 +139,9 @@ fun TaskFunct(
                             label = { Text(status) },
                             shape = RoundedCornerShape(20.dp),
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = PrimaryGreen,
+                                selectedContainerColor = EcoColors.PrimaryGreen,
                                 selectedLabelColor = Color.White,
-                                containerColor = Color(0xFFF1F3F5),
+                                containerColor = EcoColors.InProgressBg,
                                 labelColor = Color(0xFF495057)
                             )
                         )
@@ -160,13 +158,13 @@ fun TaskFunct(
                             modifier = Modifier
                                 .size(80.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFFE8F5E9)),
+                                .background(EcoColors.ApprovedBg),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.TaskAlt,
                                 contentDescription = null,
-                                tint = PrimaryGreen,
+                                tint = EcoColors.PrimaryGreen,
                                 modifier = Modifier.size(40.dp)
                             )
                         }
@@ -177,7 +175,7 @@ fun TaskFunct(
                             else "No eco tasks yet",
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
-                            color = Color(0xFF1B1F1C)
+                            color = EcoColors.TextDark
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
@@ -217,11 +215,11 @@ fun TaskFunct(
             onDismissRequest = { taskToDelete = null },
             containerColor = Color.White,
             shape = RoundedCornerShape(20.dp),
-            title = { Text("Delete Task", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1B1F1C)) },
+            title = { Text("Delete Task", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = EcoColors.TextDark) },
             text = { Text("Are you sure you want to delete \"${task.title}\"? This cannot be undone.", fontSize = 14.sp, color = Color(0xFF495057)) },
             confirmButton = {
                 TextButton(onClick = { onDeleteClick(task.id); taskToDelete = null }) {
-                    Text("Delete", color = Color(0xFFE53935), fontWeight = FontWeight.Bold)
+                    Text("Delete", color = EcoColors.NotificationRed, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -269,20 +267,20 @@ fun TaskCard(
                         modifier = Modifier
                             .size(52.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFF1F3F5))
+                            .background(EcoColors.InProgressBg)
                     )
                 } else {
                     Box(
                         modifier = Modifier
                             .size(52.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFE8F5E9)),
+                            .background(EcoColors.ApprovedBg),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Eco,
                             contentDescription = "Eco Task",
-                            tint = PrimaryGreen,
+                            tint = EcoColors.PrimaryGreen,
                             modifier = Modifier.size(26.dp)
                         )
                     }
@@ -300,7 +298,7 @@ fun TaskCard(
                             text = task.title,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1B1F1C),
+                            color = EcoColors.TextDark,
                             modifier = Modifier.weight(1f)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
@@ -334,7 +332,7 @@ fun TaskCard(
                 LinearProgressIndicator(
                     progress = { progressFraction },
                     modifier = Modifier.weight(1f).height(8.dp),
-                    color = PrimaryGreen,
+                    color = EcoColors.PrimaryGreen,
                     trackColor = Color(0xFFE9ECEB),
                     strokeCap = StrokeCap.Round
                 )
@@ -343,7 +341,7 @@ fun TaskCard(
                     text = "$currentProgress/${task.taskQuantity}",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = PrimaryGreen
+                    color = EcoColors.PrimaryGreen
                 )
             }
 
@@ -362,22 +360,22 @@ fun TaskCard(
                     when {
                         task.isApproved -> {
                             Surface(
-                                color = Color(0xFFE8F5E9),
+                                color = EcoColors.ApprovedBg,
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                                 ) {
-                                    Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("${task.points} pts earned", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = PrimaryGreen)
+                                    Text("${task.points} pts earned", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = EcoColors.PrimaryGreen)
                                 }
                             }
                         }
                         task.isPending -> {
                             Surface(
-                                color = Color(0xFFFFF8E1),
+                                color = EcoColors.PendingYellowBg,
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Row(
@@ -387,7 +385,7 @@ fun TaskCard(
                                     Icon(
                                         imageVector = Icons.Default.HourglassEmpty,
                                         contentDescription = null,
-                                        tint = Color(0xFF8D6E00),
+                                        tint = EcoColors.PendingYellowFg,
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
@@ -395,7 +393,7 @@ fun TaskCard(
                                         text = "Waiting for Admin Approval",
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Medium,
-                                        color = Color(0xFF8D6E00)
+                                        color = EcoColors.PendingYellowFg
                                     )
                                 }
                             }
@@ -404,7 +402,7 @@ fun TaskCard(
                             Button(
                                 onClick = { showProofDialog = true },
                                 enabled = !task.isTargetReached,
-                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                                colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
                                 shape = RoundedCornerShape(10.dp),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                             ) {
@@ -416,13 +414,13 @@ fun TaskCard(
                             if (task.isTargetReached) {
                                 Button(
                                     onClick = onSubmitToAdmin,
-                                    colors = ButtonDefaults.buttonColors(containerColor = DarkGreen),
+                                    colors = ButtonDefaults.buttonColors(containerColor = EcoColors.DarkGreen),
                                     shape = RoundedCornerShape(10.dp),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                                 ) {
-                                    Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Submit Task", fontSize = 12.sp)
+                                    Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(2.dp))
+                                    Text("Submit Task", fontSize = 10.sp)
                                 }
                             }
                         }
@@ -436,7 +434,7 @@ fun TaskCard(
                         }
                     }
                     IconButton(onClick = onDeleteClick) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete Task", tint = Color(0xFFE53935))
+                        Icon(Icons.Default.Delete, contentDescription = "Delete Task", tint = EcoColors.NotificationRed)
                     }
                 }
             }

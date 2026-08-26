@@ -17,8 +17,8 @@ import com.example.project1.data.model.EcoSubmissionEntity
 import com.example.project1.data.model.TaskEntity
 import com.example.project1.data.model.UserEntity
 import com.example.project1.ui.common.ChangePasswordDialog
-import com.example.project1.ui.common.ProfileColors
 import com.example.project1.ui.common.ProfileConfirmDialog
+import com.example.project1.ui.theme.EcoColors
 
 private enum class AdminProfilePage { Hub, Info, StaffDirectory, StaffDetails, UserManagement, UserDetails }
 
@@ -54,7 +54,7 @@ fun AdminProfileFunct(
 
     Scaffold(
         modifier = modifier,
-        containerColor = ProfileColors.PageBg,
+        containerColor = EcoColors.PageBg,
         snackbarHost = snackbarHost
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {

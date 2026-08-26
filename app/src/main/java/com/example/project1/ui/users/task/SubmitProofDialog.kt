@@ -30,6 +30,7 @@ import com.example.project1.ui.adaptive.AdaptiveDialogSurface
 import com.example.project1.ui.adaptive.HeightSize
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
 import com.example.project1.ui.users.home.createImageUri
+import com.example.project1.ui.theme.EcoColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,7 +115,7 @@ fun SubmitProofDialog(
                     Button(
                         onClick = { launchCamera() },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
                     ) {
                         Icon(Icons.Default.CameraAlt, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -127,7 +128,7 @@ fun SubmitProofDialog(
                         onClick = { capturedUri?.let { onSubmit(it.toString()) } },
                         enabled = capturedUri != null,
                         modifier = Modifier.fillMaxWidth().height(50.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0))
+                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.Blue)
                     ) {
                         Text("Submit", fontWeight = FontWeight.Bold)
                     }

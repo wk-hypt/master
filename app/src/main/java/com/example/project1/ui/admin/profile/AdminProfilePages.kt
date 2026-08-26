@@ -70,7 +70,6 @@ import com.example.project1.data.model.AdminEntity
 import com.example.project1.data.model.EcoSubmissionEntity
 import com.example.project1.data.model.TaskEntity
 import com.example.project1.data.model.UserEntity
-import com.example.project1.ui.common.ProfileColors
 import com.example.project1.ui.common.ProfileConfirmDialog
 import com.example.project1.ui.common.ProfileMenuRow
 import com.example.project1.ui.common.ProfilePageHeader
@@ -80,6 +79,7 @@ import com.example.project1.ui.common.initialsOf
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.project1.ui.theme.EcoColors
 
 @Composable
 internal fun AdminHubPage(
@@ -105,7 +105,7 @@ internal fun AdminHubPage(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(160.dp)
-                .background(ProfileColors.DarkGreen),
+                .background(EcoColors.DarkGreen),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -127,17 +127,17 @@ internal fun AdminHubPage(
                 ProfilePhotoAvatar(
                     name = displayName,
                     photoPath = null,
-                    color = ProfileColors.DarkGreen,
+                    color = EcoColors.DarkGreen,
                     size = 56.dp
                 )
                 Spacer(modifier = Modifier.width(14.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(displayName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = ProfileColors.TextDark)
-                    Text(adminId, fontSize = 13.sp, color = ProfileColors.TextGrey)
+                    Text(displayName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = EcoColors.TextDark)
+                    Text(adminId, fontSize = 13.sp, color = EcoColors.TextMuted)
                     Text(
                         "Campus Admin · ${faculty.ifBlank { "Staff" }}",
                         fontSize = 12.sp,
-                        color = ProfileColors.PrimaryGreen,
+                        color = EcoColors.PrimaryGreen,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -167,7 +167,7 @@ internal fun AdminHubPage(
                 ProfileMenuRow("CHANGE PASSWORD", Icons.Default.Lock, onChangePassword)
                 ProfileMenuRow("STAFF DIRECTORY", Icons.Default.Group, onOpenStaffDirectory)
                 ProfileMenuRow("USER MANAGEMENT", Icons.Default.ManageAccounts, onOpenUserManagement)
-                ProfileMenuRow("LOG OUT", Icons.AutoMirrored.Filled.Logout, onLogout, tint = ProfileColors.Danger)
+                ProfileMenuRow("LOG OUT", Icons.AutoMirrored.Filled.Logout, onLogout, tint = EcoColors.Danger)
             }
         }
         Spacer(modifier = Modifier.height(20.dp))
@@ -197,7 +197,7 @@ internal fun AdminInfoPage(
             label = { Text("Admin ID") },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF2E7D32),
+                focusedBorderColor = EcoColors.PrimaryGreen,
                 focusedLabelColor = Color.Black,
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black,
@@ -213,10 +213,10 @@ internal fun AdminInfoPage(
             label = { Text("Name") },
             singleLine = true,
             isError = isNameBlank,
-            supportingText = { if (isNameBlank) Text("Name cannot be empty", color = ProfileColors.Danger) },
+            supportingText = { if (isNameBlank) Text("Name cannot be empty", color = EcoColors.Danger) },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF2E7D32),
+                focusedBorderColor = EcoColors.PrimaryGreen,
                 focusedLabelColor = Color.Black,
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black,
@@ -234,7 +234,7 @@ internal fun AdminInfoPage(
             supportingText = { Text("Defaults to \"FOCS\" if left blank") },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF2E7D32),
+                focusedBorderColor = EcoColors.PrimaryGreen,
                 focusedLabelColor = Color.Black,
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black,
@@ -258,7 +258,7 @@ internal fun AdminInfoPage(
             Button(
                 onClick = { onSave(name.trim(), faculty.trim()) },
                 enabled = hasChanges && !isNameBlank,
-                colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.weight(1f).height(48.dp)
             ) { Text(if (hasChanges) "Save changes" else "No changes") }
@@ -287,13 +287,13 @@ internal fun StaffDirectoryPage(
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         ProfilePageHeader(title = "Staff Directory", onBack = onBack) {
             IconButton(onClick = onRefresh, enabled = !loading) {
-                Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = ProfileColors.PrimaryGreen)
+                Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = EcoColors.PrimaryGreen)
             }
         }
         Text(
             "${staff.size} campus admin${if (staff.size == 1) "" else "s"} with access to the staff desk",
             fontSize = 12.sp,
-            color = ProfileColors.TextGrey
+            color = EcoColors.TextMuted
         )
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(
@@ -308,10 +308,10 @@ internal fun StaffDirectoryPage(
 
         when {
             loading -> Box(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = ProfileColors.PrimaryGreen)
+                CircularProgressIndicator(color = EcoColors.PrimaryGreen)
             }
-            staff.isEmpty() -> Text("No staff records found.", fontSize = 13.sp, color = ProfileColors.TextGrey)
-            filteredStaff.isEmpty() -> Text("No staff match your search.", fontSize = 13.sp, color = ProfileColors.TextGrey)
+            staff.isEmpty() -> Text("No staff records found.", fontSize = 13.sp, color = EcoColors.TextMuted)
+            filteredStaff.isEmpty() -> Text("No staff match your search.", fontSize = 13.sp, color = EcoColors.TextMuted)
             else -> Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -352,7 +352,7 @@ internal fun StaffDetailsPage(
 
         if (staff == null) {
             Spacer(modifier = Modifier.height(24.dp))
-            Text("Staff member not found.", fontSize = 13.sp, color = ProfileColors.TextGrey)
+            Text("Staff member not found.", fontSize = 13.sp, color = EcoColors.TextMuted)
             return@Column
         }
 
@@ -380,11 +380,11 @@ internal fun StaffDetailsPage(
         ) {
             Spacer(modifier = Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ProfilePhotoAvatar(name = staff.name, photoPath = null, color = ProfileColors.DarkGreen, size = 56.dp)
+                ProfilePhotoAvatar(name = staff.name, photoPath = null, color = EcoColors.DarkGreen, size = 56.dp)
                 Spacer(modifier = Modifier.width(14.dp))
                 Column {
-                    Text(staff.name + if (isYou) " (You)" else "", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = ProfileColors.TextDark)
-                    Text("Campus Admin · ${staff.faculty.ifBlank { "Staff" }}", fontSize = 12.sp, color = ProfileColors.PrimaryGreen)
+                    Text(staff.name + if (isYou) " (You)" else "", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = EcoColors.TextDark)
+                    Text("Campus Admin · ${staff.faculty.ifBlank { "Staff" }}", fontSize = 12.sp, color = EcoColors.PrimaryGreen)
                 }
             }
 
@@ -406,7 +406,7 @@ internal fun StaffDetailsPage(
                     Text(
                         "No submissions or tasks reviewed by this staff member yet.",
                         fontSize = 12.sp,
-                        color = ProfileColors.TextGrey
+                        color = EcoColors.TextMuted
                     )
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -451,11 +451,11 @@ private fun ActivityRow(item: StaffActivityItem) {
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(18.dp))
+        Icon(icon, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(18.dp))
         Spacer(modifier = Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = ProfileColors.TextDark, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-            Text(dateFormat.format(Date(timestamp)), fontSize = 10.sp, color = ProfileColors.TextGrey)
+            Text(title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.TextDark, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            Text(dateFormat.format(Date(timestamp)), fontSize = 10.sp, color = EcoColors.TextMuted)
         }
         Surface(shape = RoundedCornerShape(8.dp), color = statusBg) {
             Text(status, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = statusColor, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
@@ -471,9 +471,9 @@ private data class StaffActivityRowData(
 )
 
 private fun statusColors(status: String): Pair<Color, Color> = when (status.lowercase()) {
-    "approved" -> ProfileColors.PrimaryGreen to Color(0xFFE8F5E9)
-    "rejected" -> ProfileColors.Danger to Color(0xFFFDECEA)
-    else -> Color(0xFFEF6C00) to Color(0xFFFFF3E0)
+    "approved" -> EcoColors.PrimaryGreen to EcoColors.ApprovedBg
+    "rejected" -> EcoColors.Danger to EcoColors.RejectedBg
+    else -> EcoColors.Amber to EcoColors.PendingAmberBg
 }
 
 @Composable
@@ -485,7 +485,7 @@ private fun SectionCard(title: String, content: @Composable ColumnScope.() -> Un
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(title, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = ProfileColors.TextGrey, letterSpacing = 0.6.sp)
+            Text(title, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = EcoColors.TextMuted, letterSpacing = 0.6.sp)
             content()
         }
     }
@@ -494,8 +494,8 @@ private fun SectionCard(title: String, content: @Composable ColumnScope.() -> Un
 @Composable
 private fun StaffDetailRow(label: String, value: String) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, fontSize = 12.sp, color = ProfileColors.TextGrey)
-        Text(value, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = ProfileColors.TextDark)
+        Text(label, fontSize = 12.sp, color = EcoColors.TextMuted)
+        Text(value, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.TextDark)
     }
 }
 
@@ -536,14 +536,14 @@ internal fun UserManagementPage(
         ProfilePageHeader(title = "User Management", onBack = onBack) {
             Box {
                 IconButton(onClick = { sortMenuOpen = true }) {
-                    Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Sort students", tint = ProfileColors.PrimaryGreen)
+                    Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Sort students", tint = EcoColors.PrimaryGreen)
                 }
                 DropdownMenu(expanded = sortMenuOpen, onDismissRequest = { sortMenuOpen = false }) {
                     UserSort.entries.forEach { option ->
                         DropdownMenuItem(
                             text = { Text(option.label) },
                             leadingIcon = {
-                                if (option == sort) Icon(Icons.Default.Check, contentDescription = null, tint = ProfileColors.PrimaryGreen)
+                                if (option == sort) Icon(Icons.Default.Check, contentDescription = null, tint = EcoColors.PrimaryGreen)
                             },
                             onClick = {
                                 sort = option
@@ -557,7 +557,7 @@ internal fun UserManagementPage(
         Text(
             "${users.size} registered student${if (users.size == 1) "" else "s"}",
             fontSize = 12.sp,
-            color = ProfileColors.TextGrey
+            color = EcoColors.TextMuted
         )
 
         if (users.isNotEmpty()) {
@@ -583,7 +583,7 @@ internal fun UserManagementPage(
             Text(
                 if (users.isEmpty()) "No student accounts found." else "No students match your search.",
                 fontSize = 13.sp,
-                color = ProfileColors.TextGrey
+                color = EcoColors.TextMuted
             )
         } else {
             Column(
@@ -639,7 +639,7 @@ internal fun UserDetailsPage(
 
         if (student == null) {
             Spacer(modifier = Modifier.height(24.dp))
-            Text("Student not found.", fontSize = 13.sp, color = ProfileColors.TextGrey)
+            Text("Student not found.", fontSize = 13.sp, color = EcoColors.TextMuted)
             return@Column
         }
 
@@ -670,13 +670,13 @@ internal fun UserDetailsPage(
                 ProfilePhotoAvatar(
                     name = student.name.ifBlank { student.studentId },
                     photoPath = null,
-                    color = ProfileColors.DarkGreen,
+                    color = EcoColors.DarkGreen,
                     size = 56.dp
                 )
                 Spacer(modifier = Modifier.width(14.dp))
                 Column {
-                    Text(student.name.ifBlank { "Unnamed student" }, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = ProfileColors.TextDark)
-                    Text("Student · ${student.faculty.ifBlank { "Student" }}", fontSize = 12.sp, color = ProfileColors.PrimaryGreen)
+                    Text(student.name.ifBlank { "Unnamed student" }, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = EcoColors.TextDark)
+                    Text("Student · ${student.faculty.ifBlank { "Student" }}", fontSize = 12.sp, color = EcoColors.PrimaryGreen)
                 }
             }
 
@@ -705,7 +705,7 @@ internal fun UserDetailsPage(
                     Text(
                         "No submissions or tasks from this student yet.",
                         fontSize = 12.sp,
-                        color = ProfileColors.TextGrey
+                        color = EcoColors.TextMuted
                     )
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -750,11 +750,11 @@ private fun UserActivityRow(item: UserActivityItem) {
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(18.dp))
+        Icon(icon, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(18.dp))
         Spacer(modifier = Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = ProfileColors.TextDark, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-            Text(dateFormat.format(Date(timestamp)), fontSize = 10.sp, color = ProfileColors.TextGrey)
+            Text(title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.TextDark, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            Text(dateFormat.format(Date(timestamp)), fontSize = 10.sp, color = EcoColors.TextMuted)
         }
         Surface(shape = RoundedCornerShape(8.dp), color = statusBg) {
             Text(status, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = statusColor, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
@@ -776,7 +776,7 @@ private fun PersonCard(
     Card(
         modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = if (highlight) ProfileColors.SoftGreen else Color.White),
+        colors = CardDefaults.cardColors(containerColor = if (highlight) EcoColors.SoftGreen else Color.White),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Row(modifier = Modifier.padding(14.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -784,22 +784,22 @@ private fun PersonCard(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(if (highlight) Color.White else ProfileColors.SoftGreen),
+                    .background(if (highlight) Color.White else EcoColors.SoftGreen),
                 contentAlignment = Alignment.Center
             ) {
-                Text(initialsOf(avatarName), color = ProfileColors.DarkGreen, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(initialsOf(avatarName), color = EcoColors.DarkGreen, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = ProfileColors.TextDark)
-                Text(subtitle, fontSize = 12.sp, color = ProfileColors.TextGrey)
+                Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = EcoColors.TextDark)
+                Text(subtitle, fontSize = 12.sp, color = EcoColors.TextMuted)
                 if (caption != null) {
-                    Text(caption, fontSize = 11.sp, color = ProfileColors.PrimaryGreen)
+                    Text(caption, fontSize = 11.sp, color = EcoColors.PrimaryGreen)
                 }
             }
             if (onDelete != null) {
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Remove student", tint = ProfileColors.Danger)
+                    Icon(Icons.Default.Delete, contentDescription = "Remove student", tint = EcoColors.Danger)
                 }
             }
             if (showChevron) {

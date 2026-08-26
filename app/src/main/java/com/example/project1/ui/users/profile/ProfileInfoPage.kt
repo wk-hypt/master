@@ -25,8 +25,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -46,20 +53,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project1.data.model.UserEntity
-import com.example.project1.ui.common.AvatarPalette
 import com.example.project1.ui.common.ProfileCameraBadge
-import com.example.project1.ui.common.ProfileColors
 import com.example.project1.ui.common.ProfilePageHeader
 import com.example.project1.ui.common.ProfilePhotoAvatar
 import com.example.project1.ui.common.launchImagePicker
 import com.example.project1.ui.common.rememberImagePicker
 import java.util.Calendar
+import com.example.project1.ui.theme.EcoColors
 
 private val TarUmtFaculties = listOf(
     "FAFB" to "Faculty of Accountancy, Finance and Business",
@@ -160,20 +167,22 @@ internal fun ProfileInfoPage(
                 Text(
                     "Remove photo",
                     fontSize = 11.sp,
-                    color = ProfileColors.Danger,
+                    color = EcoColors.Danger,
                     modifier = Modifier.padding(top = 2.dp).clickable(onClick = onRemoveProfilePhoto)
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
-            ProfileField("Student ID", user?.studentId.orEmpty().ifBlank { "—" }, readOnly = true, enabled = false)
-            ProfileField("Name", name, isError = nameError, supportingText = if (nameError) "Name cannot be empty" else null) { name = it }
-            ProfileField("Phone No", phone, isError = phoneError, supportingText = if (phoneError) "Enter a valid phone number" else "Optional") { phone = it }
-            ProfileField("Email", email, isError = emailError, supportingText = if (emailError) "Enter a valid email address" else "Optional") { email = it }
+            ProfileField(label = "Student ID", value = user?.studentId.orEmpty().ifBlank { "—" }, readOnly = true, enabled = false, headingIcon = Icons.Default.Badge)
+            ProfileField(label = "Name", value = name, isError = nameError, supportingText = if (nameError) "Name cannot be empty" else null, headingIcon = Icons.Default.Person, onValueChange = { name = it })
+            ProfileField(label = "Phone No", value = phone, isError = phoneError, supportingText = if (phoneError) "Enter a valid phone number" else "Optional", headingIcon = Icons.Default.Phone, onValueChange = { phone = it })
+            ProfileField(label = "Email", value = email, isError = emailError, supportingText = if (emailError) "Enter a valid email address" else "Optional", headingIcon = Icons.Default.Email, onValueChange = { email = it })
             ProfileField(
                 label = "Birthday Date",
                 value = birthday,
                 readOnly = true,
+                headingIcon = Icons.Default.Cake,
+                trailingIcon = Icons.Default.ArrowDropUp,
                 onClick = {
                     val cal = Calendar.getInstance()
                     DatePickerDialog(
@@ -185,7 +194,7 @@ internal fun ProfileInfoPage(
                     ).apply { datePicker.maxDate = System.currentTimeMillis() }.show()
                 }
             )
-            ProfileField("Faculty", facultyDisplayName(faculty), readOnly = true, onClick = { showFacultyPicker = true })
+            ProfileField(label = "Faculty", value = facultyDisplayName(faculty), readOnly = true, headingIcon = Icons.Default.School, trailingIcon = Icons.Default.ArrowDropUp, onClick = { showFacultyPicker = true })
 
             Spacer(modifier = Modifier.height(24.dp))
             Button(
@@ -193,7 +202,7 @@ internal fun ProfileInfoPage(
                     touched = true
                     if (canSave) onSave(name.trim(), faculty, phone.trim(), email.trim(), birthday.trim())
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
                 shape = RoundedCornerShape(24.dp),
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             ) {
@@ -212,7 +221,7 @@ internal fun ProfileInfoPage(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    itemsIndexed(AvatarPalette) { index, color ->
+                    itemsIndexed(EcoColors.AvatarPalette) { index, color ->
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
@@ -220,7 +229,7 @@ internal fun ProfileInfoPage(
                                 .background(color)
                                 .border(
                                     width = if (index == avatarColorIndex) 3.dp else 0.dp,
-                                    color = ProfileColors.TextDark,
+                                    color = EcoColors.TextDark,
                                     shape = CircleShape
                                 )
                                 .clickable {
@@ -260,18 +269,19 @@ internal fun ProfileInfoPage(
                                     faculty = code
                                     showFacultyPicker = false
                                 },
-                                colors = RadioButtonDefaults.colors(selectedColor = ProfileColors.PrimaryGreen)
+                                colors = RadioButtonDefaults.colors(selectedColor = EcoColors.PrimaryGreen)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Column {
-                                Text(code, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = ProfileColors.TextDark)
-                                Text(facultyName, fontSize = 11.sp, color = ProfileColors.TextGrey)
+                                Text(code, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = EcoColors.TextDark)
+                                Text(facultyName, fontSize = 11.sp, color = EcoColors.TextMuted)
                             }
                         }
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { showFacultyPicker = false }) { Text("Done") } }
+            confirmButton = { TextButton(onClick = { showFacultyPicker = false }) { Text("Done") } },
+            containerColor = Color.White
         )
     }
 }
@@ -284,11 +294,13 @@ private fun ProfileField(
     enabled: Boolean = true,
     isError: Boolean = false,
     supportingText: String? = null,
+    headingIcon: ImageVector? = null,
+    trailingIcon: ImageVector? = null,
     onClick: (() -> Unit)? = null,
     onValueChange: (String) -> Unit = {}
 ) {
     Column(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
-        Text(label, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = ProfileColors.TextDark)
+        Text(label, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = EcoColors.TextDark)
         Spacer(modifier = Modifier.height(4.dp))
         Box(modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier) {
             OutlinedTextField(
@@ -299,8 +311,14 @@ private fun ProfileField(
                 isError = isError,
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
+                leadingIcon = headingIcon?.let { icon ->
+                    { Icon(imageVector = icon, contentDescription = label, tint = Color(0xFF424242)) }
+                },
+                trailingIcon = trailingIcon?.let { icon ->
+                    { Icon(imageVector = icon, contentDescription = "Select $label", tint = Color(0xFF424242)) }
+                },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF2E7D32),
+                    focusedBorderColor = EcoColors.PrimaryGreen,
                     focusedLabelColor = Color.Black,
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black,
@@ -316,7 +334,7 @@ private fun ProfileField(
                         Text(
                             text,
                             fontSize = 11.sp,
-                            color = if (isError) ProfileColors.Danger else ProfileColors.TextGrey
+                            color = if (isError) EcoColors.Danger else EcoColors.TextMuted
                         )
                     }
                 }

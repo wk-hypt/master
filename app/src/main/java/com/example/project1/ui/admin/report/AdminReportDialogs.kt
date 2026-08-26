@@ -47,6 +47,7 @@ import com.example.project1.data.model.UserEntity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.project1.ui.theme.EcoColors
 
 @Composable
 internal fun DaySubmissionsDialog(day: DayTrendItem, onDismiss: () -> Unit) {
@@ -68,8 +69,8 @@ internal fun DaySubmissionsDialog(day: DayTrendItem, onDismiss: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(day.fullDateLabel, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ReportTextDark)
-                        Text("${day.count} submission${if (day.count == 1) "" else "s"}", fontSize = 12.sp, color = ReportTextGrey)
+                        Text(day.fullDateLabel, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = EcoColors.TextDark)
+                        Text("${day.count} submission${if (day.count == 1) "" else "s"}", fontSize = 12.sp, color = EcoColors.TextGrey)
                     }
                     IconButton(onClick = onDismiss) {
                         Icon(Icons.Filled.Close, contentDescription = "Close")
@@ -77,27 +78,27 @@ internal fun DaySubmissionsDialog(day: DayTrendItem, onDismiss: () -> Unit) {
                 }
                 Spacer(modifier = Modifier.size(12.dp))
                 if (day.submissions.isEmpty()) {
-                    Text("No submissions on this day.", fontSize = 12.sp, color = ReportTextGrey)
+                    Text("No submissions on this day.", fontSize = 12.sp, color = EcoColors.TextGrey)
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         items(day.submissions) { submission ->
                             val statusColor = when (submission.status) {
-                                "Approved" -> ReportGreen
-                                "Rejected" -> ReportRed
-                                else -> ReportAmber
+                                "Approved" -> EcoColors.PrimaryGreen
+                                "Rejected" -> EcoColors.Rejected
+                                else -> EcoColors.Amber
                             }
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(10.dp))
-                                    .background(ReportBg)
+                                    .background(EcoColors.AdminBg)
                                     .padding(horizontal = 12.dp, vertical = 8.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(submission.actionType, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = ReportTextDark)
-                                    Text("${submission.userId} · ${submission.stallName} · ${timeFormat.format(Date(submission.timestamp))}", fontSize = 10.sp, color = ReportTextGrey, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Text(submission.actionType, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.TextDark)
+                                    Text("${submission.userId} · ${submission.stallName} · ${timeFormat.format(Date(submission.timestamp))}", fontSize = 10.sp, color = EcoColors.TextGrey, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 }
                                 Text(submission.status, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = statusColor)
                             }
@@ -121,7 +122,7 @@ internal fun LeaderboardDialog(topUsers: List<UserEntity>, onDismiss: () -> Unit
                 .fillMaxHeight(0.85f)
                 .padding(horizontal = 12.dp),
             shape = RoundedCornerShape(20.dp),
-            color = ReportSurface
+            color = EcoColors.Surface
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 Row(
@@ -132,14 +133,14 @@ internal fun LeaderboardDialog(topUsers: List<UserEntity>, onDismiss: () -> Unit
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(text = "Leaderboard", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ReportTextDark)
-                        Text(text = "${topUsers.size} contributors \u00b7 ranked by points awarded", fontSize = 11.sp, color = ReportTextGrey)
+                        Text(text = "Leaderboard", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = EcoColors.TextDark)
+                        Text(text = "${topUsers.size} contributors \u00b7 ranked by points awarded", fontSize = 11.sp, color = EcoColors.TextGrey)
                     }
                     IconButton(onClick = onDismiss, modifier = Modifier.size(34.dp)) {
-                        Icon(imageVector = Icons.Filled.Close, contentDescription = "Close", tint = ReportTextGrey2, modifier = Modifier.size(18.dp))
+                        Icon(imageVector = Icons.Filled.Close, contentDescription = "Close", tint = EcoColors.TextGrey2, modifier = Modifier.size(18.dp))
                     }
                 }
-                HorizontalDivider(color = ReportCardBorder, thickness = 1.dp)
+                HorizontalDivider(color = EcoColors.CardBorder, thickness = 1.dp)
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(horizontal = 18.dp, vertical = 6.dp)
@@ -147,7 +148,7 @@ internal fun LeaderboardDialog(topUsers: List<UserEntity>, onDismiss: () -> Unit
                     itemsIndexed(topUsers) { index, user ->
                         ContributorRow(rank = index + 1, user = user)
                         if (index < topUsers.lastIndex) {
-                            HorizontalDivider(color = ReportCardBorder, thickness = 1.dp, modifier = Modifier.padding(vertical = 2.dp))
+                            HorizontalDivider(color = EcoColors.CardBorder, thickness = 1.dp, modifier = Modifier.padding(vertical = 2.dp))
                         }
                     }
                 }
@@ -185,7 +186,7 @@ private fun ContributorRow(rank: Int, user: UserEntity) {
         1 -> Color(0xFFFFF3D6) to Color(0xFFB8860B)
         2 -> Color(0xFFECEFF1) to Color(0xFF607D8B)
         3 -> Color(0xFFFBE4D5) to Color(0xFFB05A2C)
-        else -> ReportBg to ReportTextGrey2
+        else -> EcoColors.AdminBg to EcoColors.TextGrey2
     }
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         Box(modifier = Modifier.size(28.dp).clip(CircleShape).background(badgeBg), contentAlignment = Alignment.Center) {
@@ -197,14 +198,14 @@ private fun ContributorRow(rank: Int, user: UserEntity) {
         }
         Spacer(modifier = Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = user.name, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = ReportTextDark, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(text = user.studentId, fontSize = 10.sp, color = ReportTextGrey, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(text = user.name, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.TextDark, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(text = user.studentId, fontSize = 10.sp, color = EcoColors.TextGrey, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        Surface(shape = ReportChipShape, color = Color(0xFFE8F5E9)) {
+        Surface(shape = ReportChipShape, color = EcoColors.ApprovedBg) {
             Row(modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(imageVector = Icons.Filled.Star, contentDescription = null, tint = ReportGreen, modifier = Modifier.size(11.dp))
+                Icon(imageVector = Icons.Filled.Star, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(11.dp))
                 Spacer(modifier = Modifier.width(3.dp))
-                Text(text = "${user.totalPoints}", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = ReportGreen)
+                Text(text = "${user.totalPoints}", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = EcoColors.PrimaryGreen)
             }
         }
     }

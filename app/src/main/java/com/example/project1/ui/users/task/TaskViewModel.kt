@@ -38,7 +38,6 @@ class TaskViewModel(
                 initialValue = emptyList()
             )
 
-
     //crud -> c
     fun createNewTask(
         title: String,

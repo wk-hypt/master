@@ -27,8 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.project1.common.generateQrBitmap
 import com.example.project1.data.model.VoucherEntity
-
-private val PrimaryGreen = Color(0xFF2E7D32)
+import com.example.project1.ui.theme.EcoColors
 
 @Composable
 fun VoucherQrDialog(
@@ -50,7 +49,7 @@ fun VoucherQrDialog(
                 modifier = Modifier.padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1B1F1C), textAlign = TextAlign.Center)
+                Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = EcoColors.TextDark, textAlign = TextAlign.Center)
                 Text(text = voucher.merchantName, fontSize = 13.sp, color = Color(0xFF6B7280))
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -62,7 +61,7 @@ fun VoucherQrDialog(
                         modifier = Modifier.size(240.dp).background(Color.White, RoundedCornerShape(12.dp))
                     )
                 } else {
-                    Text(text = "QR code is not available for this voucher.", color = Color(0xFFC62828), fontSize = 13.sp, textAlign = TextAlign.Center)
+                    Text(text = "QR code is not available for this voucher.", color = EcoColors.Danger, fontSize = 13.sp, textAlign = TextAlign.Center)
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -71,7 +70,7 @@ fun VoucherQrDialog(
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = onDismiss,
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                    colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {

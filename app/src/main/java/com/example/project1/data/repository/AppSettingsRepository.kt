@@ -61,6 +61,9 @@ interface AppSettingsRepository {
     fun getDailyQuestDate(accountId: String): String?
     fun getDailyQuestId(accountId: String): String?
     fun markDailyQuestCompleted(accountId: String, date: String, questId: String)
+
+    fun getLastSeenApprovedTaskAt(accountId: String): Long
+    fun setLastSeenApprovedTaskAt(accountId: String, at: Long)
 }
 
 class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
@@ -299,6 +302,24 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         }
     }
 
+    override fun getLastSeenApprovedTaskAt(accountId: String): Long {
+        if (accountId.isBlank()) return 0L
+        val key = KEY_LAST_SEEN_APPROVED_TASK_PREFIX + accountId
+        if (!prefs.contains(key)) {
+            val now = System.currentTimeMillis()
+            prefs.edit { putLong(key, now) }
+            return now
+        }
+        return prefs.getLong(key, 0L)
+    }
+
+    override fun setLastSeenApprovedTaskAt(accountId: String, at: Long) {
+        if (accountId.isBlank()) return
+        prefs.edit {
+            putLong(KEY_LAST_SEEN_APPROVED_TASK_PREFIX + accountId, at)
+        }
+    }
+
     private companion object {
         const val KEY_DARK_MODE = "dark_mode_enabled"
         const val KEY_NOTIFICATIONS = "notifications_enabled"
@@ -310,5 +331,6 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         const val KEY_SHOWCASE_BADGE_PREFIX = "showcase_badge_"
         const val KEY_DAILY_QUEST_DATE_PREFIX = "daily_quest_date_"
         const val KEY_DAILY_QUEST_ID_PREFIX = "daily_quest_id_"
+        const val KEY_LAST_SEEN_APPROVED_TASK_PREFIX = "last_seen_approved_task_"
     }
 }

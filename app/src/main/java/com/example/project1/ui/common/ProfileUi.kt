@@ -60,27 +60,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.project1.ui.theme.EcoColors
 import java.io.File
-
-object ProfileColors {
-    val PrimaryGreen = Color(0xFF2E7D32)
-    val DarkGreen = Color(0xFF1B5E20)
-    val Cream = Color(0xFFF6F1E8)
-    val PageBg = Color(0xFFF4F6F5)
-    val SoftGreen = Color(0xFFE8F5E9)
-    val TextDark = Color(0xFF1B1F1C)
-    val TextGrey = Color(0xFF6B7280)
-    val Danger = Color(0xFFC62828)
-}
-
-val AvatarPalette = listOf(
-    Color(0xFF2E7D32),
-    Color(0xFF1565C0),
-    Color(0xFFEF6C00),
-    Color(0xFF6A1B9A),
-    Color(0xFFC62828),
-    Color(0xFF00838F)
-)
 
 fun initialsOf(name: String, fallback: String = "?"): String {
     val parts = name.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
@@ -118,14 +99,14 @@ fun ProfilePageHeader(
             Icon(
                 Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
-                tint = ProfileColors.PrimaryGreen
+                tint = EcoColors.PrimaryGreen
             )
         }
         Text(
             title,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            color = ProfileColors.TextDark,
+            color = EcoColors.TextDark,
             modifier = Modifier.weight(1f)
         )
         actions()
@@ -172,7 +153,7 @@ fun ProfileCameraBadge(onClick: () -> Unit) {
         modifier = Modifier
             .size(20.dp)
             .clip(CircleShape)
-            .background(ProfileColors.PrimaryGreen)
+            .background(EcoColors.PrimaryGreen)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -222,16 +203,16 @@ fun ProfileStatChip(
             modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(icon, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 value,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
-                color = ProfileColors.TextDark,
+                color = EcoColors.TextDark,
                 textAlign = TextAlign.Center
             )
-            Text(label, fontSize = 10.sp, color = ProfileColors.TextGrey, textAlign = TextAlign.Center)
+            Text(label, fontSize = 10.sp, color = EcoColors.TextMuted, textAlign = TextAlign.Center)
         }
     }
 
@@ -271,10 +252,10 @@ fun ProfileEcoMetric(
             .padding(vertical = 10.dp, horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(icon, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(20.dp))
+        Icon(icon, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(20.dp))
         Spacer(modifier = Modifier.height(4.dp))
-        Text(value, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = ProfileColors.DarkGreen)
-        Text(label, fontSize = 9.sp, color = ProfileColors.TextGrey, textAlign = TextAlign.Center)
+        Text(value, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = EcoColors.DarkGreen)
+        Text(label, fontSize = 9.sp, color = EcoColors.TextMuted, textAlign = TextAlign.Center)
     }
 }
 
@@ -295,7 +276,7 @@ fun ProfileConfirmDialog(
             Button(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (destructive) ProfileColors.Danger else ProfileColors.PrimaryGreen
+                    containerColor = if (destructive) EcoColors.Danger else EcoColors.PrimaryGreen
                 )
             ) { Text(confirmLabel) }
         },
@@ -326,7 +307,7 @@ fun ChangePasswordDialog(
         onDismissRequest = onDismiss,
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Shield, contentDescription = null, tint = ProfileColors.PrimaryGreen)
+                Icon(Icons.Default.Shield, contentDescription = null, tint = EcoColors.PrimaryGreen)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     if (awaitingVerification) "Verify it's you" else "Change password",
@@ -343,7 +324,7 @@ fun ChangePasswordDialog(
                     Text(
                         "Step 1 of 2 — confirm your current password and choose a new one.",
                         fontSize = 12.sp,
-                        color = ProfileColors.TextGrey
+                        color = EcoColors.TextMuted
                     )
                     OutlinedTextField(
                         value = current,
@@ -361,7 +342,7 @@ fun ChangePasswordDialog(
                         isError = newPasswordTooShort,
                         supportingText = {
                             if (newPasswordTooShort) {
-                                Text("Must be at least 4 characters", color = ProfileColors.Danger)
+                                Text("Must be at least 4 characters", color = EcoColors.Danger)
                             }
                         },
                         visualTransformation = PasswordVisualTransformation(),
@@ -374,7 +355,7 @@ fun ChangePasswordDialog(
                         singleLine = true,
                         isError = passwordsMismatch,
                         supportingText = {
-                            if (passwordsMismatch) Text("Passwords do not match", color = ProfileColors.Danger)
+                            if (passwordsMismatch) Text("Passwords do not match", color = EcoColors.Danger)
                         },
                         visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth()
@@ -385,13 +366,13 @@ fun ChangePasswordDialog(
                     Text(
                         "Step 2 of 2 — enter the verification code to finish changing your password.",
                         fontSize = 12.sp,
-                        color = ProfileColors.TextGrey
+                        color = EcoColors.TextMuted
                     )
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(ProfileColors.SoftGreen)
+                            .background(EcoColors.SoftGreen)
                             .padding(vertical = 14.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -399,7 +380,7 @@ fun ChangePasswordDialog(
                             verificationCode,
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
-                            color = ProfileColors.DarkGreen
+                            color = EcoColors.DarkGreen
                         )
                     }
                     OutlinedTextField(
@@ -413,7 +394,7 @@ fun ChangePasswordDialog(
                     Text(
                         "Didn't get it? Generate a new code.",
                         fontSize = 12.sp,
-                        color = ProfileColors.PrimaryGreen,
+                        color = EcoColors.PrimaryGreen,
                         modifier = Modifier.clickable {
                             enteredCode = ""
                             onResendCode()
@@ -433,7 +414,7 @@ fun ChangePasswordDialog(
                     }
                 },
                 enabled = if (!awaitingVerification) canSubmitCredentials else enteredCode.isNotBlank(),
-                colors = ButtonDefaults.buttonColors(containerColor = ProfileColors.PrimaryGreen)
+                colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
             ) { Text(if (awaitingVerification) "Confirm" else "Continue") }
         },
         dismissButton = {
