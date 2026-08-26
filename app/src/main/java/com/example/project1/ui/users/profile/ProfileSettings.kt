@@ -36,9 +36,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.project1.ui.common.ProfileColors
 import com.example.project1.ui.common.ProfileMenuRow
 import com.example.project1.ui.common.ProfilePageHeader
+import com.example.project1.ui.theme.EcoColors
 
 @Composable
 internal fun SettingsPage(
@@ -54,7 +54,7 @@ internal fun SettingsPage(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(ProfileColors.Cream)
+            .background(EcoColors.Cream)
             .padding(horizontal = 20.dp)
     ) {
         ProfilePageHeader(title = "Settings", onBack = onBack)
@@ -66,7 +66,7 @@ internal fun SettingsPage(
         Spacer(modifier = Modifier.height(20.dp))
         SettingsGroup("Account Security") {
             ProfileMenuRow("CHANGE PASSWORD", Icons.Default.Lock, onChangePassword)
-            ProfileMenuRow("DELETE ACCOUNT", Icons.Default.Person, onDeleteAccount, tint = ProfileColors.Danger)
+            ProfileMenuRow("DELETE ACCOUNT", Icons.Default.Person, onDeleteAccount, tint = EcoColors.Danger)
         }
         Spacer(modifier = Modifier.height(20.dp))
         SettingsGroup("Support") {
@@ -86,7 +86,7 @@ internal fun SupportTextPage(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(ProfileColors.Cream)
+            .background(EcoColors.Cream)
             .padding(horizontal = 20.dp)
     ) {
         ProfilePageHeader(title = title, onBack = onBack)
@@ -134,14 +134,14 @@ private fun ToggleRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = androidx.compose.ui.graphics.Color(0xFF2C2C2C))
         }
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(checkedTrackColor = ProfileColors.PrimaryGreen)
+            colors = SwitchDefaults.colors(checkedTrackColor = EcoColors.PrimaryGreen)
         )
     }
 }

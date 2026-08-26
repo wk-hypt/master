@@ -50,8 +50,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
-
-private val PrimaryGreen = Color(0xFF2E7D32)
+import com.example.project1.ui.theme.EcoColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,7 +98,7 @@ fun QrScannerDialog(
                             Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1B1F1C))
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = EcoColors.TextDark)
                 )
 
                 when {
@@ -125,7 +124,7 @@ fun QrScannerDialog(
                                 modifier = Modifier
                                     .align(Alignment.Center)
                                     .size(240.dp)
-                                    .border(3.dp, PrimaryGreen, RoundedCornerShape(16.dp))
+                                    .border(3.dp, EcoColors.PrimaryGreen, RoundedCornerShape(16.dp))
                             )
                             Text(
                                 text = statusMessage ?: "Align the QR code inside the box",

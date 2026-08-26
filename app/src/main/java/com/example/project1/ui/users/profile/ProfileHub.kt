@@ -51,7 +51,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.project1.ui.common.ProfileCameraBadge
-import com.example.project1.ui.common.ProfileColors
 import com.example.project1.ui.common.ProfileEcoMetric
 import com.example.project1.ui.common.ProfileMenuRow
 import com.example.project1.ui.common.ProfilePhotoAvatar
@@ -60,6 +59,7 @@ import com.example.project1.ui.common.launchImagePicker
 import com.example.project1.ui.common.rememberImagePicker
 import java.io.File
 import java.util.Calendar
+import com.example.project1.ui.theme.EcoColors
 
 @Composable
 internal fun ProfileHubPage(
@@ -130,19 +130,19 @@ internal fun ProfileHubPage(
                         "$greeting, $firstName",
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = ProfileColors.TextDark
+                        color = EcoColors.TextDark
                     )
                     Text(
                         if (studentId.isNotBlank()) "$studentId · ${tier.name}" else "Member tier: ${tier.name}",
                         fontSize = 13.sp,
-                        color = ProfileColors.TextGrey
+                        color = EcoColors.TextMuted
                     )
                     if (!showcaseBadgeTitle.isNullOrBlank()) {
                         Text(
                             "Wearing: $showcaseBadgeTitle",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = ProfileColors.PrimaryGreen,
+                            color = EcoColors.PrimaryGreen,
                             modifier = Modifier
                                 .padding(top = 4.dp)
                                 .clickable(onClick = onOpenAchievements)
@@ -199,7 +199,7 @@ internal fun ProfileHubPage(
                 )
                 ProfileMenuRow("MY ECO ACHIEVEMENT", Icons.Default.EmojiEvents, onOpenAchievements)
                 ProfileMenuRow("SETTING", Icons.Default.Settings, onOpenSettings)
-                ProfileMenuRow("LOG OUT", Icons.AutoMirrored.Filled.Logout, onLogout, tint = ProfileColors.Danger)
+                ProfileMenuRow("LOG OUT", Icons.AutoMirrored.Filled.Logout, onLogout, tint = EcoColors.Danger)
             }
         }
         Spacer(modifier = Modifier.height(20.dp))
@@ -218,7 +218,7 @@ private fun HubHeader(
             .height(190.dp)
             .background(
                 if (backgroundPhotoPath == null) {
-                    Brush.verticalGradient(listOf(Color(0xFF4CAF50), ProfileColors.DarkGreen))
+                    Brush.verticalGradient(listOf(Color(0xFF4CAF50), EcoColors.DarkGreen))
                 } else {
                     Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent))
                 }
@@ -240,7 +240,7 @@ private fun HubHeader(
                 modifier = Modifier.size(84.dp).clip(CircleShape).background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Eco, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(42.dp))
+                Icon(Icons.Default.Eco, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(42.dp))
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text("ECO TARUMT", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -293,21 +293,21 @@ private fun CompletenessCard(completeness: Float, onOpenInfo: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Profile completeness", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = ProfileColors.TextDark)
-                Text("${(completeness * 100).toInt()}%", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = ProfileColors.PrimaryGreen)
+                Text("Profile completeness", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = EcoColors.TextDark)
+                Text("${(completeness * 100).toInt()}%", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = EcoColors.PrimaryGreen)
             }
             Spacer(modifier = Modifier.height(8.dp))
             LinearProgressIndicator(
                 progress = { completeness },
                 modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(6.dp)),
-                color = ProfileColors.PrimaryGreen,
+                color = EcoColors.PrimaryGreen,
                 trackColor = Color(0xFFE0E0E0)
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 "Finish your profile so campus staff can reach you about your submissions.",
                 fontSize = 11.sp,
-                color = ProfileColors.TextGrey
+                color = EcoColors.TextMuted
             )
         }
     }
@@ -328,10 +328,10 @@ private fun EcoSnapshotCard(stats: EcoProfileStats) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text("MY ECO IMPACT", color = ProfileColors.PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    Text("Your campus sustainability progress", color = ProfileColors.TextGrey, fontSize = 10.sp)
+                    Text("MY ECO IMPACT", color = EcoColors.PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text("Your campus sustainability progress", color = EcoColors.TextMuted, fontSize = 10.sp)
                 }
-                Icon(Icons.Default.Eco, contentDescription = null, tint = ProfileColors.PrimaryGreen, modifier = Modifier.size(24.dp))
+                Icon(Icons.Default.Eco, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(24.dp))
             }
             Spacer(modifier = Modifier.height(12.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -349,12 +349,12 @@ private fun EcoSnapshotCard(stats: EcoProfileStats) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(ProfileColors.SoftGreen)
+                    .background(EcoColors.SoftGreen)
                     .padding(10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text("This month", fontSize = 11.sp, color = Color(0xFF4B5563))
-                Text("+${stats.monthlyPoints} points", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = ProfileColors.DarkGreen)
+                Text("+${stats.monthlyPoints} points", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = EcoColors.DarkGreen)
             }
         }
     }

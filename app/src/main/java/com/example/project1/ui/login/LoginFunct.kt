@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -33,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -45,7 +43,7 @@ import com.example.project1.ui.adaptive.AdaptiveScrollColumn
 import com.example.project1.ui.adaptive.HeightSize
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
 import com.example.project1.ui.adaptive.adaptiveDialogModifier
-import java.security.Key
+import com.example.project1.ui.theme.EcoColors
 
 @Composable
 fun LoginFunct(
@@ -141,7 +139,7 @@ private fun LoginBrandPanel(
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier.background(Color(0xFF2E7D32)),
+        modifier = modifier.background(EcoColors.PrimaryGreen),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -184,7 +182,7 @@ private fun ColumnScope.LoginFormFields(
         text = "Eco App TARUMT(KL)",
         fontSize = if (compact) 22.sp else 28.sp,
         fontWeight = FontWeight.Bold,
-        color = Color(0xFF2E7D32)
+        color = EcoColors.PrimaryGreen
     )
     Text(
         text = if (uiState.isRegisterMode) "Create your account" else "Login with Student ID",
@@ -268,7 +266,7 @@ private fun ColumnScope.LoginFormFields(
             .widthIn(max = 480.dp)
             .height(50.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32), disabledContainerColor = Color(0xFFE0E0E0)),
+        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen, disabledContainerColor = Color(0xFFE0E0E0)),
         enabled = uiState.studentId.isNotBlank() && uiState.password.isNotBlank() || uiState.name.isNotBlank()
     ) {
         Text(
@@ -292,7 +290,7 @@ private fun ColumnScope.LoginFormFields(
         Text(
             text = if (uiState.isRegisterMode) "Login here" else "Register here",
             fontSize = 14.sp,
-            color = Color(0xFF2E7D32),
+            color = EcoColors.PrimaryGreen,
             fontWeight = FontWeight.Bold,
             textDecoration = TextDecoration.Underline,
             modifier = Modifier.clickable { onToggleMode() }
@@ -326,7 +324,7 @@ fun HelpSupportDialog(onDismiss: () -> Unit) {
         Surface(modifier = adaptiveDialogModifier(), color = Color.White) {
             Column(modifier = Modifier.fillMaxSize()) {
                 TopAppBar(
-                    title = { Text(text = "Help & Support", color = Color(0xFF2E7D32)) },
+                    title = { Text(text = "Help & Support", color = EcoColors.PrimaryGreen) },
                     navigationIcon = {
                         IconButton(onClick = onDismiss) {
                             Icon(Icons.Default.Close, contentDescription = "Close")
@@ -375,7 +373,6 @@ fun HelpSupportDialog(onDismiss: () -> Unit) {
         }
     }
 }
-
 
 //reusable function for displaying the help section string
 @Composable

@@ -21,7 +21,6 @@ data class EcoSubmissionEntity(
     @SerialName("review_timestamp") val reviewTimestamp: Long? = null
 )
 
-
 // add submission into supa
 @Serializable
 data class NewSubmission(

@@ -47,6 +47,7 @@ import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import com.example.project1.ui.theme.EcoColors
 
 @Composable
 fun HomeFunct(
@@ -143,7 +144,7 @@ fun EcoStatsDashboard(points: Int, plasticSaved: Int, modifier: Modifier = Modif
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(
                         Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = Color(0xFF2E7D32)
+                        color = EcoColors.PrimaryGreen
                     )
                 }
             ) {
@@ -155,7 +156,7 @@ fun EcoStatsDashboard(points: Int, plasticSaved: Int, modifier: Modifier = Modif
                             Text(
                                 text = title,
                                 fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
-                                color = if (selectedTab == index) Color(0xFF2E7D32) else Color.Gray,
+                                color = if (selectedTab == index) EcoColors.PrimaryGreen else Color.Gray,
                                 fontSize = 14.sp
                             )
                         }
@@ -175,7 +176,7 @@ fun EcoStatsDashboard(points: Int, plasticSaved: Int, modifier: Modifier = Modif
                             text = "$points",
                             fontSize = 36.sp,
                             fontWeight = FontWeight.Black,
-                            color = Color(0xFF2E7D32)
+                            color = EcoColors.PrimaryGreen
                         )
                         Text(text = "Total Points u holding", fontSize = 12.sp, color = Color.Gray)
                     }
@@ -185,7 +186,7 @@ fun EcoStatsDashboard(points: Int, plasticSaved: Int, modifier: Modifier = Modif
                             text = "${plasticSaved}g",
                             fontSize = 36.sp,
                             fontWeight = FontWeight.Black,
-                            color = Color(0xFF1565C0)
+                            color = EcoColors.Blue
                         )
                         Text(text = "Total Plastic Waste Prevented", fontSize = 12.sp, color = Color.Gray)
                     }
@@ -225,7 +226,7 @@ fun EcoUploadArea(onUploadClick: () -> Unit, modifier: Modifier = Modifier) {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Upload Icon",
-                tint = Color(0xFF2E7D32),
+                tint = EcoColors.PrimaryGreen,
                 modifier = Modifier.size(32.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -238,7 +239,6 @@ fun EcoUploadArea(onUploadClick: () -> Unit, modifier: Modifier = Modifier) {
         }
     }
 }
-
 
 //banner display
 @Composable
@@ -295,7 +295,7 @@ fun EcoFeatureGrid(features: List<FeatureCardItem>, onFeatureClick: (String) -> 
             text = "More Information",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF1565C0),
+            color = EcoColors.Blue,
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
@@ -326,7 +326,7 @@ fun EcoFeatureTile(feature: FeatureCardItem, onClick: () -> Unit, modifier: Modi
                 .width(120.dp)
                 .height(80.dp)
                 .clip(RoundedCornerShape(14.dp))
-                .background(Color(0xFF1565C0)),
+                .background(EcoColors.Blue),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -344,7 +344,7 @@ fun EcoFeatureTile(feature: FeatureCardItem, onClick: () -> Unit, modifier: Modi
                 .width(100.dp)
                 .height(50.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFF1565C0).copy(alpha = 0.15f))
+                .background(EcoColors.Blue.copy(alpha = 0.15f))
                 .padding(horizontal = 8.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -352,7 +352,7 @@ fun EcoFeatureTile(feature: FeatureCardItem, onClick: () -> Unit, modifier: Modi
                 text = feature.title,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF1565C0),
+                color = EcoColors.Blue,
                 textAlign = TextAlign.Center,
                 maxLines = 2
             )
@@ -417,7 +417,7 @@ fun HotRewardsMarket(supabaseClient: SupabaseClient, currentUserId: String, onNa
             text = "Hot Campus Vouchers",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF2E7D32),
+            color = EcoColors.PrimaryGreen,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
@@ -429,7 +429,7 @@ fun HotRewardsMarket(supabaseClient: SupabaseClient, currentUserId: String, onNa
                         .height(120.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color(0xFF2E7D32))
+                    CircularProgressIndicator(color = EcoColors.PrimaryGreen)
                 }
             }
             errorMessage != null -> {
@@ -494,7 +494,7 @@ fun VoucherCard(voucher: CampusVoucher, heldCount: Int, onClick: () -> Unit, mod
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isLimitReached) Color(0xFFF5F5F5) else Color(0xFFF1F8E9)
+            containerColor = if (isLimitReached) Color(0xFFF5F5F5) else EcoColors.MintGreen
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -508,7 +508,7 @@ fun VoucherCard(voucher: CampusVoucher, heldCount: Int, onClick: () -> Unit, mod
                 modifier = Modifier
                     .size(52.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0xFFE8F5E9)),
+                    .background(EcoColors.ApprovedBg),
                 contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
@@ -546,20 +546,20 @@ fun VoucherCard(voucher: CampusVoucher, heldCount: Int, onClick: () -> Unit, mod
                         text = "${voucher.pointsCost} Coins",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFF2E7D32)
+                        color = EcoColors.PrimaryGreen
                     )
 
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Surface(
-                        color = if (isLimitReached) Color(0xFFFFEBEE) else Color(0xFFE8F5E9),
+                        color = if (isLimitReached) EcoColors.ExpiredBg else EcoColors.ApprovedBg,
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Text(
                             text = if (isLimitReached) "Limit Reached ($heldCount/${VoucherRules.MAX_HELD_PER_TYPE})" else "Held: $heldCount/${VoucherRules.MAX_HELD_PER_TYPE}",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (isLimitReached) Color(0xFFC62828) else Color(0xFF2E7D32),
+                            color = if (isLimitReached) EcoColors.Danger else EcoColors.PrimaryGreen,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )
                     }
@@ -591,7 +591,7 @@ fun VoucherDetailDialog(voucher: CampusVoucher, heldCount: Int, onDismiss: () ->
                     Text(
                         text = voucher.merchantName,
                         fontSize = 12.sp,
-                        color = Color(0xFF2E7D32),
+                        color = EcoColors.PrimaryGreen,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -609,7 +609,7 @@ fun VoucherDetailDialog(voucher: CampusVoucher, heldCount: Int, onDismiss: () ->
                         .fillMaxWidth()
                         .height(140.dp)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0xFFF1F3F5))
+                        .background(EcoColors.InProgressBg)
                 ) {
                     AsyncImage(
                         model = imageModel,
@@ -628,27 +628,27 @@ fun VoucherDetailDialog(voucher: CampusVoucher, heldCount: Int, onDismiss: () ->
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Surface(
-                        color = Color(0xFFE8F5E9),
+                        color = EcoColors.ApprovedBg,
                         shape = RoundedCornerShape(6.dp)
                     ) {
                         Text(
                             text = "${voucher.pointsCost} Coins",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF2E7D32),
+                            color = EcoColors.PrimaryGreen,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                         )
                     }
 
                     Surface(
-                        color = if (isLimitReached) Color(0xFFFFEBEE) else Color(0xFFE3F2FD),
+                        color = if (isLimitReached) EcoColors.ExpiredBg else Color(0xFFE3F2FD),
                         shape = RoundedCornerShape(6.dp)
                     ) {
                         Text(
                             text = "Holding: $heldCount/${VoucherRules.MAX_HELD_PER_TYPE}",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (isLimitReached) Color(0xFFC62828) else Color(0xFF1565C0),
+                            color = if (isLimitReached) EcoColors.Danger else EcoColors.Blue,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                         )
                     }
@@ -657,7 +657,7 @@ fun VoucherDetailDialog(voucher: CampusVoucher, heldCount: Int, onDismiss: () ->
                 if (isLimitReached) {
                     Spacer(modifier = Modifier.height(10.dp))
                     Surface(
-                        color = Color(0xFFFFF3E0),
+                        color = EcoColors.PendingAmberBg,
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -688,9 +688,9 @@ fun VoucherDetailDialog(voucher: CampusVoucher, heldCount: Int, onDismiss: () ->
                 onClick = onGoToRewards,
                 enabled = !isLimitReached,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2E7D32),
+                    containerColor = EcoColors.PrimaryGreen,
                     disabledContainerColor = Color(0xFFBDBDBD),
-                    disabledContentColor = if (isLimitReached) Color(0xFFC62828) else Color(0xFF9E9E9E)
+                    disabledContentColor = if (isLimitReached) EcoColors.Danger else Color(0xFF9E9E9E)
                 )
             ) {
                 Text(if (isLimitReached) "Limit Reached" else "Go to Rewards")

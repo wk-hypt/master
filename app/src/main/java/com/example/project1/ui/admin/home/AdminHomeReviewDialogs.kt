@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.project1.ui.theme.EcoColors
 
 private val QuickPointOptions = listOf(10, 20, 50, 100)
 private val QuickPlasticOptions = listOf(1, 5, 10, 20)
@@ -39,15 +40,15 @@ private fun AwardQuickChips(options: List<Int>, selected: String, onSelect: (Str
                 onClick = { onSelect(value.toString()) },
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = if (isSelected) PrimaryGreen else BgColor,
-                border = if (isSelected) null else BorderStroke(1.dp, CardBorder)
+                color = if (isSelected) EcoColors.PrimaryGreen else EcoColors.AdminBg,
+                border = if (isSelected) null else BorderStroke(1.dp, EcoColors.CardBorder)
             ) {
                 Text(
                     "$value",
                     textAlign = TextAlign.Center,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    color = if (isSelected) Color.White else TextGrey2,
+                    color = if (isSelected) Color.White else EcoColors.TextGrey2,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp)
                 )
             }
@@ -74,7 +75,7 @@ fun ApprovePointsDialog(
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(28.dp),
-            color = SurfaceColor,
+            color = EcoColors.Surface,
             shadowElevation = 12.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -89,24 +90,24 @@ fun ApprovePointsDialog(
                     modifier = Modifier
                         .size(64.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE8F5E9)),
+                        .background(EcoColors.ApprovedBg),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(34.dp))
+                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(34.dp))
                 }
                 Spacer(modifier = Modifier.height(14.dp))
-                Text(title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = TextDark, textAlign = TextAlign.Center)
+                Text(title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = EcoColors.TextDark, textAlign = TextAlign.Center)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(BgColor).padding(12.dp),
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(EcoColors.AdminBg).padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Avatar(studentId, size = 38.dp)
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
-                        Text(studentId, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark)
-                        Text(subtitle, fontSize = 11.sp, color = TextGrey2)
+                        Text(studentId, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = EcoColors.TextDark)
+                        Text(subtitle, fontSize = 11.sp, color = EcoColors.TextGrey2)
                     }
                 }
 
@@ -115,7 +116,7 @@ fun ApprovePointsDialog(
                     "POINTS TO AWARD",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextGrey,
+                    color = EcoColors.TextGrey,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -123,13 +124,13 @@ fun ApprovePointsDialog(
                     value = pointsInput,
                     onValueChange = { input -> pointsInput = input.filter { it.isDigit() }.take(5) },
                     placeholder = { Text("e.g. 100") },
-                    leadingIcon = { Icon(Icons.Default.Stars, contentDescription = null, tint = PrimaryGreen) },
-                    suffix = { Text("pts", color = TextGrey2) },
+                    leadingIcon = { Icon(Icons.Default.Stars, contentDescription = null, tint = EcoColors.PrimaryGreen) },
+                    suffix = { Text("pts", color = EcoColors.TextGrey2) },
                     singleLine = true,
                     shape = RoundedCornerShape(14.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = PrimaryGreen,
-                        cursorColor = PrimaryGreen
+                        focusedBorderColor = EcoColors.PrimaryGreen,
+                        cursorColor = EcoColors.PrimaryGreen
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -142,7 +143,7 @@ fun ApprovePointsDialog(
                     "PLASTIC SAVED TO AWARD",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextGrey,
+                    color = EcoColors.TextGrey,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -150,13 +151,13 @@ fun ApprovePointsDialog(
                     value = plasticInput,
                     onValueChange = { input -> plasticInput = input.filter { it.isDigit() }.take(5) },
                     placeholder = { Text("e.g. 5") },
-                    leadingIcon = { Icon(Icons.Default.Recycling, contentDescription = null, tint = PrimaryGreen) },
-                    suffix = { Text("items", color = TextGrey2) },
+                    leadingIcon = { Icon(Icons.Default.Recycling, contentDescription = null, tint = EcoColors.PrimaryGreen) },
+                    suffix = { Text("items", color = EcoColors.TextGrey2) },
                     singleLine = true,
                     shape = RoundedCornerShape(14.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = PrimaryGreen,
-                        cursorColor = PrimaryGreen
+                        focusedBorderColor = EcoColors.PrimaryGreen,
+                        cursorColor = EcoColors.PrimaryGreen
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -169,8 +170,8 @@ fun ApprovePointsDialog(
                     OutlinedButton(
                         onClick = onDismiss,
                         shape = RoundedCornerShape(14.dp),
-                        border = BorderStroke(1.dp, CardBorder),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = TextGrey2),
+                        border = BorderStroke(1.dp, EcoColors.CardBorder),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = EcoColors.TextGrey2),
                         modifier = Modifier.weight(1f).height(50.dp)
                     ) { Text("Cancel", fontWeight = FontWeight.Medium) }
                     Button(
@@ -181,7 +182,7 @@ fun ApprovePointsDialog(
                         },
                         enabled = isValid,
                         shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
                         modifier = Modifier.weight(1f).height(50.dp)
                     ) { Text("Confirm", fontWeight = FontWeight.Bold) }
                 }
@@ -197,14 +198,14 @@ fun RejectFeedbackDialog(studentId: String, onDismiss: () -> Unit, onConfirm: (f
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceColor,
-        titleContentColor = TextDark,
+        containerColor = EcoColors.Surface,
+        titleContentColor = EcoColors.TextDark,
         textContentColor = Color(0xFF495057),
         shape = RoundedCornerShape(20.dp),
-        title = { DialogBadgeTitle("Reject Submission", "\u2715", Color(0xFFFDECEA), RedRejected) },
+        title = { DialogBadgeTitle("Reject Submission", "\u2715", EcoColors.RejectedBg, EcoColors.Rejected) },
         text = {
             Column {
-                Text("Student: $studentId", fontSize = 13.sp, color = TextGrey2)
+                Text("Student: $studentId", fontSize = 13.sp, color = EcoColors.TextGrey2)
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = feedbackInput,
@@ -221,7 +222,7 @@ fun RejectFeedbackDialog(studentId: String, onDismiss: () -> Unit, onConfirm: (f
                 onClick = { onConfirm(feedbackInput) },
                 enabled = feedbackInput.isNotBlank(),
                 shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = RedRejected)
+                colors = ButtonDefaults.buttonColors(containerColor = EcoColors.Rejected)
             ) { Text("Confirm Reject") }
         },
         dismissButton = {

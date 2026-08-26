@@ -56,10 +56,7 @@ import com.example.project1.data.model.VoucherEntity
 import com.example.project1.data.model.VoucherRules
 import com.example.project1.ui.adaptive.HeightSize
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
-
-private val PrimaryGreen = Color(0xFF2E7D32)
-private val SoftGreen = Color(0xFFF1F8E9)
-private val PageBg = Color(0xFFF4F6F5)
+import com.example.project1.ui.theme.EcoColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,7 +72,7 @@ fun RewardsFunct(
 
     Scaffold(
         modifier = modifier,
-        containerColor = PageBg,
+        containerColor = EcoColors.PageBg,
         snackbarHost = snackbarHost
     ) { padding ->
         Column(
@@ -84,14 +81,14 @@ fun RewardsFunct(
                 .padding(padding)
         ) {
             Column(modifier = Modifier.padding(if (LocalAppWindowInfo.current.heightSize == HeightSize.Compact) 12.dp else 20.dp)) {
-                Text(text = "Rewards", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1B1F1C))
+                Text(text = "Rewards", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = EcoColors.TextDark)
                 Text(text = "Spend eco points on campus vouchers", fontSize = 13.sp, color = Color(0xFF8B948E))
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Surface(
                     shape = RoundedCornerShape(14.dp),
-                    color = SoftGreen,
+                    color = EcoColors.MintGreen,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -101,13 +98,13 @@ fun RewardsFunct(
                         Icon(
                             imageVector = Icons.Default.Stars,
                             contentDescription = null,
-                            tint = PrimaryGreen,
+                            tint = EcoColors.PrimaryGreen,
                             modifier = Modifier.size(28.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(text = "Your points", fontSize = 12.sp, color = Color(0xFF6B7280))
-                            Text(text = "$points", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryGreen)
+                            Text(text = "$points", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = EcoColors.PrimaryGreen)
                         }
                     }
                 }
@@ -116,11 +113,11 @@ fun RewardsFunct(
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Color.White,
-                contentColor = PrimaryGreen,
+                contentColor = EcoColors.PrimaryGreen,
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(
                         modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = PrimaryGreen
+                        color = EcoColors.PrimaryGreen
                     )
                 }
             ) {
@@ -235,13 +232,13 @@ private fun MarketVoucherCard(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(SoftGreen),
+                        .background(EcoColors.MintGreen),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.CardGiftcard,
                         contentDescription = null,
-                        tint = PrimaryGreen,
+                        tint = EcoColors.PrimaryGreen,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -250,7 +247,7 @@ private fun MarketVoucherCard(
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1B1F1C))
+                Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = EcoColors.TextDark)
                 Text(text = voucher.merchantName, fontSize = 12.sp, color = Color(0xFF6B7280))
                 Spacer(modifier = Modifier.height(2.dp))
                 Row(
@@ -261,20 +258,20 @@ private fun MarketVoucherCard(
                         text = "${voucher.pointsCost} pts · ${voucher.category}",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = PrimaryGreen
+                        color = EcoColors.PrimaryGreen
                     )
                     Text(
                         text = if (voucher.quantity > 0) "Stock: ${voucher.quantity}" else "Out of Stock",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (voucher.quantity > 0) Color(0xFF1565C0) else Color(0xFFC62828)
+                        color = if (voucher.quantity > 0) EcoColors.Blue else EcoColors.Danger
                     )
                     Text(
                         text = if (atHoldLimit) "Limit ($heldCount/${VoucherRules.MAX_HELD_PER_TYPE})"
                         else "Held: $heldCount/${VoucherRules.MAX_HELD_PER_TYPE}",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (atHoldLimit) Color(0xFFC62828) else PrimaryGreen
+                        color = if (atHoldLimit) EcoColors.Danger else EcoColors.PrimaryGreen
                     )
                 }
             }
@@ -283,9 +280,9 @@ private fun MarketVoucherCard(
                 onClick = onRedeemClick,
                 enabled = canRedeem,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryGreen,
+                    containerColor = EcoColors.PrimaryGreen,
                     disabledContainerColor = Color(0xFFE0E0E0),
-                    disabledContentColor = if (voucher.quantity <= 0 || atHoldLimit) Color(0xFFC62828) else Color(0xFF9E9E9E)
+                    disabledContentColor = if (voucher.quantity <= 0 || atHoldLimit) EcoColors.Danger else Color(0xFF9E9E9E)
                 ),
                 shape = RoundedCornerShape(8.dp),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
@@ -327,7 +324,7 @@ fun WalletList(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = modifier
             .fillMaxSize()
-            .background(PageBg)
+            .background(EcoColors.PageBg)
     ) {
         items(redeemedVouchers, key = { it.id ?: it.qrCodePayload.orEmpty() }) { voucher ->
             WalletVoucherCard(
@@ -374,13 +371,13 @@ private fun WalletVoucherCard(
                         modifier = Modifier
                             .size(56.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(SoftGreen),
+                            .background(EcoColors.MintGreen),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.CardGiftcard,
                             contentDescription = null,
-                            tint = PrimaryGreen,
+                            tint = EcoColors.PrimaryGreen,
                             modifier = Modifier.size(28.dp)
                         )
                     }
@@ -389,11 +386,11 @@ private fun WalletVoucherCard(
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1B1F1C))
+                    Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = EcoColors.TextDark)
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(text = voucher.merchantName, fontSize = 12.sp, color = Color(0xFF6B7280))
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "${voucher.pointsCost} pts · ${voucher.category}", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = PrimaryGreen)
+                    Text(text = "${voucher.pointsCost} pts · ${voucher.category}", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.PrimaryGreen)
                 }
 
                 Row(
@@ -401,15 +398,15 @@ private fun WalletVoucherCard(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .background(SoftGreen)
+                        .background(EcoColors.MintGreen)
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = null,
-                        tint = PrimaryGreen,
+                        tint = EcoColors.PrimaryGreen,
                         modifier = Modifier.size(14.dp))
-                    Text(text = "Redeemed", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryGreen)
+                    Text(text = "Redeemed", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = EcoColors.PrimaryGreen)
                 }
             }
 
@@ -424,13 +421,13 @@ private fun WalletVoucherCard(
             ) {
                 Column {
                     Text(text = "Tap to show QR", fontSize = 10.sp, color = Color(0xFF8B948E))
-                    Text(text = "Show this to staff to use the voucher", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1B1F1C))
+                    Text(text = "Show this to staff to use the voucher", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = EcoColors.TextDark)
                 }
 
                 Icon(
                     imageVector = Icons.Default.QrCode2,
                     contentDescription = "Show QR code",
-                    tint = PrimaryGreen,
+                    tint = EcoColors.PrimaryGreen,
                     modifier = Modifier.size(28.dp)
                 )
             }

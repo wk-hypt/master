@@ -14,10 +14,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.project1.data.model.EcoSubmissionEntity
 import com.example.project1.data.model.UserEntity
-import com.example.project1.ui.common.AvatarPalette
 import com.example.project1.ui.common.ChangePasswordDialog
-import com.example.project1.ui.common.ProfileColors
 import com.example.project1.ui.common.ProfileConfirmDialog
+import com.example.project1.ui.theme.EcoColors
 
 private enum class UserProfilePage { Hub, Info, History, Achievements, Settings, Faq, Contact, About }
 
@@ -71,11 +70,11 @@ fun ProfileFunct(
     val studentId = user?.studentId.orEmpty()
     val points = user?.totalPoints ?: 0
     val plastics = user?.plasticsSaved ?: 0
-    val avatarColor = AvatarPalette.getOrElse(avatarColorIndex) { ProfileColors.PrimaryGreen }
+    val avatarColor = EcoColors.AvatarPalette.getOrElse(avatarColorIndex) { EcoColors.PrimaryGreen }
 
     Scaffold(
         modifier = modifier,
-        containerColor = ProfileColors.Cream,
+        containerColor = EcoColors.Cream,
         snackbarHost = snackbarHost
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {

@@ -25,6 +25,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project1.data.model.VoucherEntity
 import com.example.project1.ui.AppViewModelProvider
 import kotlinx.coroutines.launch
+import com.example.project1.ui.theme.EcoColors
 
 @Composable
 fun AdminRewardsView(
@@ -118,7 +119,7 @@ fun AdminRewardsView(
                     text = "Delete Voucher",
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = Color(0xFF1B1F1C)
+                    color = EcoColors.TextDark
                 )
             },
             text = {
@@ -138,7 +139,7 @@ fun AdminRewardsView(
                         }
                     }
                 ) {
-                    Text("Delete", color = Color(0xFFE53935), fontWeight = FontWeight.Bold)
+                    Text("Delete", color = EcoColors.NotificationRed, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {

@@ -9,6 +9,7 @@ import com.example.project1.ui.admin.AdminHomeViewModel
 import com.example.project1.ui.admin.profile.AdminProfileViewModel
 import com.example.project1.ui.admin.report.AdminReportViewModel
 import com.example.project1.ui.admin.rewards.AdminRewardsViewModel
+import com.example.project1.ui.common.NotificationViewModel
 import com.example.project1.ui.users.home.HomeViewModel
 import com.example.project1.ui.users.leaderboard.LeaderboardViewModel
 import com.example.project1.ui.login.LoginViewModel
@@ -42,6 +43,17 @@ object AppViewModelProvider {
                 taskRepository = app.container.taskRepository,
                 userRepository = app.container.userRepository,
                 adsRepository = app.container.ecoAdsRepository
+            )
+        }
+
+        initializer {
+            val app = ecoApplication()
+            NotificationViewModel(
+                settingsRepository = app.container.settingsRepository,
+                userRepository = app.container.userRepository,
+                offerRepository = app.container.offerRepository,
+                taskRepository = app.container.taskRepository,
+                submissionRepository = app.container.submissionRepository
             )
         }
 

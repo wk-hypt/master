@@ -26,6 +26,7 @@ import com.example.project1.ui.adaptive.AdaptiveDialogSurface
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import com.example.project1.ui.theme.EcoColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,7 +83,7 @@ fun TargetFormDialog(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF2E7D32)
+                    containerColor = EcoColors.PrimaryGreen
                 )
             )
 
@@ -99,7 +100,7 @@ fun TargetFormDialog(
                     placeholder = { Text("e.g. No plastic straws this week") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF2E7D32),
+                        focusedBorderColor = EcoColors.PrimaryGreen,
                         focusedLabelColor = Color.Black,
                         focusedTextColor = Color.Black,
                         unfocusedTextColor = Color.Black,
@@ -120,7 +121,7 @@ fun TargetFormDialog(
                         .fillMaxWidth()
                         .height(100.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF2E7D32),
+                        focusedBorderColor = EcoColors.PrimaryGreen,
                         focusedLabelColor = Color.Black,
                         focusedTextColor = Color.Black,
                         unfocusedTextColor = Color.Black,
@@ -179,7 +180,7 @@ fun TargetFormDialog(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color(0xFF2E7D32))
+                    Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(18.dp), tint = EcoColors.PrimaryGreen)
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
@@ -197,7 +198,7 @@ fun TargetFormDialog(
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2E7D32),
+                        containerColor = EcoColors.PrimaryGreen,
                         disabledContainerColor = Color(0xFFE0E0E0)
                     ),
                     shape = RoundedCornerShape(25.dp)

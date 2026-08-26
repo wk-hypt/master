@@ -62,6 +62,7 @@ import com.example.project1.ui.adaptive.AdaptiveDialogSurface
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.project1.ui.theme.EcoColors
 
 private val Ink = Color(0xFF1A1F1C)
 private val Muted = Color(0xFF5F675F)
@@ -73,10 +74,6 @@ private val Gold = Color(0xFFC4A574)
 private val CardBorder = Color(0xFFE9E4D8)
 
 // Figure / status accents
-private val BlueAccent = Color(0xFF1565C0)
-private val GreenAccent = Color(0xFF2E7D32)
-private val AmberAccent = Color(0xFFEF6C00)
-private val RedAccent = Color(0xFFDC3545)
 private val TealAccent = Color(0xFF00897B)
 private val PurpleAccent = Color(0xFF5E35B1)
 
@@ -201,11 +198,11 @@ fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SectionHeading(icon = Icons.Filled.Assessment, accent = Forest, title = "Impact figures")
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        FigureCell(Modifier.weight(1f), Icons.Filled.FactCheck, "${report.totalSubmissions}", "Submissions", BlueAccent)
-                        FigureCell(Modifier.weight(1f), Icons.Filled.CheckCircle, "${report.approvedCount}", "Approved", GreenAccent)
+                        FigureCell(Modifier.weight(1f), Icons.Filled.FactCheck, "${report.totalSubmissions}", "Submissions", EcoColors.Blue)
+                        FigureCell(Modifier.weight(1f), Icons.Filled.CheckCircle, "${report.approvedCount}", "Approved", EcoColors.PrimaryGreen)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        FigureCell(Modifier.weight(1f), Icons.Filled.Star, "${report.totalPointsAwarded}", "Points awarded", AmberAccent)
+                        FigureCell(Modifier.weight(1f), Icons.Filled.Star, "${report.totalPointsAwarded}", "Points awarded", EcoColors.Amber)
                         FigureCell(Modifier.weight(1f), Icons.Filled.Recycling, "${report.totalPlasticsSaved}", "Plastics saved", TealAccent)
                     }
                 }
@@ -221,19 +218,19 @@ fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
                 ) {
                     SectionHeading(icon = Icons.Filled.FactCheck, accent = Forest, title = "Submission outcomes")
                     Spacer(modifier = Modifier.height(4.dp))
-                    OutcomeRow(Icons.Filled.CheckCircle, GreenAccent, "Approved", report.approvedCount, totalReviewed)
-                    OutcomeRow(Icons.Filled.PendingActions, AmberAccent, "Pending", report.pendingCount, totalReviewed)
-                    OutcomeRow(Icons.Filled.Cancel, RedAccent, "Rejected", report.rejectedCount, totalReviewed, showDivider = false)
+                    OutcomeRow(Icons.Filled.CheckCircle, EcoColors.PrimaryGreen, "Approved", report.approvedCount, totalReviewed)
+                    OutcomeRow(Icons.Filled.PendingActions, EcoColors.Amber, "Pending", report.pendingCount, totalReviewed)
+                    OutcomeRow(Icons.Filled.Cancel, EcoColors.Rejected, "Rejected", report.rejectedCount, totalReviewed, showDivider = false)
                 }
 
                 if (!narrative.findings.isNullOrBlank()) {
-                    DocumentSection(icon = Icons.Filled.Lightbulb, accent = AmberAccent, title = "Key findings", body = narrative.findings)
+                    DocumentSection(icon = Icons.Filled.Lightbulb, accent = EcoColors.Amber, title = "Key findings", body = narrative.findings)
                 }
                 if (!narrative.recommendations.isNullOrBlank()) {
                     DocumentSection(icon = Icons.Filled.Flag, accent = TealAccent, title = "Recommendations", body = narrative.recommendations)
                 }
                 if (!narrative.notes.isNullOrBlank()) {
-                    DocumentSection(icon = Icons.Filled.StickyNote2, accent = BlueAccent, title = "Additional notes", body = narrative.notes)
+                    DocumentSection(icon = Icons.Filled.StickyNote2, accent = EcoColors.Blue, title = "Additional notes", body = narrative.notes)
                 }
 
                 HorizontalDivider(color = Rule, thickness = 1.dp)
@@ -281,12 +278,12 @@ private fun MetaGrid(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
-            MetaCell(Modifier.weight(1f), Icons.Filled.Person, BlueAccent, "Prepared by", preparedBy)
+            MetaCell(Modifier.weight(1f), Icons.Filled.Person, EcoColors.Blue, "Prepared by", preparedBy)
             MetaCell(Modifier.weight(1f), Icons.Filled.Business, TealAccent, "Department", department?.ifBlank { null } ?: "—")
         }
         HorizontalDivider(color = Rule, thickness = 1.dp)
         Row(modifier = Modifier.fillMaxWidth()) {
-            MetaCell(Modifier.weight(1f), Icons.Filled.Flag, AmberAccent, "Purpose", purpose?.ifBlank { null } ?: "—")
+            MetaCell(Modifier.weight(1f), Icons.Filled.Flag, EcoColors.Amber, "Purpose", purpose?.ifBlank { null } ?: "—")
             MetaCell(Modifier.weight(1f), Icons.Filled.Groups, PurpleAccent, "Audience", audience?.ifBlank { null } ?: "—")
         }
         HorizontalDivider(color = Rule, thickness = 1.dp)

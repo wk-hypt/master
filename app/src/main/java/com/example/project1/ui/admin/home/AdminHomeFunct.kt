@@ -38,6 +38,7 @@ import com.example.project1.ui.common.launchImagePicker
 import com.example.project1.ui.common.rememberImagePicker
 import com.example.project1.ui.users.home.resolveImageModel
 import java.util.UUID
+import com.example.project1.ui.theme.EcoColors
 
 @Composable
 fun AdminHomeFunct(
@@ -74,7 +75,7 @@ fun AdminHomeFunct(
         }
     }
 
-    Column(modifier = modifier.fillMaxSize().background(BgColor)) {
+    Column(modifier = modifier.fillMaxSize().background(EcoColors.AdminBg)) {
         Column(
             modifier = Modifier
                 .windowInsetsPadding(WindowInsets.statusBars)
@@ -93,21 +94,21 @@ fun AdminHomeFunct(
                         "Approval Page",
                         fontSize = if (compactHeader) 16.sp else 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = EcoColors.TextDark
                     )
                     Text(
                         "Do your best, then leave the rest",
                         fontSize = 12.sp,
-                        color = TextGrey
+                        color = EcoColors.TextGrey
                     )
                 }
                 if (totalPendingCount > 0) {
-                    Surface(color = Color(0xFFFFF3E0), shape = RoundedCornerShape(20.dp)) {
+                    Surface(color = EcoColors.PendingAmberBg, shape = RoundedCornerShape(20.dp)) {
                         Text(
                             "$totalPendingCount pending",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = AmberPending,
+                            color = EcoColors.Amber,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                         )
                     }
@@ -128,8 +129,8 @@ fun AdminHomeFunct(
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Color.Transparent,
-                contentColor = PrimaryGreen,
-                divider = { HorizontalDivider(color = CardBorder, thickness = 1.dp) }
+                contentColor = EcoColors.PrimaryGreen,
+                divider = { HorizontalDivider(color = EcoColors.CardBorder, thickness = 1.dp) }
             ) {
                 Tab(
                     selected = selectedTab == 0,
@@ -191,7 +192,7 @@ fun AdminHomeFunct(
                     onDeleteBanner(banner.id)
                     bannerToDelete = null
                 }) {
-                    Text("Delete", color = RedRejected, fontWeight = FontWeight.Bold)
+                    Text("Delete", color = EcoColors.Rejected, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -276,7 +277,7 @@ private fun HomeBannerManager(
             "Home banners",
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
-            color = TextGrey2
+            color = EcoColors.TextGrey2
         )
         Spacer(modifier = Modifier.height(8.dp))
         LazyRow(
@@ -289,7 +290,7 @@ private fun HomeBannerManager(
                         .width(140.dp)
                         .height(96.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFF1F3F5))
+                        .background(EcoColors.InProgressBg)
                 ) {
                     AsyncImage(
                         model = resolveImageModel(banner.image, R.drawable.img_placeholder_voucher),
@@ -327,14 +328,14 @@ private fun HomeBannerManager(
                         .width(140.dp)
                         .height(96.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFE8F5E9))
+                        .background(EcoColors.ApprovedBg)
                         .clickable(enabled = !isSaving, onClick = onAddClick),
                     contentAlignment = Alignment.Center
                 ) {
                     if (isSaving) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(22.dp),
-                            color = PrimaryGreen,
+                            color = EcoColors.PrimaryGreen,
                             strokeWidth = 2.dp
                         )
                     } else {
@@ -342,11 +343,11 @@ private fun HomeBannerManager(
                             Icon(
                                 Icons.Default.AddPhotoAlternate,
                                 contentDescription = "Add banner",
-                                tint = PrimaryGreen,
+                                tint = EcoColors.PrimaryGreen,
                                 modifier = Modifier.size(22.dp)
                             )
                             Spacer(modifier = Modifier.height(2.dp))
-                            Text("Add", fontSize = 10.sp, fontWeight = FontWeight.Medium, color = PrimaryGreen)
+                            Text("Add", fontSize = 10.sp, fontWeight = FontWeight.Medium, color = EcoColors.PrimaryGreen)
                         }
                     }
                 }
@@ -376,15 +377,15 @@ fun EmptyStateView(message: String) {
     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
-                modifier = Modifier.size(64.dp).clip(CircleShape).background(Color(0xFFE8F5E9)),
+                modifier = Modifier.size(64.dp).clip(CircleShape).background(EcoColors.ApprovedBg),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Inbox, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(28.dp))
+                Icon(Icons.Default.Inbox, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(28.dp))
             }
             Spacer(modifier = Modifier.height(14.dp))
-            Text("All caught up!", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextDark)
+            Text("All caught up!", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = EcoColors.TextDark)
             Spacer(modifier = Modifier.height(2.dp))
-            Text(message, color = TextGrey, fontSize = 13.sp)
+            Text(message, color = EcoColors.TextGrey, fontSize = 13.sp)
         }
     }
 }
@@ -409,7 +410,7 @@ fun AdminSummaryCard(
             Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (thumbnailUrl != null) {
                     Box(
-                        modifier = Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFF1F3F5))
+                        modifier = Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)).background(EcoColors.InProgressBg)
                     ) {
                         AsyncImage(
                             model = thumbnailUrl,
@@ -423,9 +424,9 @@ fun AdminSummaryCard(
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(userId, fontWeight = FontWeight.Medium, fontSize = 13.sp, color = TextDark, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(userId, fontWeight = FontWeight.Medium, fontSize = 13.sp, color = EcoColors.TextDark, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text(subtitle, fontSize = 11.sp, color = TextGrey2, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(subtitle, fontSize = 11.sp, color = EcoColors.TextGrey2, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Surface(color = statusBg, shape = RoundedCornerShape(20.dp)) {

@@ -53,9 +53,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.project1.ui.common.ProfileColors
 import com.example.project1.ui.common.ProfileConfirmDialog
 import com.example.project1.ui.common.ProfilePageHeader
+import com.example.project1.ui.theme.EcoColors
 
 private enum class HistoryFilter(val label: String) {
     All("All"),
@@ -97,21 +97,21 @@ internal fun ProfileHistoryPage(
                     Icon(
                         Icons.Default.Delete,
                         contentDescription = "Delete selected submissions",
-                        tint = if (selectedIds.isNotEmpty()) ProfileColors.Danger else Color(0xFFBDBDBD)
+                        tint = if (selectedIds.isNotEmpty()) EcoColors.Danger else Color(0xFFBDBDBD)
                     )
                 }
                 TextButton(onClick = {
                     selectionMode = false
                     selectedIds = emptySet()
-                }) { Text("Cancel") }
+                }) { Text("Cancel", fontWeight = FontWeight.Bold) }
             } else if (filtered.isNotEmpty()) {
-                TextButton(onClick = { selectionMode = true }) { Text("Select") }
+                TextButton(onClick = { selectionMode = true }) { Text("Select", fontWeight = FontWeight.Bold) }
             }
         }
         Text(
             "${submissions.size} eco log${if (submissions.size == 1) "" else "s"} · $pending pending · $approved approved · $rejected rejected",
             fontSize = 12.sp,
-            color = ProfileColors.TextGrey
+            color = EcoColors.TextMuted
         )
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -122,8 +122,9 @@ internal fun ProfileHistoryPage(
                     onClick = { filter = option },
                     label = { Text(option.label, fontSize = 12.sp) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = ProfileColors.SoftGreen,
-                        selectedLabelColor = ProfileColors.DarkGreen
+                        selectedContainerColor = EcoColors.SoftGreen,
+                        selectedLabelColor = EcoColors.DarkGreen,
+                        disabledLabelColor = Color.DarkGray
                     )
                 )
             }
@@ -136,19 +137,19 @@ internal fun ProfileHistoryPage(
                     Icon(
                         Icons.Default.Inbox,
                         contentDescription = null,
-                        tint = ProfileColors.PrimaryGreen,
+                        tint = EcoColors.PrimaryGreen,
                         modifier = Modifier.size(40.dp)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         if (submissions.isEmpty()) "No submissions yet" else "No ${filter.label.lowercase()} submissions",
                         fontWeight = FontWeight.Bold,
-                        color = ProfileColors.TextDark
+                        color = EcoColors.TextDark
                     )
                     Text(
                         "Eco logs you upload from Home will show up here.",
                         fontSize = 12.sp,
-                        color = ProfileColors.TextGrey
+                        color = EcoColors.TextMuted
                     )
                 }
             }
@@ -217,7 +218,7 @@ private fun HistoryCard(
         onClick = onClick,
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (selectionMode && checked) ProfileColors.SoftGreen else Color.White
+            containerColor = if (selectionMode && checked) EcoColors.SoftGreen else Color.White
         ),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
@@ -229,7 +230,7 @@ private fun HistoryCard(
                 Checkbox(
                     checked = checked,
                     onCheckedChange = onCheckedChange,
-                    colors = CheckboxDefaults.colors(checkedColor = ProfileColors.PrimaryGreen)
+                    colors = CheckboxDefaults.colors(checkedColor = EcoColors.PrimaryGreen)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
             }
@@ -237,7 +238,7 @@ private fun HistoryCard(
                 modifier = Modifier
                     .size(56.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFF1F3F5))
+                    .background(EcoColors.InProgressBg)
             ) {
                 if (submission.imagePath.isNotBlank()) {
                     AsyncImage(
@@ -250,7 +251,7 @@ private fun HistoryCard(
                     Icon(
                         Icons.Default.History,
                         contentDescription = null,
-                        tint = ProfileColors.PrimaryGreen,
+                        tint = EcoColors.PrimaryGreen,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -261,14 +262,14 @@ private fun HistoryCard(
                     submission.actionType,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    color = ProfileColors.TextDark,
+                    color = EcoColors.TextDark,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     "×${submission.quantity} · ${submission.stallName}",
                     fontSize = 12.sp,
-                    color = ProfileColors.TextGrey,
+                    color = EcoColors.TextMuted,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -282,7 +283,7 @@ private fun HistoryCard(
                 HistoryStatusChip(submission.status)
                 if (submission.status.equals("Approved", ignoreCase = true) && submission.points > 0) {
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("+${submission.points} pts", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = ProfileColors.PrimaryGreen)
+                    Text("+${submission.points} pts", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = EcoColors.PrimaryGreen)
                 }
             }
         }
@@ -292,9 +293,9 @@ private fun HistoryCard(
 @Composable
 private fun HistoryStatusChip(status: String) {
     val (fg, bg) = when (status.lowercase()) {
-        "approved" -> ProfileColors.PrimaryGreen to Color(0xFFE8F5E9)
-        "rejected" -> Color(0xFFDC3545) to Color(0xFFFDECEA)
-        else -> Color(0xFFEF6C00) to Color(0xFFFFF3E0)
+        "approved" -> EcoColors.PrimaryGreen to EcoColors.ApprovedBg
+        "rejected" -> EcoColors.Rejected to EcoColors.RejectedBg
+        else -> EcoColors.Amber to EcoColors.PendingAmberBg
     }
     Surface(color = bg, shape = RoundedCornerShape(20.dp)) {
         Text(
@@ -331,7 +332,7 @@ private fun HistoryDetailDialog(
                             .fillMaxWidth()
                             .height(180.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFF1F3F5))
+                            .background(EcoColors.InProgressBg)
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -354,7 +355,7 @@ private fun HistoryDetailDialog(
 @Composable
 private fun DetailRow(label: String, value: String) {
     Column(modifier = Modifier.padding(bottom = 10.dp)) {
-        Text(label, fontSize = 11.sp, color = ProfileColors.TextGrey)
-        Text(value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = ProfileColors.TextDark)
+        Text(label, fontSize = 11.sp, color = EcoColors.TextMuted)
+        Text(value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = EcoColors.TextDark)
     }
 }

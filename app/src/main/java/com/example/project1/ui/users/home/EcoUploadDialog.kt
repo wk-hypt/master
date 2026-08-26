@@ -40,6 +40,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.project1.ui.theme.EcoColors
 
 data class EcoLogSubmissionInput(
     val imagePath: String,
@@ -151,7 +152,7 @@ fun EcoUploadDialog(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF2E7D32)
+                        containerColor = EcoColors.PrimaryGreen
                     )
                 )
 
@@ -222,7 +223,7 @@ fun EcoUploadDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
                         shape = RoundedCornerShape(24.dp)
                     ) {
                         Icon(Icons.Default.CameraAlt, contentDescription = null)
@@ -240,7 +241,7 @@ fun EcoUploadDialog(
                             text = "Or choose from Gallery",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFF2E7D32),
+                            color = EcoColors.PrimaryGreen,
                             style = androidx.compose.ui.text.TextStyle(
                                 textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
                             ),
@@ -264,7 +265,7 @@ fun EcoUploadDialog(
                                 .fillMaxWidth()
                                 .menuAnchor(),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color(0xFF2E7D32),
+                                focusedBorderColor = EcoColors.PrimaryGreen,
                                 focusedLabelColor = Color.Black,
                                 focusedTextColor = Color.Black,
                                 unfocusedTextColor = Color.Black,
@@ -296,7 +297,7 @@ fun EcoUploadDialog(
                         placeholder = { Text("e.g. Noodles Yum") },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF2E7D32),
+                            focusedBorderColor = EcoColors.PrimaryGreen,
                             focusedLabelColor = Color.Black,
                             focusedTextColor = Color.Black,
                             unfocusedTextColor = Color.Black,
@@ -313,7 +314,7 @@ fun EcoUploadDialog(
                         placeholder = { Text("e.g. Yum Yum Canteen") },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF2E7D32),
+                            focusedBorderColor = EcoColors.PrimaryGreen,
                             focusedLabelColor = Color.Black,
                             focusedTextColor = Color.Black,
                             unfocusedTextColor = Color.Black,
@@ -373,7 +374,7 @@ fun EcoUploadDialog(
                             .fillMaxWidth()
                             .height(90.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF2E7D32),
+                            focusedBorderColor = EcoColors.PrimaryGreen,
                             focusedLabelColor = Color.Black,
                             focusedTextColor = Color.Black,
                             unfocusedTextColor = Color.Black,
@@ -385,7 +386,7 @@ fun EcoUploadDialog(
 
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
+                        colors = CardDefaults.cardColors(containerColor = EcoColors.ApprovedBg),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Row(
@@ -395,12 +396,12 @@ fun EcoUploadDialog(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Estimated Reward:", fontSize = 14.sp, color = Color(0xFF2E7D32))
+                            Text("Estimated Reward:", fontSize = 14.sp, color = EcoColors.PrimaryGreen)
                             Text(
                                 "+$estimatedPoints Eco Points",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF2E7D32)
+                                color = EcoColors.PrimaryGreen
                             )
                         }
                     }
@@ -412,7 +413,7 @@ fun EcoUploadDialog(
                         Checkbox(
                             checked = terms,
                             onCheckedChange = { terms = it },
-                            colors = CheckboxDefaults.colors(checkedColor = Color(0xFF2E7D32))
+                            colors = CheckboxDefaults.colors(checkedColor = EcoColors.PrimaryGreen)
                         )
                         Text(
                             text = "I agree to the ",
@@ -422,7 +423,7 @@ fun EcoUploadDialog(
                         Text(
                             text = "Terms & Conditions",
                             fontSize = 13.sp,
-                            color = Color(0xFF2E7D32),
+                            color = EcoColors.PrimaryGreen,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.clickable { showTermsDialog = true }
                         )
@@ -448,7 +449,7 @@ fun EcoUploadDialog(
                             .fillMaxWidth()
                             .height(50.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF2E7D32),
+                            containerColor = EcoColors.PrimaryGreen,
                             disabledContainerColor = Color(0xFFE0E0E0)
                         ),
                         shape = RoundedCornerShape(25.dp)
@@ -481,7 +482,7 @@ fun TermsAndConditionsDialog(onDismiss: () -> Unit) {
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF2E7D32)
+                        containerColor = EcoColors.PrimaryGreen
                     )
                 )
 

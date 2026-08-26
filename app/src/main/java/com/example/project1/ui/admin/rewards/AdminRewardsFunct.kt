@@ -57,10 +57,7 @@ import coil.compose.AsyncImage
 import com.example.project1.data.model.VoucherEntity
 import com.example.project1.ui.adaptive.HeightSize
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
-
-private val PrimaryGreen = Color(0xFF2E7D32)
-private val SoftExpiredBg = Color(0xFFFFEBEE)
-private val PageBg = Color(0xFFF4F6F5)
+import com.example.project1.ui.theme.EcoColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,13 +90,13 @@ fun AdminRewardsFunct(
 
     Scaffold(
         modifier = modifier,
-        containerColor = PageBg,
+        containerColor = EcoColors.PageBg,
         snackbarHost = snackbarHost,
         floatingActionButton = {
             if (selectedTab == 0) {
                 FloatingActionButton(
                     onClick = onAddClick,
-                    containerColor = PrimaryGreen,
+                    containerColor = EcoColors.PrimaryGreen,
                     contentColor = Color.White
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Add voucher")
@@ -117,7 +114,7 @@ fun AdminRewardsFunct(
                     text = "Rewards Catalog",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1B1F1C)
+                    color = EcoColors.TextDark
                 )
                 Text(
                     text = "Manage campus vouchers and expirations",
@@ -129,11 +126,11 @@ fun AdminRewardsFunct(
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Color.White,
-                contentColor = PrimaryGreen,
+                contentColor = EcoColors.PrimaryGreen,
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(
                         modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = PrimaryGreen
+                        color = EcoColors.PrimaryGreen
                     )
                 }
             ) {
@@ -234,7 +231,7 @@ private fun ScanVoucherPanel(
                         .fillMaxWidth()
                         .border(
                             width = if (isSelected) 2.dp else 0.dp,
-                            color = if (isSelected) PrimaryGreen else Color.Transparent,
+                            color = if (isSelected) EcoColors.PrimaryGreen else Color.Transparent,
                             shape = RoundedCornerShape(12.dp)
                         )
                         .clickable { onSelect(voucher) },
@@ -252,13 +249,13 @@ private fun ScanVoucherPanel(
                             modifier = Modifier
                                 .size(44.dp)
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(if (isSelected) PrimaryGreen else Color(0xFFE8F5E9)),
+                                .background(if (isSelected) EcoColors.PrimaryGreen else EcoColors.ApprovedBg),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.QrCodeScanner,
                                 contentDescription = null,
-                                tint = if (isSelected) Color.White else PrimaryGreen
+                                tint = if (isSelected) Color.White else EcoColors.PrimaryGreen
                             )
                         }
                         Spacer(modifier = Modifier.width(12.dp))
@@ -267,7 +264,7 @@ private fun ScanVoucherPanel(
                                 text = voucher.title,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp,
-                                color = Color(0xFF1B1F1C)
+                                color = EcoColors.TextDark
                             )
                             Text(
                                 text = voucher.merchantName,
@@ -280,7 +277,7 @@ private fun ScanVoucherPanel(
                                 text = "Selected",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = PrimaryGreen
+                                color = EcoColors.PrimaryGreen
                             )
                         }
                     }
@@ -291,7 +288,7 @@ private fun ScanVoucherPanel(
         Button(
             onClick = onStartScan,
             enabled = selected != null,
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+            colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
@@ -386,7 +383,7 @@ private fun AdminAvailableCard(
                     modifier = Modifier
                         .size(52.dp)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(PrimaryGreen),
+                        .background(EcoColors.PrimaryGreen),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -404,7 +401,7 @@ private fun AdminAvailableCard(
                     text = voucher.title,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    color = Color(0xFF1B1F1C)
+                    color = EcoColors.TextDark
                 )
                 Text(
                     text = voucher.merchantName,
@@ -419,13 +416,13 @@ private fun AdminAvailableCard(
                         text = "${voucher.pointsCost} pts · ${voucher.category}",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = PrimaryGreen
+                        color = EcoColors.PrimaryGreen
                     )
                     Text(
                         text = "Stock: ${voucher.quantity}",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (voucher.quantity > 0) Color(0xFF1565C0) else Color(0xFFC62828)
+                        color = if (voucher.quantity > 0) EcoColors.Blue else EcoColors.Danger
                     )
                 }
 
@@ -440,10 +437,10 @@ private fun AdminAvailableCard(
             }
 
             IconButton(onClick = onEditClick) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = PrimaryGreen)
+                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = EcoColors.PrimaryGreen)
             }
             IconButton(onClick = onDeleteClick) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color(0xFFC62828))
+                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = EcoColors.Danger)
             }
         }
     }
@@ -457,7 +454,7 @@ private fun AdminExpiredCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = SoftExpiredBg),
+        colors = CardDefaults.cardColors(containerColor = EcoColors.ExpiredBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -471,7 +468,7 @@ private fun AdminExpiredCard(
                     text = voucher.title,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    color = Color(0xFF1B1F1C)
+                    color = EcoColors.TextDark
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -484,18 +481,18 @@ private fun AdminExpiredCard(
                     text = "Status: Expired",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFC62828)
+                    color = EcoColors.Danger
                 )
                 if (!voucher.expiryDate.isNullOrBlank()) {
                     Text(
                         text = "Expired on: ${voucher.expiryDate.take(10)}",
                         fontSize = 11.sp,
-                        color = Color(0xFFC62828)
+                        color = EcoColors.Danger
                     )
                 }
             }
             IconButton(onClick = onDeleteClick) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete Expired", tint = Color(0xFFC62828))
+                Icon(Icons.Default.Delete, contentDescription = "Delete Expired", tint = EcoColors.Danger)
             }
         }
     }

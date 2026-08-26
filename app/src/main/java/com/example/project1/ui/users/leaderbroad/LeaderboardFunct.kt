@@ -31,6 +31,7 @@ import com.example.project1.data.model.LeaderboardEntry
 import com.example.project1.data.model.LeaderboardUiState
 import com.example.project1.ui.adaptive.HeightSize
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
+import com.example.project1.ui.theme.EcoColors
 
 enum class LeaderboardTimeFrame { MONTHLY, DAILY }
 
@@ -68,7 +69,7 @@ fun LeaderboardFunct(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF2E7D32)
+                    containerColor = EcoColors.PrimaryGreen
                 ),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -87,7 +88,7 @@ fun LeaderboardFunct(
             when (uiState) {
                 is LeaderboardUiState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Color(0xFF2E7D32))
+                        CircularProgressIndicator(color = EcoColors.PrimaryGreen)
                     }
                 }
 
@@ -291,7 +292,7 @@ fun LeaderboardRowItem(entry: LeaderboardEntry, modifier: Modifier = Modifier) {
                 text = "#${entry.rank}",
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp,
-                color = Color(0xFF1B5E20),
+                color = EcoColors.DarkGreen,
                 modifier = Modifier.width(44.dp)
             )
 
@@ -299,7 +300,7 @@ fun LeaderboardRowItem(entry: LeaderboardEntry, modifier: Modifier = Modifier) {
                 text = entry.userName + if (entry.isCurrentUser) " (You)" else "",
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp,
-                color = Color(0xFF1B1F1C),
+                color = EcoColors.TextDark,
                 modifier = Modifier.weight(1f)
             )
 

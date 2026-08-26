@@ -16,6 +16,8 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Task
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -25,10 +27,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.project1.ui.AppViewModelProvider
 import com.example.project1.ui.adaptive.AdaptiveAppScaffold
 import com.example.project1.ui.adaptive.EcoNavDestination
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
 import com.example.project1.ui.adaptive.rememberAppWindowInfo
+import com.example.project1.ui.common.NotificationViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -89,6 +94,7 @@ fun EcoApp() {
 private fun EcoAppContent(onEndSession: () -> Unit) {
     val navController = rememberNavController()
     val app = LocalContext.current.applicationContext as EcoApplication
+    val notificationViewModel: NotificationViewModel = viewModel(factory = AppViewModelProvider.Factory)
     val studentItems = listOf(
         Screen.Home,
         Screen.Task,
@@ -123,6 +129,21 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
     val showBottomBar = isStudentMainTab || isAdminMainTab
     val windowInfo = rememberAppWindowInfo()
 
+    val showTaskDot by notificationViewModel.showTaskDot.collectAsState()
+    val showRewardsDot by notificationViewModel.showRewardsDot.collectAsState()
+    val showAdminApprovalDot by notificationViewModel.showAdminApprovalDot.collectAsState()
+    val showAdminRewardsDot by notificationViewModel.showAdminRewardsDot.collectAsState()
+
+    LaunchedEffect(loggedInStudentId) {
+        notificationViewModel.setStudentId(loggedInStudentId)
+    }
+    LaunchedEffect(isAdminMode) {
+        notificationViewModel.setAdminMode(isAdminMode)
+    }
+    LaunchedEffect(currentRoute) {
+        notificationViewModel.setTaskTabOpen(currentRoute == Screen.Task.route)
+    }
+
     val navDestinations = if (isAdminMode) {
         adminItems.map { screen ->
             EcoNavDestination(
@@ -130,6 +151,12 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                 selected = currentRoute == screen.route,
                 filledIcon = screen.filledIcon,
                 outlineIcon = screen.outlineIcon,
+                showBadge = when (screen) {
+                    AdminScreen.Approval -> showAdminApprovalDot
+                    AdminScreen.Rewards -> showAdminRewardsDot
+                    AdminScreen.Report -> false
+                    AdminScreen.Profile -> false
+                },
                 onClick = {
                     if (screen == AdminScreen.Approval) {
                         approvalInitialTab = 0
@@ -161,6 +188,11 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                 selected = isSelected,
                 filledIcon = screen.filledIcon!!,
                 outlineIcon = screen.outlineIcon!!,
+                showBadge = when (screen) {
+                    Screen.Task -> showTaskDot
+                    Screen.Rewards -> showRewardsDot
+                    else -> false
+                },
                 onClick = {
                     val targetRoute = if (screen == Screen.Home) {
                         Screen.Home.createRoute(loggedInStudentId)

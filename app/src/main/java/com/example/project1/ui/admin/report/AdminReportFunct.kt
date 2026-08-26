@@ -56,6 +56,7 @@ import com.example.project1.ui.adaptive.WidthSize
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.project1.ui.theme.EcoColors
 
 @Composable
 fun AdminReportFunct(
@@ -70,7 +71,7 @@ fun AdminReportFunct(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(ReportBg)
+            .background(EcoColors.AdminBg)
     ) {
         when {
             uiState.isLoading -> LoadingState()
@@ -95,7 +96,7 @@ fun AdminReportFunct(
                                 subtitle = "Most reported eco-actions",
                                 icon = Icons.Filled.Recycling,
                                 items = uiState.actionTypeBreakdown,
-                                barColor = ReportGreen
+                                barColor = EcoColors.PrimaryGreen
                             )
                         }
                     }
@@ -120,7 +121,7 @@ fun AdminReportFunct(
 @Composable
 private fun LoadingState() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = ReportGreen, strokeWidth = 3.dp)
+        CircularProgressIndicator(color = EcoColors.PrimaryGreen, strokeWidth = 3.dp)
     }
 }
 
@@ -132,22 +133,22 @@ private fun EmptyReportState() {
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFE8F5E9)),
+                    .background(EcoColors.ApprovedBg),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Filled.Assessment,
                     contentDescription = null,
-                    tint = ReportGreen,
+                    tint = EcoColors.PrimaryGreen,
                     modifier = Modifier.size(28.dp)
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "No report data yet", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = ReportTextDark)
+            Text(text = "No report data yet", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = EcoColors.TextDark)
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Stats will appear once students start submitting.",
-                color = ReportTextGrey,
+                color = EcoColors.TextGrey,
                 fontSize = 13.sp,
                 textAlign = TextAlign.Center
             )
@@ -170,18 +171,18 @@ private fun ReportHeader(onSaveReportClick: () -> Unit = {}) {
                     .background(Color(0xFFDCEEDD)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(imageVector = Icons.Filled.Assessment, contentDescription = null, tint = ReportDarkGreen, modifier = Modifier.size(18.dp))
+                Icon(imageVector = Icons.Filled.Assessment, contentDescription = null, tint = EcoColors.DarkGreen, modifier = Modifier.size(18.dp))
             }
             Spacer(modifier = Modifier.width(10.dp))
             Column {
-                Text(text = "Reports", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ReportTextDark)
-                Text(text = "SDG 12 impact overview", fontSize = 11.sp, color = ReportTextGrey)
+                Text(text = "Reports", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = EcoColors.TextDark)
+                Text(text = "SDG 12 impact overview", fontSize = 11.sp, color = EcoColors.TextGrey)
             }
         }
         Button(
             onClick = onSaveReportClick,
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = ReportGreen),
+            colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
         ) {
@@ -198,7 +199,7 @@ private fun ImpactHeroCard(uiState: ReportUiState) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(ReportGreen)
+            .background(EcoColors.PrimaryGreen)
     ) {
         Box(
             modifier = Modifier
@@ -238,9 +239,9 @@ private fun HeroStat(value: String, label: String, modifier: Modifier = Modifier
 @Composable
 private fun KpiGrid(uiState: ReportUiState) {
     val kpiItems: @Composable RowScope.() -> Unit = {
-        KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.Inventory2, iconColor = ReportGreen, iconBg = Color(0xFFE8F5E9), value = "${uiState.totalSubmissions}", label = "Total submissions")
-        KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.TrendingUp, iconColor = ReportBlue, iconBg = Color(0xFFE3F2FD), value = "${uiState.approvalRate}%", label = "Approval rate")
-        KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.PendingActions, iconColor = ReportAmber, iconBg = Color(0xFFFFF3E0), value = "${uiState.pendingCount}", label = "Pending review")
+        KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.Inventory2, iconColor = EcoColors.PrimaryGreen, iconBg = EcoColors.ApprovedBg, value = "${uiState.totalSubmissions}", label = "Total submissions")
+        KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.TrendingUp, iconColor = EcoColors.Blue, iconBg = Color(0xFFE3F2FD), value = "${uiState.approvalRate}%", label = "Approval rate")
+        KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.PendingActions, iconColor = EcoColors.Amber, iconBg = EcoColors.PendingAmberBg, value = "${uiState.pendingCount}", label = "Pending review")
         KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.Groups, iconColor = Color(0xFF6A1B9A), iconBg = Color(0xFFF3E5F5), value = "${uiState.activeStudents}", label = "Active students")
     }
     if (LocalAppWindowInfo.current.widthSize == WidthSize.Expanded) {
@@ -248,11 +249,11 @@ private fun KpiGrid(uiState: ReportUiState) {
     } else {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.Inventory2, iconColor = ReportGreen, iconBg = Color(0xFFE8F5E9), value = "${uiState.totalSubmissions}", label = "Total submissions")
-                KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.TrendingUp, iconColor = ReportBlue, iconBg = Color(0xFFE3F2FD), value = "${uiState.approvalRate}%", label = "Approval rate")
+                KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.Inventory2, iconColor = EcoColors.PrimaryGreen, iconBg = EcoColors.ApprovedBg, value = "${uiState.totalSubmissions}", label = "Total submissions")
+                KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.TrendingUp, iconColor = EcoColors.Blue, iconBg = Color(0xFFE3F2FD), value = "${uiState.approvalRate}%", label = "Approval rate")
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.PendingActions, iconColor = ReportAmber, iconBg = Color(0xFFFFF3E0), value = "${uiState.pendingCount}", label = "Pending review")
+                KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.PendingActions, iconColor = EcoColors.Amber, iconBg = EcoColors.PendingAmberBg, value = "${uiState.pendingCount}", label = "Pending review")
                 KpiCard(modifier = Modifier.weight(1f), icon = Icons.Filled.Groups, iconColor = Color(0xFF6A1B9A), iconBg = Color(0xFFF3E5F5), value = "${uiState.activeStudents}", label = "Active students")
             }
         }
@@ -270,8 +271,8 @@ private fun KpiCard(icon: ImageVector, iconColor: Color, iconBg: Color, value: S
                 Icon(imageVector = icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(15.dp))
             }
             Spacer(modifier = Modifier.height(9.dp))
-            Text(text = value, fontSize = 18.sp, fontWeight = FontWeight.Medium, color = ReportTextDark)
-            Text(text = label, fontSize = 11.sp, color = ReportTextGrey)
+            Text(text = value, fontSize = 18.sp, fontWeight = FontWeight.Medium, color = EcoColors.TextDark)
+            Text(text = label, fontSize = 11.sp, color = EcoColors.TextGrey)
         }
     }
 }
@@ -285,11 +286,11 @@ private fun SubmissionStatusCard(uiState: ReportUiState) {
 
             val total = (uiState.approvedCount + uiState.pendingCount + uiState.rejectedCount).coerceAtLeast(1)
             Row(
-                modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(6.dp)).background(ReportTrack)
+                modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(6.dp)).background(EcoColors.CardBorder)
             ) {
-                StatusSegment(weightValue = uiState.approvedCount, total = total, color = ReportGreen)
-                StatusSegment(weightValue = uiState.pendingCount, total = total, color = ReportAmber)
-                StatusSegment(weightValue = uiState.rejectedCount, total = total, color = ReportRed)
+                StatusSegment(weightValue = uiState.approvedCount, total = total, color = EcoColors.PrimaryGreen)
+                StatusSegment(weightValue = uiState.pendingCount, total = total, color = EcoColors.Amber)
+                StatusSegment(weightValue = uiState.rejectedCount, total = total, color = EcoColors.Rejected)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -314,8 +315,8 @@ private fun RowScope.StatusSegment(weightValue: Int, total: Int, color: Color) {
 @Composable
 private fun StatusLegendItem(label: String, count: Int) {
     Column {
-        Text(text = "$count", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = ReportTextDark)
-        Text(text = label, fontSize = 10.sp, color = ReportTextGrey)
+        Text(text = "$count", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.TextDark)
+        Text(text = label, fontSize = 10.sp, color = EcoColors.TextGrey)
     }
 }
 
@@ -347,7 +348,7 @@ private fun WeeklyTrendCard(trend: List<DayTrendItem>) {
                                 .height((56 * barHeightFraction.coerceAtLeast(0.05f)).dp)
                         ) {
                             drawRoundRect(
-                                color = if (isPeak) ReportGreen else Color(0xFF9CC89E),
+                                color = if (isPeak) EcoColors.PrimaryGreen else Color(0xFF9CC89E),
                                 cornerRadius = CornerRadius(4f, 4f)
                             )
                         }
@@ -356,7 +357,7 @@ private fun WeeklyTrendCard(trend: List<DayTrendItem>) {
                             text = day.dayLabel,
                             fontSize = 9.sp,
                             fontWeight = if (isPeak) FontWeight.Medium else FontWeight.Normal,
-                            color = if (isPeak) ReportTextDark else ReportTextGrey
+                            color = if (isPeak) EcoColors.TextDark else EcoColors.TextGrey
                         )
                     }
                 }
@@ -368,7 +369,6 @@ private fun WeeklyTrendCard(trend: List<DayTrendItem>) {
         DaySubmissionsDialog(day = day, onDismiss = { selectedDay = null })
     }
 }
-
 
 @Composable
 private fun RankedBreakdownCard(title: String, subtitle: String, icon: ImageVector, items: List<ReportBarItem>, barColor: Color) {
@@ -386,7 +386,7 @@ private fun RankedBreakdownCard(title: String, subtitle: String, icon: ImageVect
                                 text = "${index + 1}  ${entry.label}",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = ReportTextDark,
+                                color = EcoColors.TextDark,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f, fill = false)
@@ -395,7 +395,7 @@ private fun RankedBreakdownCard(title: String, subtitle: String, icon: ImageVect
                         }
                         Spacer(modifier = Modifier.height(5.dp))
                         val fraction = (entry.count.toFloat() / maxCount.toFloat()).coerceIn(0.03f, 1f)
-                        Box(modifier = Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(6.dp)).background(ReportTrack)) {
+                        Box(modifier = Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(6.dp)).background(EcoColors.CardBorder)) {
                             Box(modifier = Modifier.fillMaxWidth(fraction).fillMaxHeight().clip(RoundedCornerShape(6.dp)).background(barColor))
                         }
                     }
@@ -423,13 +423,13 @@ private fun TopContributorsCard(topUsers: List<UserEntity>) {
             ) {
                 CardHeaderIconRow(icon = Icons.Filled.EmojiEvents, iconBg = Color(0xFFFFF3D6), iconTint = Color(0xFFB8860B), title = "Top contributors", subtitle = "Ranked by points awarded")
                 if (topUsers.isNotEmpty()) {
-                    Icon(imageVector = Icons.Filled.ChevronRight, contentDescription = "View leaderboard", tint = ReportTextGrey, modifier = Modifier.size(18.dp))
+                    Icon(imageVector = Icons.Filled.ChevronRight, contentDescription = "View leaderboard", tint = EcoColors.TextGrey, modifier = Modifier.size(18.dp))
                 }
             }
 
             if (topUsers.isEmpty()) {
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "No contributors yet.", fontSize = 12.sp, color = ReportTextGrey)
+                Text(text = "No contributors yet.", fontSize = 12.sp, color = EcoColors.TextGrey)
             }
         }
     }
@@ -438,7 +438,6 @@ private fun TopContributorsCard(topUsers: List<UserEntity>) {
         LeaderboardDialog(topUsers = topUsers, onDismiss = { showLeaderboard = false })
     }
 }
-
 
 @Composable
 private fun SavedReportsCard(reports: List<ReportEntity>, onView: (ReportEntity) -> Unit, onEdit: (ReportEntity) -> Unit, onDelete: (ReportEntity) -> Unit) {
@@ -456,20 +455,20 @@ private fun SavedReportsCard(reports: List<ReportEntity>, onView: (ReportEntity)
                         .background(Color(0xFFDCEEDD)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(imageVector = Icons.Filled.StickyNote2, contentDescription = null, tint = ReportDarkGreen, modifier = Modifier.size(14.dp))
+                    Icon(imageVector = Icons.Filled.StickyNote2, contentDescription = null, tint = EcoColors.DarkGreen, modifier = Modifier.size(14.dp))
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
-                    Text(text = "Official records", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ReportTextDark)
-                    Text(text = "Tap a report to open the document", fontSize = 11.sp, color = ReportTextGrey)
+                    Text(text = "Official records", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = EcoColors.TextDark)
+                    Text(text = "Tap a report to open the document", fontSize = 11.sp, color = EcoColors.TextGrey)
                 }
             }
-            Surface(shape = ReportChipShape, color = Color(0xFFE8F5E9)) {
+            Surface(shape = ReportChipShape, color = EcoColors.ApprovedBg) {
                 Text(
                     text = "${reports.size} saved",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = ReportGreen,
+                    color = EcoColors.PrimaryGreen,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                 )
             }
@@ -487,23 +486,23 @@ private fun SavedReportsCard(reports: List<ReportEntity>, onView: (ReportEntity)
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE8F5E9)),
+                        .background(EcoColors.ApprovedBg),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(imageVector = Icons.Filled.Description, contentDescription = null, tint = ReportGreen, modifier = Modifier.size(22.dp))
+                    Icon(imageVector = Icons.Filled.Description, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(22.dp))
                 }
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
                     text = "No reports yet",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color = ReportTextDark
+                    color = EcoColors.TextDark
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = "Tap Save to prepare a formal snapshot for campus records.",
                     fontSize = 12.sp,
-                    color = ReportTextGrey,
+                    color = EcoColors.TextGrey,
                     lineHeight = 17.sp,
                     textAlign = TextAlign.Center
                 )
@@ -528,7 +527,7 @@ private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: ()
     val dateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     val narrative = remember(report) { report.narrative() }
     val isPersonal = report.reportType == REPORT_TYPE_STUDENT
-    val accent = if (isPersonal) Color(0xFF5E35B1) else ReportDarkGreen
+    val accent = if (isPersonal) Color(0xFF5E35B1) else EcoColors.DarkGreen
     val accentSoft = if (isPersonal) Color(0xFFF1EBFB) else Color(0xFFE3EFE4)
     val purposeLine = listOfNotNull(
         narrative.purpose?.takeIf { it.isNotBlank() },
@@ -540,8 +539,8 @@ private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: ()
             .fillMaxWidth()
             .shadow(elevation = 3.dp, shape = ReportCardShape, ambientColor = Color(0x14000000), spotColor = Color(0x14000000))
             .clip(ReportCardShape)
-            .background(ReportSurface)
-            .border(BorderStroke(1.dp, ReportCardBorder), ReportCardShape)
+            .background(EcoColors.Surface)
+            .border(BorderStroke(1.dp, EcoColors.CardBorder), ReportCardShape)
             .clickable { onClick() }
             .padding(14.dp)
     ) {
@@ -572,7 +571,7 @@ private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: ()
                     text = report.title,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = ReportTextDark,
+                    color = EcoColors.TextDark,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -599,12 +598,12 @@ private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: ()
             ) {
                 if (isPersonal && !report.studentName.isNullOrBlank()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = Icons.Filled.Person, contentDescription = null, tint = ReportTextGrey2, modifier = Modifier.size(12.dp))
+                        Icon(imageVector = Icons.Filled.Person, contentDescription = null, tint = EcoColors.TextGrey2, modifier = Modifier.size(12.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = report.studentName,
                             fontSize = 11.sp,
-                            color = ReportTextGrey2,
+                            color = EcoColors.TextGrey2,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -614,7 +613,7 @@ private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: ()
                     Text(
                         text = purposeLine,
                         fontSize = 11.sp,
-                        color = ReportTextGrey,
+                        color = EcoColors.TextGrey,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -623,13 +622,13 @@ private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: ()
         }
 
         Spacer(modifier = Modifier.height(12.dp))
-        HorizontalDivider(color = ReportCardBorder, thickness = 1.dp)
+        HorizontalDivider(color = EcoColors.CardBorder, thickness = 1.dp)
         Spacer(modifier = Modifier.height(12.dp))
 
         // Stats strip
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            MiniMetric(Modifier.weight(1f), Icons.Filled.FactCheck, "${report.totalSubmissions}", "Filed", ReportBlue)
-            MiniMetric(Modifier.weight(1f), Icons.Filled.CheckCircle, "${report.approvedCount}", "Approved", ReportGreen)
+            MiniMetric(Modifier.weight(1f), Icons.Filled.FactCheck, "${report.totalSubmissions}", "Filed", EcoColors.Blue)
+            MiniMetric(Modifier.weight(1f), Icons.Filled.CheckCircle, "${report.approvedCount}", "Approved", EcoColors.PrimaryGreen)
             MiniMetric(Modifier.weight(1f), Icons.Filled.Star, "${report.totalPointsAwarded}", "Points", Color(0xFFF9A825))
             MiniMetric(Modifier.weight(1f), Icons.Filled.Recycling, "${report.totalPlasticsSaved}", "Plastics", Color(0xFF00897B))
         }
@@ -643,17 +642,17 @@ private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: ()
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(imageVector = Icons.Filled.CalendarToday, contentDescription = null, tint = ReportTextGrey, modifier = Modifier.size(11.dp))
+                Icon(imageVector = Icons.Filled.CalendarToday, contentDescription = null, tint = EcoColors.TextGrey, modifier = Modifier.size(11.dp))
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(
                     text = dateFormat.format(Date(report.createdAt)),
                     fontSize = 10.sp,
-                    color = ReportTextGrey
+                    color = EcoColors.TextGrey
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                RowActionButton(icon = Icons.Filled.Edit, tint = ReportBlue, bg = Color(0xFFE8F0FB), contentDescription = "Edit report", onClick = onEdit)
-                RowActionButton(icon = Icons.Filled.Delete, tint = ReportRed, bg = Color(0xFFFBE9EA), contentDescription = "Delete report", onClick = onDelete)
+                RowActionButton(icon = Icons.Filled.Edit, tint = EcoColors.Blue, bg = Color(0xFFE8F0FB), contentDescription = "Edit report", onClick = onEdit)
+                RowActionButton(icon = Icons.Filled.Delete, tint = EcoColors.Rejected, bg = Color(0xFFFBE9EA), contentDescription = "Delete report", onClick = onDelete)
             }
         }
     }
@@ -678,22 +677,22 @@ private fun MiniMetric(modifier: Modifier = Modifier, icon: ImageVector, value: 
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(ReportBg)
+            .background(EcoColors.AdminBg)
             .padding(horizontal = 6.dp, vertical = 9.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(imageVector = icon, contentDescription = null, tint = accent, modifier = Modifier.size(13.dp))
         Spacer(modifier = Modifier.height(3.dp))
-        Text(text = value, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = ReportTextDark, maxLines = 1)
-        Text(text = label, fontSize = 9.sp, color = ReportTextGrey, maxLines = 1)
+        Text(text = value, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = EcoColors.TextDark, maxLines = 1)
+        Text(text = label, fontSize = 9.sp, color = EcoColors.TextGrey, maxLines = 1)
     }
 }
 
 @Composable
 private fun SectionTitle(title: String, subtitle: String) {
     Column {
-        Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = ReportTextDark)
-        Text(text = subtitle, fontSize = 11.sp, color = ReportTextGrey)
+        Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = EcoColors.TextDark)
+        Text(text = subtitle, fontSize = 11.sp, color = EcoColors.TextGrey)
     }
 }
 
