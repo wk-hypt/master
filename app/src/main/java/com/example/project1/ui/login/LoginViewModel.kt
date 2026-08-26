@@ -37,7 +37,20 @@ class LoginViewModel(
 
     // lambda that passed to loginFunct for studentID
     fun onStudentIdChange(newId: String) {
-        uiState = uiState.copy(studentId = newId, errorMessage = null)
+        val trimmed = newId.trim()
+        val isNumeric = newId.all { it.isDigit() }
+        val isBuildingAdminPrefix = "admin".startsWith(trimmed, ignoreCase = true)
+        val isAdminPattern = trimmed.startsWith("admin", ignoreCase = true) &&
+                trimmed.drop(5).all { it.isDigit() }
+
+        // max length: 10 for admin, 7 for student ID
+        val maxLength = if (isBuildingAdminPrefix || isAdminPattern) 10 else 7
+
+        if (newId.length > maxLength) return
+
+        if (newId.isEmpty() || isNumeric || isAdminPattern || isBuildingAdminPrefix) {
+            uiState = uiState.copy(studentId = newId, errorMessage = null)
+        }
     }
 
     // lambda that passed to loginFunct for name
