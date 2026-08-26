@@ -66,6 +66,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.project1.common.withoutEmoji
 import com.example.project1.data.model.AdminEntity
 import com.example.project1.data.model.EcoSubmissionEntity
 import com.example.project1.data.model.TaskEntity
@@ -209,7 +210,7 @@ internal fun AdminInfoPage(
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(
             value = name,
-            onValueChange = { name = it },
+            onValueChange = { name = it.withoutEmoji() },
             label = { Text("Name") },
             singleLine = true,
             isError = isNameBlank,
@@ -228,7 +229,7 @@ internal fun AdminInfoPage(
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(
             value = faculty,
-            onValueChange = { faculty = it },
+            onValueChange = { faculty = it.withoutEmoji() },
             label = { Text("Faculty") },
             singleLine = true,
             supportingText = { Text("Defaults to \"FOCS\" if left blank") },
@@ -298,7 +299,7 @@ internal fun StaffDirectoryPage(
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(
             value = query,
-            onValueChange = { query = it },
+            onValueChange = { query = it.withoutEmoji() },
             singleLine = true,
             placeholder = { Text("Search by name, ID or faculty") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
@@ -395,7 +396,7 @@ internal fun StaffDetailsPage(
 
             SectionCard(title = "PERFORMANCE") {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                    ProfileStatChip(Modifier.weight(1f), Icons.AutoMirrored.Filled.Assignment, "Submissions Reviewed", reviewedSubmissions.size.toString())
+                    ProfileStatChip(Modifier.weight(1f), Icons.AutoMirrored.Filled.Assignment, "Submissions Marked", reviewedSubmissions.size.toString(), size = 7.sp)
                     ProfileStatChip(Modifier.weight(1f), Icons.Default.TaskAlt, "Tasks Reviewed", reviewedTasks.size.toString())
                     ProfileStatChip(Modifier.weight(1f), Icons.Default.CheckCircle, "Approval Rate", if (totalReviewed == 0) "—" else "$completionRate%")
                 }
@@ -571,7 +572,7 @@ internal fun UserManagementPage(
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(
             value = query,
-            onValueChange = { query = it },
+            onValueChange = { query = it.withoutEmoji() },
             singleLine = true,
             placeholder = { Text("Search by name, ID or faculty") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
@@ -689,7 +690,7 @@ internal fun UserDetailsPage(
 
             SectionCard(title = "PERFORMANCE") {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                    ProfileStatChip(Modifier.weight(1f), Icons.AutoMirrored.Filled.Assignment, "Submissions Made", ownSubmissions.size.toString())
+                    ProfileStatChip(Modifier.weight(1f), Icons.AutoMirrored.Filled.Assignment, "Submissions Made", ownSubmissions.size.toString(), size = 8.sp)
                     ProfileStatChip(Modifier.weight(1f), Icons.Default.TaskAlt, "Tasks Done", ownTasks.size.toString())
                     ProfileStatChip(Modifier.weight(1f), Icons.Default.CheckCircle, "Approval Rate", if (totalActivity == 0) "—" else "$approvalRate%")
                 }

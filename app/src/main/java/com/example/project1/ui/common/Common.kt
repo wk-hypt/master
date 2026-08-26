@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.PlayArrow
@@ -43,12 +44,14 @@ fun StatusBadge(
     val formatted = when {
         status.equals("Approved", ignoreCase = true) -> "Approved"
         status.equals("Pending", ignoreCase = true) -> "Pending Approval"
+        status.equals("Rejected", ignoreCase = true) -> "Rejected"
         else -> "In Progress"
     }
 
     val (bg, fg, icon) = when (formatted) {
         "Approved" -> Triple(EcoColors.ApprovedBg, EcoColors.DarkGreen, Icons.Default.CheckCircle)
         "Pending Approval" -> Triple(EcoColors.PendingYellowBg, EcoColors.PendingYellowFg, Icons.Default.HourglassEmpty)
+        "Rejected" -> Triple(EcoColors.RejectedBg, EcoColors.Rejected, Icons.Default.Cancel)
         else -> Triple(EcoColors.InProgressBg, EcoColors.PrimaryGreen, Icons.Default.PlayArrow)
     }
 
@@ -81,6 +84,34 @@ fun RequiredLabel(labelText: String) {
     )
 }
 
+/** Drops emoji / sticker characters so input fields only keep normal text. */
+fun String.withoutEmoji(): String {
+    if (isEmpty()) return this
+    return buildString(length) {
+        var index = 0
+        val source = this@withoutEmoji
+        while (index < source.length) {
+            val codePoint = Character.codePointAt(source, index)
+            if (!codePoint.isEmojiCodePoint()) {
+                appendCodePoint(codePoint)
+            }
+            index += Character.charCount(codePoint)
+        }
+    }
+}
+
+private fun Int.isEmojiCodePoint(): Boolean = when (this) {
+    0x200D, 0xFE0E, 0xFE0F, 0x20E3 -> true
+    in 0x1F1E6..0x1F1FF -> true
+    in 0x1F000..0x1FAFF -> true
+    in 0x2300..0x23FF -> true
+    in 0x2600..0x27BF -> true
+    in 0x2B50..0x2B55 -> true
+    in 0x2934..0x2935 -> true
+    0x3030, 0x303D, 0x3297, 0x3299 -> true
+    else -> false
+}
+
 private val dateFormatter by lazy {
     SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
 }
@@ -96,6 +127,7 @@ fun Long.toFormattedDateTime(): String = dateTimeFormatter.format(Date(this))
 fun TaskEntity.normalizedStatusText(): String = when {
     status.equals("Approved", ignoreCase = true) -> "Approved"
     status.equals("Pending", ignoreCase = true) -> "Pending Approval"
+    status.equals("Rejected", ignoreCase = true) -> "Rejected"
     else -> "In Progress"
 }
 
@@ -105,11 +137,14 @@ val TaskEntity.isApproved: Boolean
 val TaskEntity.isPending: Boolean
     get() = status.equals("Pending", ignoreCase = true)
 
+val TaskEntity.isRejected: Boolean
+    get() = status.equals("Rejected", ignoreCase = true)
+
 val TaskEntity.isTargetReached: Boolean
     get() = currentQuantity >= taskQuantity
 
 val TaskEntity.canSubmitToAdmin: Boolean
-    get() = isTargetReached && !isPending && !isApproved
+    get() = isTargetReached && !isPending && !isApproved && !isRejected
 
 fun TaskEntity.approvedAtMillis(): Long = reviewTimestamp ?: timestamp
 

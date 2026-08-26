@@ -57,10 +57,7 @@ class SupabaseLeaderboardRepository(
         approvedTasksToday.forEach { pointsByUser[it.userId] = (pointsByUser[it.userId] ?: 0) + it.points }
 
         return users
-            .mapNotNull { user ->
-                val todayPoints = pointsByUser[user.studentId] ?: 0
-                if (todayPoints > 0) user to todayPoints else null
-            }
+            .map { user -> user to (pointsByUser[user.studentId] ?: 0) }
             .sortedByDescending { it.second }
     }
 }

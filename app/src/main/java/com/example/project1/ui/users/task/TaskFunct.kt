@@ -46,7 +46,7 @@ fun TaskFunct(
     var taskToDelete by remember { mutableStateOf<TaskEntity?>(null) }
     val focusManager = LocalFocusManager.current
 
-    val statusOptions = listOf("In Progress", "Pending Approval", "Approved")
+    val statusOptions = listOf("In Progress", "Pending Approval", "Approved", "Rejected")
 
     val filteredTasks = remember(tasks, searchQuery, selectedStatusFilter) {
         tasks.filter { task ->
@@ -94,7 +94,7 @@ fun TaskFunct(
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = { searchQuery = it.withoutEmoji() },
                     placeholder = { Text("Search tasks...") },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
                     trailingIcon = {
@@ -398,6 +398,40 @@ fun TaskCard(
                                 }
                             }
                         }
+                        task.isRejected -> {
+                            Surface(
+                                color = EcoColors.RejectedBg,
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Cancel,
+                                        contentDescription = null,
+                                        tint = EcoColors.Rejected,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Column {
+                                        Text(
+                                            text = "Rejected",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = EcoColors.Rejected
+                                        )
+                                        if (!task.adminFeedback.isNullOrBlank()) {
+                                            Text(
+                                                text = task.adminFeedback,
+                                                fontSize = 11.sp,
+                                                color = EcoColors.Rejected
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         else -> {
                             Button(
                                 onClick = { showProofDialog = true },
@@ -428,7 +462,7 @@ fun TaskCard(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (!task.isApproved && !task.isPending) {
+                    if (!task.isApproved && !task.isPending && !task.isRejected) {
                         IconButton(onClick = onEditClick) {
                             Icon(Icons.Default.Edit, contentDescription = "Edit Task", tint = Color(0xFF6C757D))
                         }

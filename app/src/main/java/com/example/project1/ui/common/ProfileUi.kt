@@ -57,9 +57,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.project1.common.withoutEmoji
 import com.example.project1.ui.theme.EcoColors
 import java.io.File
 
@@ -196,12 +198,16 @@ fun ProfileStatChip(
     icon: ImageVector,
     label: String,
     value: String,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    size: TextUnit = 10.sp
 ) {
     val chipContent: @Composable () -> Unit = {
         Column(
-            modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Icon(icon, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.height(4.dp))
@@ -212,7 +218,12 @@ fun ProfileStatChip(
                 color = EcoColors.TextDark,
                 textAlign = TextAlign.Center
             )
-            Text(label, fontSize = 10.sp, color = EcoColors.TextMuted, textAlign = TextAlign.Center)
+            Text(
+                label,
+                fontSize = size,
+                color = EcoColors.TextMuted,
+                textAlign = TextAlign.Center
+            )
         }
     }
 
@@ -328,7 +339,7 @@ fun ChangePasswordDialog(
                     )
                     OutlinedTextField(
                         value = current,
-                        onValueChange = { current = it },
+                        onValueChange = { current = it.withoutEmoji() },
                         label = { Text("Current password") },
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
@@ -336,7 +347,7 @@ fun ChangePasswordDialog(
                     )
                     OutlinedTextField(
                         value = next,
-                        onValueChange = { next = it },
+                        onValueChange = { next = it.withoutEmoji() },
                         label = { Text("New password") },
                         singleLine = true,
                         isError = newPasswordTooShort,
@@ -350,7 +361,7 @@ fun ChangePasswordDialog(
                     )
                     OutlinedTextField(
                         value = confirm,
-                        onValueChange = { confirm = it },
+                        onValueChange = { confirm = it.withoutEmoji() },
                         label = { Text("Confirm new password") },
                         singleLine = true,
                         isError = passwordsMismatch,
@@ -385,7 +396,7 @@ fun ChangePasswordDialog(
                     }
                     OutlinedTextField(
                         value = enteredCode,
-                        onValueChange = { enteredCode = it },
+                        onValueChange = { enteredCode = it.withoutEmoji() },
                         label = { Text("Enter verification code") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),

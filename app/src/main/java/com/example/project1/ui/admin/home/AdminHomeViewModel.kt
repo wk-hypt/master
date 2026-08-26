@@ -214,11 +214,11 @@ class AdminHomeViewModel(
                     taskRepository.deleteTask(task.id)
                     return@launch
                 }
-                val updatedTask = task.copy(
-                    status = "Rejected",
-                    adminFeedback = feedback
+                taskRepository.rejectTask(
+                    taskId = task.id,
+                    adminId = currentAdminId,
+                    feedback = feedback
                 )
-                taskRepository.updateTask(updatedTask)
             } catch (e: Exception) {
                 Log.e("AdminHomeViewModel", "Failed to reject task #${task.id}: ${e.message}")
             }

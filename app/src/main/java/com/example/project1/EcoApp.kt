@@ -23,6 +23,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -109,8 +110,8 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
         AdminScreen.Profile
     )
 
-    var loggedInStudentId by remember { mutableStateOf("") }
-    var loggedInAdminId by remember { mutableStateOf("") }
+    var loggedInStudentId by rememberSaveable { mutableStateOf("") }
+    var loggedInAdminId by rememberSaveable { mutableStateOf("") }
     var approvalInitialTab by remember { mutableIntStateOf(0) }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()

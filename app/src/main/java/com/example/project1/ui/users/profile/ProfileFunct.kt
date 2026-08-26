@@ -89,7 +89,6 @@ fun ProfileFunct(
                     completeness = profileCompleteness(user),
                     profilePhotoPath = profilePhotoPath,
                     onProfilePhotoPicked = onProfilePhotoPicked,
-                    onRemoveProfilePhoto = onRemoveProfilePhoto,
                     backgroundPhotoPath = backgroundPhotoPath,
                     onBackgroundPhotoPicked = onBackgroundPhotoPicked,
                     onRemoveBackgroundPhoto = onRemoveBackgroundPhoto,
