@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -33,8 +35,20 @@ class AdminHomeViewModel(
         currentAdminId = adminId
     }
 
+    init {
+        viewModelScope.launch {
+            dropRecordsForDeletedUsers()
+        }
+    }
+
     val pendingSubmissionsUiState: StateFlow<List<EcoSubmissionEntity>> =
-        submissionRepository.getAllPendingSubmissionsStream()
+        combine(
+            submissionRepository.getAllPendingSubmissionsStream(),
+            userRepository.getAllUsersStream()
+        ) { submissions, users ->
+            val studentIds = users.map { it.studentId }.toSet()
+            submissions.filter { it.userId in studentIds }
+        }
             .catch { e ->
                 Log.e("AdminHomeViewModel", "Error streaming pending submissions: ${e.message}")
                 emit(emptyList())
@@ -46,7 +60,13 @@ class AdminHomeViewModel(
             )
 
     val pendingTasksUiState: StateFlow<List<TaskEntity>> =
-        taskRepository.getAllPendingTasksStream()
+        combine(
+            taskRepository.getAllPendingTasksStream(),
+            userRepository.getAllUsersStream()
+        ) { tasks, users ->
+            val studentIds = users.map { it.studentId }.toSet()
+            tasks.filter { it.userId in studentIds }
+        }
             .catch { e ->
                 Log.e("AdminHomeViewModel", "Error streaming pending tasks: ${e.message}")
                 emit(emptyList())
@@ -112,20 +132,25 @@ class AdminHomeViewModel(
     fun approveSubmission(submissionId: Int, studentId: String, points: Int, plasticSaved: Int) {
         viewModelScope.launch {
             try {
+                val user = userRepository.getUserById(studentId)
+                if (user == null) {
+                    submissionRepository.getSubmissionById(submissionId)?.let {
+                        submissionRepository.deleteSubmission(it)
+                    }
+                    return@launch
+                }
+
                 submissionRepository.approveSubmission(
                     submissionId = submissionId,
                     adminId = currentAdminId,
                     points = points
                 )
 
-                val user = userRepository.getUserById(studentId)
-                user?.let { currentUser ->
-                    val updatedUser = currentUser.copy(
-                        totalPoints = currentUser.totalPoints + points,
-                        plasticsSaved = currentUser.plasticsSaved + plasticSaved
-                    )
-                    userRepository.updateUser(updatedUser)
-                }
+                val updatedUser = user.copy(
+                    totalPoints = user.totalPoints + points,
+                    plasticsSaved = user.plasticsSaved + plasticSaved
+                )
+                userRepository.updateUser(updatedUser)
             } catch (e: Exception) {
                 Log.e("AdminHomeViewModel", "Failed to approve submission #$submissionId: ${e.message}")
             }
@@ -139,6 +164,11 @@ class AdminHomeViewModel(
     fun rejectSubmission(submissionId: Int, feedback: String) {
         viewModelScope.launch {
             try {
+                val submission = submissionRepository.getSubmissionById(submissionId) ?: return@launch
+                if (userRepository.getUserById(submission.userId) == null) {
+                    submissionRepository.deleteSubmission(submission)
+                    return@launch
+                }
                 submissionRepository.rejectSubmission(
                     submissionId = submissionId,
                     adminId = currentAdminId,
@@ -153,6 +183,12 @@ class AdminHomeViewModel(
     fun approveTask(task: TaskEntity, points: Int, plasticSaved: Int) {
         viewModelScope.launch {
             try {
+                val user = userRepository.getUserById(task.userId)
+                if (user == null) {
+                    taskRepository.deleteTask(task.id)
+                    return@launch
+                }
+
                 taskRepository.approveTask(
                     taskId = task.id,
                     adminId = currentAdminId,
@@ -160,14 +196,11 @@ class AdminHomeViewModel(
                     plasticSaved = plasticSaved
                 )
 
-                val user = userRepository.getUserById(task.userId)
-                user?.let { currentUser ->
-                    val updatedUser = currentUser.copy(
-                        totalPoints = currentUser.totalPoints + points,
-                        plasticsSaved = currentUser.plasticsSaved + plasticSaved
-                    )
-                    userRepository.updateUser(updatedUser)
-                }
+                val updatedUser = user.copy(
+                    totalPoints = user.totalPoints + points,
+                    plasticsSaved = user.plasticsSaved + plasticSaved
+                )
+                userRepository.updateUser(updatedUser)
             } catch (e: Exception) {
                 Log.e("AdminHomeViewModel", "Failed to approve task #${task.id}: ${e.message}")
             }
@@ -177,6 +210,10 @@ class AdminHomeViewModel(
     fun rejectTask(task: TaskEntity, feedback: String) {
         viewModelScope.launch {
             try {
+                if (userRepository.getUserById(task.userId) == null) {
+                    taskRepository.deleteTask(task.id)
+                    return@launch
+                }
                 val updatedTask = task.copy(
                     status = "Rejected",
                     adminFeedback = feedback
@@ -185,6 +222,22 @@ class AdminHomeViewModel(
             } catch (e: Exception) {
                 Log.e("AdminHomeViewModel", "Failed to reject task #${task.id}: ${e.message}")
             }
+        }
+    }
+
+    private suspend fun dropRecordsForDeletedUsers() {
+        try {
+            val studentIds = userRepository.getAllUsersStream().first()
+                .map { it.studentId }
+                .toSet()
+            submissionRepository.getReportSubmissionsStream().first()
+                .filter { it.userId !in studentIds }
+                .forEach { submissionRepository.deleteSubmission(it) }
+            taskRepository.getReportTasksStream().first()
+                .filter { it.userId !in studentIds }
+                .forEach { taskRepository.deleteTask(it.id) }
+        } catch (e: Exception) {
+            Log.e("AdminHomeViewModel", "Failed to drop records for deleted users: ${e.message}")
         }
     }
 }

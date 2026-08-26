@@ -64,16 +64,26 @@ class AdminProfileViewModel(
     }
 
     // Quick campus stats surfaced on the staff hub.
-    val pendingSubmissionsCount: StateFlow<Int> = submissionRepository.getAllPendingSubmissionsStream()
-        .map { it.size }
+    val pendingSubmissionsCount: StateFlow<Int> = combine(
+        submissionRepository.getAllPendingSubmissionsStream(),
+        userRepository.getAllUsersStream()
+    ) { submissions, users ->
+        val studentIds = users.map { it.studentId }.toSet()
+        submissions.count { it.userId in studentIds }
+    }
         .catch { e ->
             Log.e("AdminProfileViewModel", "Error streaming pending submissions: ${e.message}")
             emit(0)
         }
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = 0)
 
-    val pendingTasksCount: StateFlow<Int> = taskRepository.getAllPendingTasksStream()
-        .map { it.size }
+    val pendingTasksCount: StateFlow<Int> = combine(
+        taskRepository.getAllPendingTasksStream(),
+        userRepository.getAllUsersStream()
+    ) { tasks, users ->
+        val studentIds = users.map { it.studentId }.toSet()
+        tasks.count { it.userId in studentIds }
+    }
         .catch { e ->
             Log.e("AdminProfileViewModel", "Error streaming pending tasks: ${e.message}")
             emit(0)
