@@ -217,7 +217,7 @@ fun ProfileFunct(
     if (showDeleteConfirm) {
         ProfileConfirmDialog(
             title = "Delete account",
-            body = "This will permanently delete your student account. This cannot be undone.",
+            body = "This will permanently delete your student account, plus your submissions, tasks, and wallet vouchers. This cannot be undone.",
             confirmLabel = "Delete",
             destructive = true,
             onDismiss = { showDeleteConfirm = false },

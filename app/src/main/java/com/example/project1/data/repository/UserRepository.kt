@@ -103,6 +103,21 @@ class SupabaseUserRepository(private val postgrest: Postgrest) : UserRepository 
     }
 
     override suspend fun deleteUser(studentId: String) {
+        // Remove the student's activity first so admin Home cannot still
+        // approve leftover pending submissions / task proofs.
+        postgrest.from("user_submissions").delete {
+            filter { eq("user_id", studentId) }
+        }
+        postgrest.from("user_tasks").delete {
+            filter { eq("user_id", studentId) }
+        }
+        try {
+            postgrest.from("campus_vouchers").delete {
+                filter { eq("redeemed_by", studentId) }
+            }
+        } catch (_: Exception) {
+            // Wallet copies are extra cleanup; the account should still be removed.
+        }
         postgrest.from("users").delete {
             filter { eq("student_id", studentId) }
         }

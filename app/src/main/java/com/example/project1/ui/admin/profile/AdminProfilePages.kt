@@ -609,7 +609,7 @@ internal fun UserManagementPage(
     pendingDelete?.let { toDelete ->
         ProfileConfirmDialog(
             title = "Remove student account",
-            body = "This will permanently remove ${toDelete.name.ifBlank { toDelete.studentId }}'s account. This action cannot be undone.",
+            body = "This will permanently remove ${toDelete.name.ifBlank { toDelete.studentId }}'s account, plus their submissions, tasks, and wallet vouchers. This action cannot be undone.",
             confirmLabel = "Remove",
             destructive = true,
             onDismiss = { pendingDelete = null },
