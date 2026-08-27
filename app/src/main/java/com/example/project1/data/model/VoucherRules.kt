@@ -9,14 +9,14 @@ object VoucherRules {
     const val MAX_HELD_PER_TYPE = 3
     const val QR_PREFIX = "ECO"
 
-    // check if user reach max limit
+    // check if user reach the limit
     fun isAtHoldLimit(heldCount: Int): Boolean = heldCount >= MAX_HELD_PER_TYPE
 
     // count how many voucher user hold by title
     fun heldCountByTitle(vouchers: List<VoucherEntity>): Map<String, Int> =
         vouchers.groupingBy { it.title }.eachCount()
 
-    // make random QR code text for new voucher
+    // make random QR code string for new voucher
     fun newWalletQrPayload(title: String): String =
         "$QR_PREFIX|${title.trim()}|${UUID.randomUUID()}"
 
@@ -43,7 +43,7 @@ object VoucherRules {
         }
     }
 
-    // words that match featured vouchers
+    // words that match special vouchers (used by "pickFeaturedHomeVouchers")
     private val featuredMatchers: List<(String) -> Boolean> = listOf(
         { t -> t.contains("rm2") },
         { t -> t.contains("bingxue") },

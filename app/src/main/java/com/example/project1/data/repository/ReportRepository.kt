@@ -8,6 +8,7 @@ import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.flow.Flow
 
+// interface for report
 interface ReportRepository {
     fun getAllReportsStream(): Flow<List<ReportEntity>>
     suspend fun insertReport(report: NewReport)
@@ -16,8 +17,10 @@ interface ReportRepository {
     suspend fun getReportById(reportId: Int): ReportEntity?
 }
 
+// concrete class to implement admin reports
 class SupabaseReportRepository(private val postgrest: Postgrest) : ReportRepository {
 
+    // get live stream of all reports ordered by creation date
     override fun getAllReportsStream(): Flow<List<ReportEntity>> = pollingFlow {
         try {
             postgrest.from("admin_reports").select {
@@ -29,6 +32,7 @@ class SupabaseReportRepository(private val postgrest: Postgrest) : ReportReposit
         }
     }
 
+    // insert a new admin report (c)
     override suspend fun insertReport(report: NewReport) {
         try {
             postgrest.from("admin_reports").insert(report)
@@ -37,6 +41,7 @@ class SupabaseReportRepository(private val postgrest: Postgrest) : ReportReposit
         }
     }
 
+    // update title and notes for a specific report (u)
     override suspend fun updateReport(reportId: Int, title: String, notes: String?) {
         try {
             postgrest.from("admin_reports").update(
@@ -49,6 +54,7 @@ class SupabaseReportRepository(private val postgrest: Postgrest) : ReportReposit
         }
     }
 
+    // delete a report by ID (d)
     override suspend fun deleteReport(report: ReportEntity) {
         try {
             postgrest.from("admin_reports").delete {
@@ -59,6 +65,7 @@ class SupabaseReportRepository(private val postgrest: Postgrest) : ReportReposit
         }
     }
 
+    // read single report by ID (r)
     override suspend fun getReportById(reportId: Int): ReportEntity? {
         return try {
             postgrest.from("admin_reports").select {

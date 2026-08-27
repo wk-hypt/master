@@ -23,7 +23,7 @@ object AppViewModelProvider {
             val app = ecoApplication()
             HomeViewModel(
                 submissionRepository = app.container.submissionRepository,
-                adsRepository = app.container.ecoAdsRepository,
+                adsRepository = app.container.homeDesignRepository,
                 userRepository = app.container.userRepository
             )
         }
@@ -42,7 +42,7 @@ object AppViewModelProvider {
                 submissionRepository = app.container.submissionRepository,
                 taskRepository = app.container.taskRepository,
                 userRepository = app.container.userRepository,
-                adsRepository = app.container.ecoAdsRepository
+                adsRepository = app.container.homeDesignRepository
             )
         }
 

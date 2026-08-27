@@ -3,6 +3,7 @@ package com.example.project1.data.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+// data class for each submission record
 @Serializable
 data class EcoSubmissionEntity(
     val id: Int = 0,

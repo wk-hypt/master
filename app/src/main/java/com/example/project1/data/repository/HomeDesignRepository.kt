@@ -12,13 +12,15 @@ import io.github.jan.supabase.storage.Storage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-interface EcoAdsRepository {
+// interface for user home page gui
+interface HomeDesignRepository {
     fun getAllBannersStream(): Flow<List<BannerItem>>
     fun getAllFeaturesStream(): Flow<List<FeatureCardItem>>
     suspend fun addBanner(bytes: ByteArray, fileName: String)
     suspend fun deleteBanner(id: String)
 }
 
+// default hardcoded banners
 fun defaultHomeBanners(): List<BannerItem> = listOf(
     BannerItem(id = "local-banner5", image = "banner5", title = "Eco Logo Banner"),
     BannerItem(id = "local-banner1", image = "banner1", title = "Zero Plastic Initiative"),
@@ -27,21 +29,25 @@ fun defaultHomeBanners(): List<BannerItem> = listOf(
     BannerItem(id = "local-banner4", image = "banner4", title = "Green Campus Campaign")
 )
 
+// helper to handle supa errors for users
 fun supabaseUserMessage(error: Throwable, fallback: String): String {
     val raw = error.message.orEmpty()
     return when {
         raw.contains("row-level security", ignoreCase = true) ||
-            raw.contains("Could not find the table", ignoreCase = true) ||
-            raw.contains("schema cache", ignoreCase = true) ->
+                raw.contains("Could not find the table", ignoreCase = true) ||
+                raw.contains("schema cache", ignoreCase = true) ->
             "Banners are not connected to Supabase yet. Run the home_banners SQL in the SQL editor first."
         else -> raw.lineSequence().firstOrNull()?.take(140)?.ifBlank { fallback } ?: fallback
     }
 }
 
-class LocalEcoAdsRepository : EcoAdsRepository {
+// local implementation using static dummy data
+class LocalHomeDesignRepository : HomeDesignRepository {
 
+    // get default local hardcoded banners stream
     override fun getAllBannersStream(): Flow<List<BannerItem>> = flowOf(defaultHomeBanners())
 
+    // get static feature cards stream
     override fun getAllFeaturesStream(): Flow<List<FeatureCardItem>> {
         val features = listOf(
             FeatureCardItem(
@@ -66,27 +72,33 @@ class LocalEcoAdsRepository : EcoAdsRepository {
         return flowOf(features)
     }
 
+    // coroutine crud -> c
     override suspend fun addBanner(bytes: ByteArray, fileName: String) {
         throw UnsupportedOperationException("Local ads cannot save banners")
     }
 
+    // coroutine crud -> d
     override suspend fun deleteBanner(id: String) {
         throw UnsupportedOperationException("Local ads cannot delete banners")
     }
 }
 
-class SupabaseEcoAdsRepository(
+// concrete class to implement home screen design
+class SupabaseHomeDesignRepository(
     private val postgrest: Postgrest,
     private val storage: Storage,
-    private val local: LocalEcoAdsRepository = LocalEcoAdsRepository()
-) : EcoAdsRepository {
+    private val local: LocalHomeDesignRepository = LocalHomeDesignRepository()
+) : HomeDesignRepository {
 
+    // get feature cards from local data
     override fun getAllFeaturesStream(): Flow<List<FeatureCardItem>> = local.getAllFeaturesStream()
 
+    // get live banners from supa || use defaults if offline
     override fun getAllBannersStream(): Flow<List<BannerItem>> = pollingFlow {
         fetchRemote()?.map { it.toBannerItem() } ?: defaultHomeBanners()
     }
 
+    // upload image to Storage and insert new banner record into supa
     override suspend fun addBanner(bytes: ByteArray, fileName: String) {
         val remote = fetchRemote() ?: throw missingTable()
         if (remote.isEmpty()) {
@@ -106,6 +118,7 @@ class SupabaseEcoAdsRepository(
         )
     }
 
+    // delete a banner from supa by ID
     override suspend fun deleteBanner(id: String) {
         val remote = fetchRemote()
         if (remote == null || id.startsWith("local-")) {
@@ -117,6 +130,7 @@ class SupabaseEcoAdsRepository(
         }
     }
 
+    // read banners list from supa sorted by sort_order (ASCENDING)
     private suspend fun fetchRemote(): List<BannerEntity>? = try {
         postgrest.from("home_banners").select {
             order("sort_order", Order.ASCENDING)
@@ -125,6 +139,7 @@ class SupabaseEcoAdsRepository(
         null
     }
 
+    // seed initial default banners into supa
     private suspend fun seedDefaultBanners() {
         defaultHomeBanners().forEachIndexed { index, banner ->
             postgrest.from("home_banners").insert(
@@ -137,10 +152,12 @@ class SupabaseEcoAdsRepository(
         }
     }
 
+    // helper exception when supa home_banners table is missing
     private fun missingTable() = IllegalStateException(
         "Banners are not connected to Supabase yet. Run the home_banners SQL in the SQL editor first."
     )
 
+    // Convert BannerEntity model to BannerItem model
     private fun BannerEntity.toBannerItem() = BannerItem(
         id = id?.toString() ?: imageUrl,
         image = imageUrl,

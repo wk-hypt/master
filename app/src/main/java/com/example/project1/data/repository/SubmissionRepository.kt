@@ -14,6 +14,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 
+// interface for eco submissions crud
 interface SubmissionRepository {
     fun getAllSubmissionsStream(userId: String): Flow<List<EcoSubmissionEntity>>
     fun getAllPendingSubmissionsStream(): Flow<List<EcoSubmissionEntity>>
@@ -29,11 +30,13 @@ interface SubmissionRepository {
     suspend fun uploadProofImage(bytes: ByteArray): String
 }
 
+// concrete class to implement user submissions
 class SupabaseSubmissionRepository(
     private val postgrest: Postgrest,
     private val storage: Storage
 ) : SubmissionRepository {
 
+    // read all submissions stream for specific user (r)
     override fun getAllSubmissionsStream(userId: String): Flow<List<EcoSubmissionEntity>> = pollingFlow {
         try {
             postgrest.from("user_submissions").select {
@@ -46,6 +49,7 @@ class SupabaseSubmissionRepository(
         }
     }
 
+    // read all pending submissions stream for admin review (r)
     override fun getAllPendingSubmissionsStream(): Flow<List<EcoSubmissionEntity>> = pollingFlow {
         try {
             postgrest.from("user_submissions").select {
@@ -58,6 +62,7 @@ class SupabaseSubmissionRepository(
         }
     }
 
+    // read all submissions stream for admin reports (r)
     override fun getReportSubmissionsStream(): Flow<List<EcoSubmissionEntity>> = pollingFlow {
         try {
             postgrest.from("user_submissions").select {
@@ -69,6 +74,7 @@ class SupabaseSubmissionRepository(
         }
     }
 
+    // read rejected submissions stream for specific user (r)
     override fun getRejectedSubmissionsStream(userId: String): Flow<List<EcoSubmissionEntity>> = pollingFlow {
         try {
             postgrest.from("user_submissions").select {
@@ -84,6 +90,7 @@ class SupabaseSubmissionRepository(
         }
     }
 
+    // insert a new user submission (c)
     override suspend fun insertSubmission(submission: EcoSubmissionEntity) {
         withContext(Dispatchers.IO) {
             try {
@@ -108,6 +115,7 @@ class SupabaseSubmissionRepository(
         }
     }
 
+    // delete a submission by ID (d)
     override suspend fun deleteSubmission(submission: EcoSubmissionEntity) {
         try {
             postgrest.from("user_submissions").delete {
@@ -118,6 +126,7 @@ class SupabaseSubmissionRepository(
         }
     }
 
+    // update existing submission details (u)
     override suspend fun updateSubmission(submission: EcoSubmissionEntity) {
         withContext(Dispatchers.IO) {
             try {
@@ -144,6 +153,7 @@ class SupabaseSubmissionRepository(
         }
     }
 
+    // update submission status (u)
     override suspend fun updateStatus(submissionId: Int, status: String) {
         try {
             postgrest.from("user_submissions").update(
@@ -156,6 +166,7 @@ class SupabaseSubmissionRepository(
         }
     }
 
+    // approve submission and reward points (u)
     override suspend fun approveSubmission(submissionId: Int, adminId: String, points: Int) {
         try {
             postgrest.from("user_submissions").update(
@@ -173,6 +184,7 @@ class SupabaseSubmissionRepository(
         }
     }
 
+    // reject submission with feedback (u)
     override suspend fun rejectSubmission(submissionId: Int, adminId: String, feedback: String?) {
         try {
             postgrest.from("user_submissions").update(
@@ -191,6 +203,7 @@ class SupabaseSubmissionRepository(
         }
     }
 
+    // read single submission by ID (r)
     override suspend fun getSubmissionById(submissionId: Int): EcoSubmissionEntity? {
         return try {
             postgrest.from("user_submissions").select {
@@ -202,6 +215,7 @@ class SupabaseSubmissionRepository(
         }
     }
 
+    // upload image file to storage bucket (supa)
     override suspend fun uploadProofImage(bytes: ByteArray): String = withContext(Dispatchers.IO) {
         val fileName = "eco-logs/${UUID.randomUUID()}.jpg"
         val bucket = storage.from("vouchers")
@@ -209,6 +223,7 @@ class SupabaseSubmissionRepository(
         return@withContext bucket.publicUrl(fileName)
     }
 
+    // resolve local image path and upload to remote storage
     private suspend fun resolveAndUploadImage(path: String): String {
         if (path.isBlank()) return path
         if (path.startsWith("http://", ignoreCase = true) || path.startsWith("https://", ignoreCase = true)) {

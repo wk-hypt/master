@@ -11,6 +11,7 @@ import io.github.jan.supabase.storage.Storage
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
+// interface for task crud
 interface TaskRepository {
     fun getAllTasksStream(userId: String): Flow<List<TaskEntity>>
     fun getAllPendingTasksStream(): Flow<List<TaskEntity>>
@@ -26,11 +27,13 @@ interface TaskRepository {
     suspend fun uploadProofImage(bytes: ByteArray): String
 }
 
+// concrete class to implement user tasks
 class SupabaseTaskRepository(
     private val postgrest: Postgrest,
     private val storage: Storage
 ) : TaskRepository {
 
+    // read all tasks stream for specific user (r)
     override fun getAllTasksStream(userId: String): Flow<List<TaskEntity>> = pollingFlow {
         try {
             postgrest.from("user_tasks").select {
@@ -43,6 +46,7 @@ class SupabaseTaskRepository(
         }
     }
 
+    // read all pending tasks stream for admin review (r)
     override fun getAllPendingTasksStream(): Flow<List<TaskEntity>> = pollingFlow {
         try {
             postgrest.from("user_tasks").select {
@@ -55,6 +59,7 @@ class SupabaseTaskRepository(
         }
     }
 
+    // read all tasks stream for admin reports (r)
     override fun getReportTasksStream(): Flow<List<TaskEntity>> = pollingFlow {
         try {
             postgrest.from("user_tasks").select {
@@ -66,6 +71,7 @@ class SupabaseTaskRepository(
         }
     }
 
+    // insert a new task (c)
     override suspend fun insertTask(task: TaskEntity) {
         try {
             postgrest.from("user_tasks").insert(
@@ -86,6 +92,7 @@ class SupabaseTaskRepository(
         }
     }
 
+    // update existing task details (u)
     override suspend fun updateTask(task: TaskEntity) {
         try {
             postgrest.from("user_tasks").update(
@@ -107,6 +114,7 @@ class SupabaseTaskRepository(
         }
     }
 
+    // update task progress quantity and proof image (u)
     override suspend fun updateTaskProgress(taskId: Int, imagePath: String) {
         try {
             val currentTask = getTaskById(taskId) ?: return
@@ -126,6 +134,7 @@ class SupabaseTaskRepository(
         }
     }
 
+    // submit completed task to admin for verification (u)
     override suspend fun submitTaskToAdmin(taskId: Int) {
         try {
             postgrest.from("user_tasks").update(
@@ -139,6 +148,7 @@ class SupabaseTaskRepository(
         }
     }
 
+    // delete a task by ID (d)
     override suspend fun deleteTask(taskId: Int) {
         try {
             postgrest.from("user_tasks").delete {
@@ -149,6 +159,7 @@ class SupabaseTaskRepository(
         }
     }
 
+    // approve task and reward points and plastic savings (u)
     override suspend fun approveTask(taskId: Int, adminId: String, points: Int, plasticSaved: Int) {
         try {
             postgrest.from("user_tasks").update(
@@ -167,6 +178,7 @@ class SupabaseTaskRepository(
         }
     }
 
+    // reject task with feedback (u)
     override suspend fun rejectTask(taskId: Int, adminId: String, feedback: String?) {
         try {
             postgrest.from("user_tasks").update(
@@ -186,6 +198,7 @@ class SupabaseTaskRepository(
         }
     }
 
+    // read single task by ID (r)
     override suspend fun getTaskById(taskId: Int): TaskEntity? {
         return try {
             postgrest.from("user_tasks").select {
@@ -197,6 +210,7 @@ class SupabaseTaskRepository(
         }
     }
 
+    // upload task proof image to storage bucket
     override suspend fun uploadProofImage(bytes: ByteArray): String {
         val fileName = "task-proofs/${UUID.randomUUID()}.jpg"
         val bucket = storage.from("vouchers")
