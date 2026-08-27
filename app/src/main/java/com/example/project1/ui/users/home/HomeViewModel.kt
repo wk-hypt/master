@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.EcoSubmissionEntity
-import com.example.project1.data.repository.EcoAdsRepository
+import com.example.project1.data.repository.HomeDesignRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.UserRepository
 import com.example.project1.data.repository.defaultHomeBanners
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 
 class HomeViewModel(
     private val submissionRepository: SubmissionRepository,
-    private val adsRepository: EcoAdsRepository,
+    private val adsRepository: HomeDesignRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
 

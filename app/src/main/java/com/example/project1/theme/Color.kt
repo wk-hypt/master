@@ -2,7 +2,7 @@ package com.example.project1.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-/** Shared app colors. Screens should use these instead of repeating hex values. */
+// Shared app colors. Screens should use these instead of repeating hex values.
 object EcoColors {
     val PrimaryGreen = Color(0xFF2E7D32)
     val DarkGreen = Color(0xFF1B5E20)

@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.BannerItem
 import com.example.project1.data.model.EcoSubmissionEntity
 import com.example.project1.data.model.TaskEntity
-import com.example.project1.data.repository.EcoAdsRepository
+import com.example.project1.data.repository.HomeDesignRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.TaskRepository
 import com.example.project1.data.repository.UserRepository
@@ -26,7 +26,7 @@ class AdminHomeViewModel(
     private val submissionRepository: SubmissionRepository,
     private val taskRepository: TaskRepository,
     private val userRepository: UserRepository,
-    private val adsRepository: EcoAdsRepository
+    private val adsRepository: HomeDesignRepository
 ) : ViewModel() {
 
     private var currentAdminId: String = ""

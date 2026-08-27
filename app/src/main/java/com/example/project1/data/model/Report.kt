@@ -7,12 +7,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+// JSON setting to ignore extra fields when reading data
 private val reportNarrativeJson = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
 }
 
-/** Extra admin-authored fields packed into `notes` so no new database columns are required. */
+// Data class for additional report
 @Serializable
 data class ReportNarrative(
     val kind: String = NARRATIVE_KIND,
@@ -27,10 +28,12 @@ data class ReportNarrative(
     val notes: String? = null
 ) {
     companion object {
+        // Unique key to verify report format
         const val NARRATIVE_KIND = "eco_report_v1"
     }
 }
 
+// Used to hold data when user fills in a report form
 data class ReportFormInput(
     val title: String,
     val studentId: String? = null,
@@ -40,6 +43,7 @@ data class ReportFormInput(
     val narrative: ReportNarrative = ReportNarrative()
 )
 
+// Converts ReportNarrative object into a JSON text string format
 fun encodeReportNarrative(narrative: ReportNarrative): String? {
     val cleaned = narrative.copy(
         preparedBy = narrative.preparedBy?.trim()?.ifBlank { null },
@@ -60,6 +64,7 @@ fun encodeReportNarrative(narrative: ReportNarrative): String? {
     return reportNarrativeJson.encodeToString(ReportNarrative.serializer(), cleaned)
 }
 
+//vice versa with "encodeReportNarrative"
 fun decodeReportNarrative(raw: String?): ReportNarrative {
     if (raw.isNullOrBlank()) return ReportNarrative()
     val trimmed = raw.trim()
@@ -72,14 +77,18 @@ fun decodeReportNarrative(raw: String?): ReportNarrative {
     }
 }
 
+
+// Helper to get narrative data from a report
 fun ReportEntity.narrative(): ReportNarrative = decodeReportNarrative(notes)
 
+// Helper to get report ID
 fun ReportEntity.displayReference(): String {
     val stored = narrative().reference?.trim().orEmpty()
     if (stored.isNotBlank()) return stored
     return "RPT-" + id.toString().padStart(4, '0')
 }
 
+// Helper to get formatted date range
 fun ReportEntity.periodLabel(): String {
     val format = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
     return when {
@@ -91,11 +100,13 @@ fun ReportEntity.periodLabel(): String {
     }
 }
 
+// Creates a new report code based on current date and time
 fun newReportReference(nowMillis: Long = System.currentTimeMillis()): String {
     val stamp = SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(Date(nowMillis))
     return "RPT-$stamp"
 }
 
+// Database model representing a report record
 @Serializable
 data class ReportEntity(
     val id: Int = 0,
@@ -116,6 +127,7 @@ data class ReportEntity(
     @SerialName("period_end") val periodEnd: Long? = null
 )
 
+// to create a new report
 @Serializable
 data class NewReport(
     val title: String,
@@ -135,6 +147,7 @@ data class NewReport(
     @SerialName("period_end") val periodEnd: Long? = null
 )
 
+// to update report title or notes
 @Serializable
 data class ReportNotesUpdate(
     val title: String,
