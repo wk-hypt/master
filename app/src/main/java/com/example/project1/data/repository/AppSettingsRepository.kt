@@ -9,55 +9,65 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 
-// Interface for managing local app settings and user preferences
+// interface for managing local app settings and user preferences
 interface AppSettingsRepository {
     val notificationsEnabled: StateFlow<Boolean>
 
     fun setNotifications(enabled: Boolean)
 
-    /** Returns the saved avatar color swatch index (0-based) for the given account id. */
+    // get saved avatar color swatch index for user
     fun getAvatarColorIndex(accountId: String): Int
+    // save avatar color swatch index for user
     fun setAvatarColorIndex(accountId: String, index: Int)
 
-    /** Returns the local file path of the saved profile photo for the given account id, if any. */
+    // get local file path of saved profile photo
     fun getProfilePhotoPath(accountId: String): String?
 
-    /** Copies the picked image into local app storage and remembers it for the account. Returns the saved path. */
+    // copy picked image into local storage as profile photo
     fun saveProfilePhoto(accountId: String, sourceUri: Uri): String?
 
-    /** Removes the saved profile photo for the given account id. */
+    // remove saved profile photo file and path
     fun clearProfilePhoto(accountId: String)
 
-    /** Returns the local file path of the saved profile background/cover photo for the given account id, if any. */
+    // get local file path of saved background photo
     fun getBackgroundPhotoPath(accountId: String): String?
 
-    /** Copies the picked image into local app storage as the profile background/cover photo. Returns the saved path. */
+    // copy picked image into local storage as background photo
     fun saveBackgroundPhoto(accountId: String, sourceUri: Uri): String?
 
-    /** Removes the saved profile background/cover photo for the given account id. */
+    // remove saved background photo file and path
     fun clearBackgroundPhoto(accountId: String)
 
-    /** Returns the set of milestone ids for which this account has already claimed the bonus-point reward. */
+    // get set of claimed milestone IDs for user
     fun getClaimedMilestones(accountId: String): Set<String>
 
-    /** Marks a milestone reward as claimed for this account, so it cannot be claimed again. */
+    // mark milestone reward as claimed for user
     fun markMilestoneClaimed(accountId: String, milestoneId: String)
 
+    // get set of collected badge IDs for user
     fun getCollectedBadges(accountId: String): Set<String>
+    // mark badge as collected for user
     fun markBadgeCollected(accountId: String, badgeId: String)
 
+    // get badge ID selected to showcase on profile
     fun getShowcaseBadgeId(accountId: String): String?
+    // set or clear showcased badge ID for profile
     fun setShowcaseBadgeId(accountId: String, badgeId: String?)
 
+    // get date string of last completed daily quest
     fun getDailyQuestDate(accountId: String): String?
+    // get ID of last completed daily quest
     fun getDailyQuestId(accountId: String): String?
+    // mark daily quest as completed for date and ID
     fun markDailyQuestCompleted(accountId: String, date: String, questId: String)
 
+    // get timestamp of last seen approved task notification
     fun getLastSeenApprovedTaskAt(accountId: String): Long
+    // save timestamp of last seen approved task notification
     fun setLastSeenApprovedTaskAt(accountId: String, at: Long)
 }
 
-// Local implementation of AppSettingsRepository using SharedPreferences and Internal Storage
+// local implementation of app settings repository using shared preferences
 class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
 
     private val appContext = context.applicationContext
@@ -71,7 +81,7 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
     override val notificationsEnabled: StateFlow<Boolean> =
         _notificationsEnabled.asStateFlow()
 
-    // Save notification preference and update state flow
+    // save notification preference state
     override fun setNotifications(enabled: Boolean) {
         prefs.edit {
             putBoolean(KEY_NOTIFICATIONS, enabled)
@@ -80,7 +90,7 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         _notificationsEnabled.value = enabled
     }
 
-    // Get selected avatar color index for user
+    // get selected avatar color index for user
     override fun getAvatarColorIndex(accountId: String): Int {
         if (accountId.isBlank()) return 0
 
@@ -90,7 +100,7 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         )
     }
 
-    // Save selected avatar color index for user
+    // save selected avatar color index for user
     override fun setAvatarColorIndex(accountId: String, index: Int) {
         if (accountId.isBlank()) return
 
@@ -102,7 +112,7 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         }
     }
 
-    // Get local file path of saved profile photo
+    // get local file path of saved profile photo
     override fun getProfilePhotoPath(accountId: String): String? {
         if (accountId.isBlank()) return null
 
@@ -114,7 +124,7 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         return if (File(path).exists()) path else null
     }
 
-    // Copy picked photo into app storage and save path
+    // copy picked photo into app storage and save path
     override fun saveProfilePhoto(
         accountId: String,
         sourceUri: Uri
@@ -156,7 +166,7 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         }
     }
 
-    // Delete profile photo file and clear saved path
+    // delete profile photo file and clear saved path
     override fun clearProfilePhoto(accountId: String) {
         if (accountId.isBlank()) return
 
@@ -174,7 +184,7 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         }
     }
 
-    // Get local file path of saved background photo
+    // get local file path of saved background photo
     override fun getBackgroundPhotoPath(accountId: String): String? {
         if (accountId.isBlank()) return null
 
@@ -186,7 +196,7 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         return if (File(path).exists()) path else null
     }
 
-    // Copy picked cover photo into app storage and save path
+    // copy picked cover photo into app storage and save path
     override fun saveBackgroundPhoto(
         accountId: String,
         sourceUri: Uri
@@ -228,7 +238,7 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         }
     }
 
-    // Delete background photo file and clear saved path
+    // delete background photo file and clear saved path
     override fun clearBackgroundPhoto(accountId: String) {
         if (accountId.isBlank()) return
 
@@ -246,13 +256,13 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         }
     }
 
-    // Get list of claimed milestone IDs for user
+    // get set of claimed milestone IDs for user
     override fun getClaimedMilestones(accountId: String): Set<String> {
         if (accountId.isBlank()) return emptySet()
         return prefs.getStringSet(KEY_CLAIMED_MILESTONES_PREFIX + accountId, emptySet()).orEmpty()
     }
 
-    // Save a milestone ID as claimed
+    // save milestone ID as claimed for user
     override fun markMilestoneClaimed(accountId: String, milestoneId: String) {
         if (accountId.isBlank()) return
         val key = KEY_CLAIMED_MILESTONES_PREFIX + accountId
@@ -262,13 +272,13 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         }
     }
 
-    // Get list of collected badge IDs for user
+    // get set of collected badge IDs for user
     override fun getCollectedBadges(accountId: String): Set<String> {
         if (accountId.isBlank()) return emptySet()
         return prefs.getStringSet(KEY_COLLECTED_BADGES_PREFIX + accountId, emptySet()).orEmpty()
     }
 
-    // Save a badge ID as collected
+    // save badge ID as collected for user
     override fun markBadgeCollected(accountId: String, badgeId: String) {
         if (accountId.isBlank()) return
         val key = KEY_COLLECTED_BADGES_PREFIX + accountId
@@ -276,13 +286,13 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         prefs.edit { putStringSet(key, updated) }
     }
 
-    // Get badge ID selected to showcase on user profile
+    // get badge ID selected to showcase on profile
     override fun getShowcaseBadgeId(accountId: String): String? {
         if (accountId.isBlank()) return null
         return prefs.getString(KEY_SHOWCASE_BADGE_PREFIX + accountId, null)
     }
 
-    // Set or remove showcased badge ID for user profile
+    // set or clear showcased badge ID for profile
     override fun setShowcaseBadgeId(accountId: String, badgeId: String?) {
         if (accountId.isBlank()) return
         prefs.edit {
@@ -291,19 +301,19 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         }
     }
 
-    // Get date string of last completed daily quest
+    // get date string of last completed daily quest
     override fun getDailyQuestDate(accountId: String): String? {
         if (accountId.isBlank()) return null
         return prefs.getString(KEY_DAILY_QUEST_DATE_PREFIX + accountId, null)
     }
 
-    // Get ID of last completed daily quest
+    // get ID of last completed daily quest
     override fun getDailyQuestId(accountId: String): String? {
         if (accountId.isBlank()) return null
         return prefs.getString(KEY_DAILY_QUEST_ID_PREFIX + accountId, null)
     }
 
-    // Save daily quest completion date and quest ID
+    // save daily quest completion date and quest ID
     override fun markDailyQuestCompleted(accountId: String, date: String, questId: String) {
         if (accountId.isBlank()) return
         prefs.edit {
@@ -312,7 +322,7 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         }
     }
 
-    // Get timestamp of last seen approved task notification
+    // get timestamp of last seen approved task notification
     override fun getLastSeenApprovedTaskAt(accountId: String): Long {
         if (accountId.isBlank()) return 0L
         val key = KEY_LAST_SEEN_APPROVED_TASK_PREFIX + accountId
@@ -324,7 +334,7 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         return prefs.getLong(key, 0L)
     }
 
-    // Save timestamp of last seen approved task notification
+    // save timestamp of last seen approved task notification
     override fun setLastSeenApprovedTaskAt(accountId: String, at: Long) {
         if (accountId.isBlank()) return
         prefs.edit {
@@ -332,7 +342,7 @@ class LocalAppSettingsRepository(context: Context) : AppSettingsRepository {
         }
     }
 
-    // Shared preference key definitions
+    // shared preference key definitions
     private companion object {
         const val KEY_NOTIFICATIONS = "notifications_enabled"
         const val KEY_AVATAR_PREFIX = "avatar_color_index_"

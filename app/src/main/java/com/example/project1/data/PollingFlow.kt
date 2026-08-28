@@ -9,7 +9,6 @@ fun <T> pollingFlow(intervalMillis: Long = 2000L, fetch: suspend () -> T): Flow<
         try {
             emit(fetch())
         } catch (_: Exception) {
-            // Keep polling even if one fetch fails, otherwise wallet would freeze.
         }
         delay(intervalMillis)
     }

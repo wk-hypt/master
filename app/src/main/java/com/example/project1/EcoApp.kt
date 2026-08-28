@@ -325,11 +325,7 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                 composable(AdminScreen.Approval.route) {
                     AdminHomeView(
                         adminId = loggedInAdminId,
-                        initialTab = approvalInitialTab,
-                        onLogout = {
-                            app.container.setCurrentStudentId("")
-                            onEndSession()
-                        }
+                        initialTab = approvalInitialTab
                     )
                 }
 
