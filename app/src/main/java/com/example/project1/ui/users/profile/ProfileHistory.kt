@@ -2,7 +2,7 @@
 
 package com.example.project1.ui.users.profile
 
-import com.example.project1.common.toFormattedDate
+import com.example.project1.ui.common.toFormattedDate
 import com.example.project1.data.model.EcoSubmissionEntity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

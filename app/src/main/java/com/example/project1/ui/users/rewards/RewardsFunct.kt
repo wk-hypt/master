@@ -97,12 +97,7 @@ fun RewardsFunct(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Stars,
-                            contentDescription = null,
-                            tint = EcoColors.PrimaryGreen,
-                            modifier = Modifier.size(28.dp)
-                        )
+                        Icon(imageVector = Icons.Default.Stars, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(28.dp))
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(text = "Your points", fontSize = 12.sp, color = Color(0xFF6B7280))
@@ -249,36 +244,11 @@ private fun MarketVoucherCard(
             Spacer(modifier = Modifier.width(10.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = voucher.title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = EcoColors.TextDark,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = voucher.merchantName,
-                    fontSize = 12.sp,
-                    color = Color(0xFF6B7280),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = EcoColors.TextDark, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(text = voucher.merchantName, fontSize = 12.sp,color = Color(0xFF6B7280), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "${voucher.pointsCost} pts · ${voucher.category}",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = EcoColors.PrimaryGreen,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = if (voucher.quantity > 0) "Stock: ${voucher.quantity}" else "Out of Stock",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (voucher.quantity > 0) EcoColors.Blue else EcoColors.Danger
-                )
+                Text(text = "${voucher.pointsCost} pts · ${voucher.category}", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.PrimaryGreen, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(text = if (voucher.quantity > 0) "Stock: ${voucher.quantity}" else "Out of Stock", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (voucher.quantity > 0) EcoColors.Blue else EcoColors.Danger)
             }
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -350,10 +320,7 @@ fun WalletList(
             .background(EcoColors.PageBg)
     ) {
         items(redeemedVouchers, key = { it.id ?: it.qrCodePayload.orEmpty() }) { voucher ->
-            WalletVoucherCard(
-                voucher = voucher,
-                onClick = { onVoucherClick(voucher) }
-            )
+            WalletVoucherCard(voucher = voucher, onClick = { onVoucherClick(voucher) })
         }
     }
 }
@@ -397,12 +364,7 @@ private fun WalletVoucherCard(
                             .background(EcoColors.MintGreen),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.CardGiftcard,
-                            contentDescription = null,
-                            tint = EcoColors.PrimaryGreen,
-                            modifier = Modifier.size(28.dp)
-                        )
+                        Icon(imageVector = Icons.Default.CardGiftcard, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(28.dp))
                     }
                 }
 
@@ -447,12 +409,7 @@ private fun WalletVoucherCard(
                     Text(text = "Show this to staff to use the voucher", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = EcoColors.TextDark)
                 }
 
-                Icon(
-                    imageVector = Icons.Default.QrCode2,
-                    contentDescription = "Show QR code",
-                    tint = EcoColors.PrimaryGreen,
-                    modifier = Modifier.size(28.dp)
-                )
+                Icon(imageVector = Icons.Default.QrCode2, contentDescription = "Show QR code", tint = EcoColors.PrimaryGreen, modifier = Modifier.size(28.dp))
             }
         }
     }

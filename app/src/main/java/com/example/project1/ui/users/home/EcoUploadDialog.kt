@@ -32,8 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
-import com.example.project1.common.RequiredLabel
-import com.example.project1.common.withoutEmoji
+import com.example.project1.ui.common.*
 import com.example.project1.ui.adaptive.AdaptiveDialogSurface
 import com.example.project1.ui.adaptive.HeightSize
 import com.example.project1.ui.adaptive.LocalAppWindowInfo

@@ -8,6 +8,7 @@ import com.example.project1.data.model.UserProfileInfoUpdate
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.flow.Flow
+import com.example.project1.data.pollingFlow
 
 // interface for user crud
 interface UserRepository {

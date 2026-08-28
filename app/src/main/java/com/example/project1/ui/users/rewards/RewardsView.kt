@@ -12,11 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project1.ui.AppViewModelProvider
 
+// stateful wrapper composable connecting rewards viewmodel to ui screen
 @Composable
 fun RewardsView(
     studentId: String,
     viewModel: RewardsViewModel = viewModel(key = studentId, factory = AppViewModelProvider.Factory)
 ) {
+    // initialize or update current student id in viewmodel when it changes
     LaunchedEffect(studentId) {
         viewModel.setCurrentStudent(studentId)
     }
@@ -27,6 +29,7 @@ fun RewardsView(
     val message by viewModel.message.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // listen to viewmodel messages and display snackbar notifications
     LaunchedEffect(message) {
         val text = message ?: return@LaunchedEffect
         snackbarHostState.showSnackbar(text)
@@ -37,7 +40,7 @@ fun RewardsView(
         points = points,
         available = available,
         wallet = wallet,
-        onRedeem = viewModel::redeem,
+        onRedeem = { voucher -> viewModel.redeem(voucher) },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = Modifier.fillMaxSize()
     )

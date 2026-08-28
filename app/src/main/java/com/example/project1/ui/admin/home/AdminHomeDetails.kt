@@ -58,7 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
-import com.example.project1.common.toFormattedDateTime
+import com.example.project1.ui.common.toFormattedDateTime
 import com.example.project1.data.model.EcoSubmissionEntity
 import com.example.project1.data.model.TaskEntity
 import com.example.project1.ui.adaptive.AdaptiveDialogSurface

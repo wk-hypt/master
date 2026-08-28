@@ -4,6 +4,7 @@ package com.example.project1.ui.common
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -61,10 +62,10 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.project1.common.withoutEmoji
 import com.example.project1.ui.theme.EcoColors
 import java.io.File
 
+// generates initials from full name
 fun initialsOf(name: String, fallback: String = "?"): String {
     val parts = name.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
     return when {
@@ -74,18 +75,21 @@ fun initialsOf(name: String, fallback: String = "?"): String {
     }
 }
 
+// remembers launcher for selecting an image from gallery
 @Composable
 fun rememberImagePicker(onPicked: (Uri) -> Unit) =
     rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         uri?.let(onPicked)
     }
 
+// triggers image picker launcher
 fun launchImagePicker(
-    launcher: androidx.activity.result.ActivityResultLauncher<PickVisualMediaRequest>
+    launcher: ActivityResultLauncher<PickVisualMediaRequest>
 ) {
     launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
 }
 
+// reusable top app bar for profile screens
 @Composable
 fun ProfilePageHeader(
     title: String,
@@ -115,6 +119,7 @@ fun ProfilePageHeader(
     }
 }
 
+// displays circular profile photo or initials fallback
 @Composable
 fun ProfilePhotoAvatar(
     name: String,
@@ -149,6 +154,7 @@ fun ProfilePhotoAvatar(
     }
 }
 
+// camera badge button over avatar
 @Composable
 fun ProfileCameraBadge(onClick: () -> Unit) {
     Box(
@@ -168,6 +174,7 @@ fun ProfileCameraBadge(onClick: () -> Unit) {
     }
 }
 
+// clickable menu option row
 @Composable
 fun ProfileMenuRow(
     label: String,
@@ -192,6 +199,7 @@ fun ProfileMenuRow(
     }
 }
 
+// card chip displaying user statistics
 @Composable
 fun ProfileStatChip(
     modifier: Modifier = Modifier,
@@ -249,6 +257,8 @@ fun ProfileStatChip(
     }
 }
 
+
+// item displaying eco-metric impact data
 @Composable
 fun ProfileEcoMetric(
     modifier: Modifier,
@@ -270,6 +280,8 @@ fun ProfileEcoMetric(
     }
 }
 
+
+// confirmation dialog for user actions
 @Composable
 fun ProfileConfirmDialog(
     title: String,
@@ -295,6 +307,8 @@ fun ProfileConfirmDialog(
     )
 }
 
+
+// dialog for changing password and code verification
 @Composable
 fun ChangePasswordDialog(
     verificationCode: String?,

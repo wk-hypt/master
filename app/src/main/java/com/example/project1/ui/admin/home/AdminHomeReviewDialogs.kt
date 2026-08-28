@@ -26,7 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.project1.common.withoutEmoji
+import com.example.project1.ui.common.withoutEmoji
 import com.example.project1.ui.theme.EcoColors
 
 private val QuickPointOptions = listOf(10, 20, 50, 100)

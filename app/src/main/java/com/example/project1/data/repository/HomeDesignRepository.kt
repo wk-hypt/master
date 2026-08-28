@@ -11,6 +11,7 @@ import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.storage.Storage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import com.example.project1.data.pollingFlow
 
 // interface for user home page gui
 interface HomeDesignRepository {
@@ -157,7 +158,7 @@ class SupabaseHomeDesignRepository(
         "Banners are not connected to Supabase yet. Run the home_banners SQL in the SQL editor first."
     )
 
-    // Convert BannerEntity model to BannerItem model
+    // convert BannerEntity model to BannerItem model
     private fun BannerEntity.toBannerItem() = BannerItem(
         id = id?.toString() ?: imageUrl,
         image = imageUrl,

@@ -63,7 +63,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.project1.common.withoutEmoji
+import com.example.project1.ui.common.withoutEmoji
 import com.example.project1.data.model.UserEntity
 import com.example.project1.ui.common.ProfileCameraBadge
 import com.example.project1.ui.common.ProfilePageHeader
@@ -238,6 +238,7 @@ internal fun ProfileInfoPage(
             ProfileField(
                 label = "Phone No",
                 value = phone,
+                holder = "e.g. 01234567890",
                 isError = errorPhoneNumber != null,
                 supportingText = errorPhoneNumber ?: "Optional",
                 headingIcon = Icons.Default.Phone,
@@ -252,6 +253,7 @@ internal fun ProfileInfoPage(
             ProfileField(
                 label = "Email",
                 value = email,
+                holder = "e.g. tarubt@gmail.com",
                 isError = errorEmail != null,
                 supportingText = errorEmail ?: "Optional",
                 headingIcon = Icons.Default.Email,
@@ -401,6 +403,7 @@ private fun ProfileField(
     readOnly: Boolean = false,
     enabled: Boolean = true,
     isError: Boolean = false,
+    holder: String? = null,
     supportingText: String? = null,
     headingIcon: ImageVector? = null,
     trailingIcon: ImageVector? = null,
@@ -417,6 +420,7 @@ private fun ProfileField(
                 onValueChange = { onValueChange(it.withoutEmoji()) },
                 readOnly = readOnly || onClick != null,
                 enabled = enabled && onClick == null,
+                placeholder = holder?.let{holder -> {Text(text = holder)}},
                 isError = isError,
                 singleLine = true,
                 keyboardOptions = keyboardOptions,

@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+// viewmodel managing rewards, vouchers, and user point transactions
 @OptIn(ExperimentalCoroutinesApi::class)
 class RewardsViewModel(
     private val offerRepository: OfferRepository,
@@ -25,10 +26,12 @@ class RewardsViewModel(
 
     private val _studentId = MutableStateFlow("")
 
+    // set current active student id for fetching points and wallet
     fun setCurrentStudent(id: String) {
         _studentId.value = id
     }
 
+    // stream tracking current student total points reactively
     val currentPoints: StateFlow<Int> = _studentId
         .flatMapLatest { id ->
             if (id.isBlank()) flowOf(null) else userRepository.getUserStream(id)
@@ -40,6 +43,7 @@ class RewardsViewModel(
             initialValue = 0
         )
 
+    // stream tracking all available vouchers in the reward store
     val available: StateFlow<List<VoucherEntity>> =
         offerRepository.getAvailableVouchersStream()
             .stateIn(
@@ -48,6 +52,7 @@ class RewardsViewModel(
                 initialValue = emptyList()
             )
 
+    // stream tracking vouchers currently owned in the user wallet
     val wallet: StateFlow<List<VoucherEntity>> = _studentId
         .flatMapLatest { id ->
             if (id.isBlank()) flowOf(emptyList())
@@ -62,10 +67,12 @@ class RewardsViewModel(
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
+    // clear feedback message state
     fun clearMessage() {
         _message.value = null
     }
 
+    // handle voucher redemption logic with points check and limit rules
     fun redeem(voucher: VoucherEntity) = viewModelScope.launch {
         val id = _studentId.value
         if (id.isBlank() || voucher.id == null) return@launch
