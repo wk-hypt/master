@@ -5,6 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.AdminEntity
 import com.example.project1.data.model.EcoSubmissionEntity
+import com.example.project1.data.model.PasswordResetRequestEntity
+import com.example.project1.data.model.RESET_STATUS_APPROVED
+import com.example.project1.data.model.RESET_STATUS_COMPLETED
+import com.example.project1.data.model.RESET_STATUS_PENDING
+import com.example.project1.data.model.RESET_STATUS_REJECTED
 import com.example.project1.data.model.TaskEntity
 import com.example.project1.data.model.UserEntity
 import com.example.project1.data.model.pointsAwardedByUser
@@ -13,6 +18,7 @@ import com.example.project1.data.model.withAwardedPoints
 import com.example.project1.data.repository.AdminRepository
 import com.example.project1.data.repository.AppSettingsRepository
 import com.example.project1.data.repository.OfferRepository
+import com.example.project1.data.repository.PasswordResetRepository
 import com.example.project1.data.repository.SubmissionRepository
 import com.example.project1.data.repository.TaskRepository
 import com.example.project1.data.repository.UserRepository
@@ -33,11 +39,11 @@ import kotlin.random.Random
 @OptIn(ExperimentalCoroutinesApi::class)
 class AdminProfileViewModel(
     private val adminRepository: AdminRepository,
-    private val settingsRepository: AppSettingsRepository,
     private val submissionRepository: SubmissionRepository,
     private val taskRepository: TaskRepository,
     private val userRepository: UserRepository,
-    offerRepository: OfferRepository
+    offerRepository: OfferRepository,
+    private val passwordResetRepository: PasswordResetRepository
 ) : ViewModel() {
 
     private val _adminId = MutableStateFlow("")
@@ -149,6 +155,90 @@ class AdminProfileViewModel(
         }
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = emptyList())
 
+    val passwordResetRequests: StateFlow<List<PasswordResetRequestEntity>> =
+        passwordResetRepository.getOpenRequestsStream()
+            .catch { e ->
+                Log.e("AdminProfileViewModel", "Error streaming password resets: ${e.message}")
+                emit(emptyList())
+            }
+            .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = emptyList())
+
+    val pendingPasswordResetsCount: StateFlow<Int> = passwordResetRequests
+        .map { requests ->
+            requests.count { it.status.equals(RESET_STATUS_PENDING, ignoreCase = true) }
+        }
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = 0)
+
+    fun approvePasswordReset(request: PasswordResetRequestEntity) = viewModelScope.launch {
+        if (request.isAdmin && request.accountId.equals(_adminId.value, ignoreCase = true)) {
+            _message.value = "Ask another admin to approve your own reset"
+            return@launch
+        }
+        try {
+            passwordResetRepository.updateStatus(
+                requestId = request.id,
+                status = RESET_STATUS_APPROVED,
+                reviewedBy = _adminId.value
+            )
+            _message.value = "Reset approved. The student can set a new password from Forgot Password."
+        } catch (e: Exception) {
+            _message.value = e.message ?: "Could not approve reset"
+        }
+    }
+
+    fun rejectPasswordReset(request: PasswordResetRequestEntity) = viewModelScope.launch {
+        try {
+            passwordResetRepository.updateStatus(
+                requestId = request.id,
+                status = RESET_STATUS_REJECTED,
+                reviewedBy = _adminId.value
+            )
+            _message.value = "Reset request rejected"
+        } catch (e: Exception) {
+            _message.value = e.message ?: "Could not reject reset"
+        }
+    }
+
+    fun setPasswordForResetRequest(
+        request: PasswordResetRequestEntity,
+        newPassword: String,
+        confirm: String
+    ) = viewModelScope.launch {
+        if (request.isAdmin && request.accountId.equals(_adminId.value, ignoreCase = true)) {
+            _message.value = "Ask another admin to reset your own password"
+            return@launch
+        }
+        val passwordError = when {
+            newPassword.isBlank() -> "Password cannot be empty"
+            newPassword.length < 8 -> "Password must be at least 8 characters"
+            newPassword.none { it.isUpperCase() } -> "Password must contain at least one capital letter"
+            newPassword.none { it.isLowerCase() } -> "Password must contain at least one small letter"
+            newPassword.none { it.isDigit() } -> "Password must contain at least one number"
+            newPassword.none { !it.isLetterOrDigit() } -> "Password must contain at least one special character"
+            confirm != newPassword -> "Passwords do not match"
+            else -> null
+        }
+        if (passwordError != null) {
+            _message.value = passwordError
+            return@launch
+        }
+        try {
+            if (request.isAdmin) {
+                adminRepository.updatePassword(request.accountId, newPassword)
+            } else {
+                userRepository.updatePassword(request.accountId, newPassword)
+            }
+            passwordResetRepository.updateStatus(
+                requestId = request.id,
+                status = RESET_STATUS_COMPLETED,
+                reviewedBy = _adminId.value
+            )
+            _message.value = "Password updated for ${request.accountId}"
+        } catch (e: Exception) {
+            _message.value = e.message ?: "Could not update password"
+        }
+    }
+
     fun deleteUser(studentId: String) = viewModelScope.launch {
         try {
             userRepository.deleteUser(studentId)
@@ -158,10 +248,6 @@ class AdminProfileViewModel(
         }
     }
 
-    // ---- Change password: two-step / double security ----
-    // Step 1 verifies the current password. Step 2 requires re-entering a freshly
-    // generated verification code before the new password is actually written,
-    // so a single leaked/guessed password isn't enough on its own.
     private val _verificationCode = MutableStateFlow<String?>(null)
     val verificationCode: StateFlow<String?> = _verificationCode.asStateFlow()
 

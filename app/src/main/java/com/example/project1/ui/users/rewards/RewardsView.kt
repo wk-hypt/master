@@ -27,6 +27,7 @@ fun RewardsView(
     val available by viewModel.available.collectAsState()
     val wallet by viewModel.wallet.collectAsState()
     val message by viewModel.message.collectAsState()
+    val isRedeeming by viewModel.isRedeeming.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     // listen to viewmodel messages and display snackbar notifications
@@ -40,6 +41,7 @@ fun RewardsView(
         points = points,
         available = available,
         wallet = wallet,
+        isRedeeming = isRedeeming,
         onRedeem = { voucher -> viewModel.redeem(voucher) },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = Modifier.fillMaxSize()

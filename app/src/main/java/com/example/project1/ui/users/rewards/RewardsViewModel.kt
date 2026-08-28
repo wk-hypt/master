@@ -67,6 +67,9 @@ class RewardsViewModel(
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
+    private val _isRedeeming = MutableStateFlow(false)
+    val isRedeeming: StateFlow<Boolean> = _isRedeeming.asStateFlow()
+
     // clear feedback message state
     fun clearMessage() {
         _message.value = null
@@ -74,27 +77,30 @@ class RewardsViewModel(
 
     // handle voucher redemption logic with points check and limit rules
     fun redeem(voucher: VoucherEntity) = viewModelScope.launch {
-        val id = _studentId.value
-        if (id.isBlank() || voucher.id == null) return@launch
-
-        val user = userRepository.getUserById(id) ?: return@launch
-        if (user.totalPoints < voucher.pointsCost) {
-            _message.value = "Not enough points"
-            return@launch
-        }
-
-        val heldOfType = wallet.value.count { it.title == voucher.title }
-        if (heldOfType >= VoucherRules.MAX_HELD_PER_TYPE) {
-            _message.value = "You can hold up to ${VoucherRules.MAX_HELD_PER_TYPE} copies of this voucher at once."
-            return@launch
-        }
-
+        if (!_isRedeeming.compareAndSet(expect = false, update = true)) return@launch
         try {
+            val id = _studentId.value
+            if (id.isBlank() || voucher.id == null) return@launch
+
+            val user = userRepository.getUserById(id) ?: return@launch
+            if (user.totalPoints < voucher.pointsCost) {
+                _message.value = "Not enough points"
+                return@launch
+            }
+
+            val heldOfType = wallet.value.count { it.title == voucher.title }
+            if (heldOfType >= VoucherRules.MAX_HELD_PER_TYPE) {
+                _message.value = "You can hold up to ${VoucherRules.MAX_HELD_PER_TYPE} copies of this voucher at once."
+                return@launch
+            }
+
             offerRepository.redeemVoucher(voucher.id, id)
             userRepository.updateUser(user.copy(totalPoints = user.totalPoints - voucher.pointsCost))
             _message.value = "Redeemed: ${voucher.title}"
         } catch (e: Exception) {
             _message.value = e.message ?: "Redeem failed"
+        } finally {
+            _isRedeeming.value = false
         }
     }
 }

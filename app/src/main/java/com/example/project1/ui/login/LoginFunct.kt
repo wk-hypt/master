@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -14,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,7 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.project1.common.withoutEmoji
+import com.example.project1.ui.common.withoutEmoji
 import com.example.project1.ui.adaptive.AdaptiveDialogFrame
 import com.example.project1.ui.adaptive.AdaptiveScrollColumn
 import com.example.project1.ui.adaptive.HeightSize
@@ -56,10 +56,12 @@ fun LoginFunct(
     onPasswordChange: (String) -> Unit,
     onToggleMode: () -> Unit,
     onLoginClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var isPasswordVisible by remember { mutableStateOf(false) } // used for users to check whether they want to see the password they entered or not
-    var showHelpDialog by remember { mutableStateOf(false) } // show dialogue one
+    var isPasswordVisible by remember { mutableStateOf(false) }
+    var showHelpDialog by remember { mutableStateOf(false) }
+
     val window = LocalAppWindowInfo.current
     val splitLayout = window.useTwoPane && window.heightSize != HeightSize.Compact
 
@@ -92,7 +94,8 @@ fun LoginFunct(
                     onPasswordChange = onPasswordChange,
                     onTogglePassword = { isPasswordVisible = !isPasswordVisible },
                     onToggleMode = onToggleMode,
-                    onLoginClick = onLoginClick
+                    onLoginClick = onLoginClick,
+                    onForgotPasswordClick = onForgotPasswordClick
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 HelpSupportLink(onClick = { showHelpDialog = true })
@@ -121,7 +124,8 @@ fun LoginFunct(
                     onPasswordChange = onPasswordChange,
                     onTogglePassword = { isPasswordVisible = !isPasswordVisible },
                     onToggleMode = onToggleMode,
-                    onLoginClick = onLoginClick
+                    onLoginClick = onLoginClick,
+                    onForgotPasswordClick = onForgotPasswordClick
                 )
             }
             HelpSupportLink(
@@ -170,7 +174,7 @@ private fun LoginBrandPanel(
 }
 
 @Composable
-private fun ColumnScope.LoginFormFields(
+private fun LoginFormFields(
     uiState: LoginUiState,
     isPasswordVisible: Boolean,
     onIdChange: (String) -> Unit,
@@ -178,7 +182,8 @@ private fun ColumnScope.LoginFormFields(
     onPasswordChange: (String) -> Unit,
     onTogglePassword: () -> Unit,
     onToggleMode: () -> Unit,
-    onLoginClick: () -> Unit
+    onLoginClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit
 ) {
     val compact = LocalAppWindowInfo.current.heightSize == HeightSize.Compact
     Text(
@@ -282,6 +287,25 @@ private fun ColumnScope.LoginFormFields(
         shape = RoundedCornerShape(12.dp)
     )
 
+    if (!uiState.isRegisterMode) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 480.dp),
+            contentAlignment = Alignment.CenterEnd
+        ) {
+            Text(
+                text = "Forgot Password?",
+                fontSize = 13.sp,
+                color = EcoColors.PrimaryGreen,
+                fontWeight = FontWeight.Medium,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier.clickable { onForgotPasswordClick() }
+            )
+        }
+    }
+
     Spacer(modifier = Modifier.height(24.dp))
 
     Button(
@@ -368,7 +392,7 @@ fun HelpSupportDialog(onDismiss: () -> Unit) {
 
                     HelpSection(
                         question = "I forgot my Student ID or password.",
-                        answer = "Please contact your faculty office or campus IT helpdesk to verify your identity and reset your login details."
+                        answer = "Tap Forgot Password, enter your Student ID, then the email saved on that account. A 6-digit code is sent to that inbox only — type it in the app and ignore any email link. If the account has no email, or the code cannot be sent, campus staff must verify you."
                     )
                     HelpSection(
                         question = "Why was my submission rejected?",
@@ -404,6 +428,6 @@ fun HelpSection(question: String, answer: String) {
     Column(modifier = Modifier.padding(bottom = 16.dp)) {
         Text(text = question, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF212529))
         Spacer(modifier = Modifier.height(4.dp))
-        Text(text = answer, fontSize = 13.sp, color = Color(0xFF495057), lineHeight = 19.sp)
+        Text(text = answer, fontSize =.13.sp, color = Color(0xFF495057), lineHeight = 19.sp)
     }
 }

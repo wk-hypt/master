@@ -125,7 +125,6 @@ object AppViewModelProvider {
             val app = ecoApplication()
             AdminProfileViewModel(
                 adminRepository = app.container.adminRepository,
-                settingsRepository = app.container.settingsRepository,
                 submissionRepository = app.container.submissionRepository,
                 taskRepository = app.container.taskRepository,
                 userRepository = app.container.userRepository,

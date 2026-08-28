@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -30,6 +31,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
@@ -66,11 +68,13 @@ fun RewardsFunct(
     points: Int,
     available: List<VoucherEntity>,
     wallet: List<VoucherEntity>,
+    isRedeeming: Boolean = false,
     onRedeem: (VoucherEntity) -> Unit,
     snackbarHost: @Composable () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
+    var pendingRedeem by remember { mutableStateOf<VoucherEntity?>(null) }
 
     Scaffold(
         modifier = modifier,
@@ -136,7 +140,8 @@ fun RewardsFunct(
                     vouchers = available,
                     points = points,
                     heldCounts = VoucherRules.heldCountByTitle(wallet),
-                    onRedeem = onRedeem
+                    isRedeeming = isRedeeming,
+                    onRedeem = { voucher -> pendingRedeem = voucher }
                 )
                 else -> {
                     var qrVoucher by remember { mutableStateOf<VoucherEntity?>(null) }
@@ -162,6 +167,96 @@ fun RewardsFunct(
             }
         }
     }
+
+    pendingRedeem?.let { voucher ->
+        val heldCount = VoucherRules.heldCountByTitle(wallet)[voucher.title] ?: 0
+        RedeemConfirmDialog(
+            voucher = voucher,
+            points = points,
+            heldCount = heldCount,
+            isRedeeming = isRedeeming,
+            onDismiss = { if (!isRedeeming) pendingRedeem = null },
+            onConfirm = {
+                if (!isRedeeming) {
+                    onRedeem(voucher)
+                    pendingRedeem = null
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun RedeemConfirmDialog(
+    voucher: VoucherEntity,
+    points: Int,
+    heldCount: Int,
+    isRedeeming: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    val remaining = (points - voucher.pointsCost).coerceAtLeast(0)
+    val nextHeld = heldCount + 1
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color.White,
+        title = {
+            Text(
+                text = "Redeem this voucher?",
+                fontWeight = FontWeight.Bold,
+                color = EcoColors.TextDark
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    text = voucher.title,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.sp,
+                    color = EcoColors.TextDark
+                )
+                if (voucher.merchantName.isNotBlank()) {
+                    Text(
+                        text = voucher.merchantName,
+                        fontSize = 13.sp,
+                        color = Color(0xFF6B7280)
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "This will deduct ${voucher.pointsCost} points from your balance.",
+                    fontSize = 14.sp,
+                    color = EcoColors.TextDark
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Your points: $points → $remaining",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = EcoColors.PrimaryGreen
+                )
+                Text(
+                    text = "You will then hold $nextHeld/${VoucherRules.MAX_HELD_PER_TYPE} of this voucher.",
+                    fontSize = 13.sp,
+                    color = Color(0xFF6B7280)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                enabled = !isRedeeming,
+                colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
+            ) {
+                Text(if (isRedeeming) "Redeeming..." else "Confirm redeem")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss, enabled = !isRedeeming) {
+                Text("Cancel", color = Color.Black)
+            }
+        }
+    )
 }
 
 @Composable
@@ -169,6 +264,7 @@ private fun MarketList(
     vouchers: List<VoucherEntity>,
     points: Int,
     heldCounts: Map<String, Int>,
+    isRedeeming: Boolean,
     onRedeem: (VoucherEntity) -> Unit
 ) {
     if (vouchers.isEmpty()) {
@@ -188,7 +284,7 @@ private fun MarketList(
                 voucher = voucher,
                 heldCount = heldCount,
                 atHoldLimit = atHoldLimit,
-                canRedeem = points >= voucher.pointsCost && voucher.quantity > 0 && !atHoldLimit,
+                canRedeem = points >= voucher.pointsCost && voucher.quantity > 0 && !atHoldLimit && !isRedeeming,
                 onRedeemClick = { onRedeem(voucher) }
             )
         }
