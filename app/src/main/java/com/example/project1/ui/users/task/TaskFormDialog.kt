@@ -20,8 +20,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.project1.common.RequiredLabel
-import com.example.project1.common.withoutEmoji
+import com.example.project1.ui.common.RequiredLabel
+import com.example.project1.ui.common.withoutEmoji
 import com.example.project1.data.model.TaskEntity
 import com.example.project1.ui.adaptive.AdaptiveDialogSurface
 import java.text.SimpleDateFormat

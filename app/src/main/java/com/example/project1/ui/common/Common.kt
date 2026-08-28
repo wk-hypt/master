@@ -1,6 +1,8 @@
-package com.example.project1.common
+package com.example.project1.ui.common
 
 import android.graphics.Bitmap
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -14,9 +16,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +40,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+// Badge tag showing status (Approved/Pending/Rejected)
 @Composable
 fun StatusBadge(
     status: String,
@@ -71,6 +76,7 @@ fun StatusBadge(
     }
 }
 
+// Input label with red asterisk (*)
 @Composable
 fun RequiredLabel(labelText: String) {
     Text(
@@ -84,7 +90,21 @@ fun RequiredLabel(labelText: String) {
     )
 }
 
-/** Drops emoji / sticker characters so input fields only keep normal text. */
+// Red indicator dot for unread alerts
+@Composable
+fun NotificationDot(
+    show: Boolean,
+    modifier: Modifier = Modifier
+) {
+    if (!show) return
+    Box(
+        modifier = modifier
+            .size(8.dp)
+            .background(EcoColors.NotificationRed, CircleShape)
+    )
+}
+
+// Strips emojis from string
 fun String.withoutEmoji(): String {
     if (isEmpty()) return this
     return buildString(length) {
@@ -116,12 +136,14 @@ private val dateFormatter by lazy {
     SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
 }
 
+// Format timestamp to Date (e.g. 27 Aug 2026)
 fun Long.toFormattedDate(): String = dateFormatter.format(Date(this))
 
 private val dateTimeFormatter by lazy {
     SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
 }
 
+// Format timestamp to Date & Time
 fun Long.toFormattedDateTime(): String = dateTimeFormatter.format(Date(this))
 
 fun TaskEntity.normalizedStatusText(): String = when {
@@ -143,19 +165,21 @@ val TaskEntity.isRejected: Boolean
 val TaskEntity.isTargetReached: Boolean
     get() = currentQuantity >= taskQuantity
 
+// Checks if task is ready to submit to admin
 val TaskEntity.canSubmitToAdmin: Boolean
     get() = isTargetReached && !isPending && !isApproved && !isRejected
 
 fun TaskEntity.approvedAtMillis(): Long = reviewTimestamp ?: timestamp
 
+// Returns timestamp of latest approved task
 fun latestApprovedTaskAt(tasks: List<TaskEntity>): Long =
     tasks.filter { it.isApproved }.maxOfOrNull { it.approvedAtMillis() } ?: 0L
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun isRewardExpired(expiryDateStr: String?): Boolean = VoucherRules.isExpired(expiryDateStr)
 
-fun tabShowsRedDot(notificationsEnabled: Boolean, hasAlert: Boolean): Boolean =
-    notificationsEnabled && hasAlert
-
+// Checks if student can redeem any available voucher
+@RequiresApi(Build.VERSION_CODES.O)
 fun studentCanRedeem(
     points: Int,
     available: List<VoucherEntity>,
@@ -164,37 +188,33 @@ fun studentCanRedeem(
     val heldByTitle = VoucherRules.heldCountByTitle(wallet)
     return available.any { voucher ->
         voucher.quantity > 0 &&
-            points >= voucher.pointsCost &&
-            !isRewardExpired(voucher.expiryDate) &&
-            !VoucherRules.isAtHoldLimit(heldByTitle[voucher.title] ?: 0)
+                points >= voucher.pointsCost &&
+                !isRewardExpired(voucher.expiryDate) &&
+                !VoucherRules.isAtHoldLimit(heldByTitle[voucher.title] ?: 0)
     }
 }
 
+// Checks if catalog contains expired vouchers
+@RequiresApi(Build.VERSION_CODES.O)
+fun hasExpiredCatalogRewards(vouchers: List<VoucherEntity>): Boolean =
+    vouchers.any { isRewardExpired(it.expiryDate) }
+
+fun tabShowsRedDot(notificationsEnabled: Boolean, hasAlert: Boolean): Boolean =
+    notificationsEnabled && hasAlert
+
+// Checks for new student alerts (submittable task or new approval)
 fun hasStudentTaskAlert(tasks: List<TaskEntity>, lastSeenApprovedAt: Long): Boolean =
     tasks.any { it.canSubmitToAdmin } ||
-        tasks.any { it.isApproved && it.approvedAtMillis() > lastSeenApprovedAt }
+            tasks.any { it.isApproved && it.approvedAtMillis() > lastSeenApprovedAt }
 
+// Checks if admin has items in pending queue
 fun hasAdminPendingQueue(
     pendingSubmissions: List<EcoSubmissionEntity>,
     pendingTasks: List<TaskEntity>
 ): Boolean = pendingSubmissions.isNotEmpty() || pendingTasks.isNotEmpty()
 
-fun hasExpiredCatalogRewards(vouchers: List<VoucherEntity>): Boolean =
-    vouchers.any { isRewardExpired(it.expiryDate) }
 
-@Composable
-fun NotificationDot(
-    show: Boolean,
-    modifier: Modifier = Modifier
-) {
-    if (!show) return
-    Box(
-        modifier = modifier
-            .size(8.dp)
-            .background(EcoColors.NotificationRed, CircleShape)
-    )
-}
-
+// Generates QR Code Bitmap from text
 fun generateQrBitmap(content: String, size: Int = 720): Bitmap {
     val hints = mapOf(
         EncodeHintType.CHARACTER_SET to "UTF-8",
@@ -209,4 +229,22 @@ fun generateQrBitmap(content: String, size: Int = 720): Bitmap {
         }
     }
     return bitmap
+}
+
+@Composable
+fun resolveImageModel(imageUrl: String?, defaultPlaceholderRes: Int): Any {
+    val context = LocalContext.current
+    return remember(imageUrl) {
+        when {
+            imageUrl.isNullOrBlank() -> defaultPlaceholderRes
+            imageUrl.startsWith("http://", ignoreCase = true) ||
+                    imageUrl.startsWith("https://", ignoreCase = true) -> imageUrl
+            else -> {
+                val resId = context.resources.getIdentifier(
+                    imageUrl.trim(), "drawable", context.packageName
+                )
+                if (resId != 0) resId else defaultPlaceholderRes
+            }
+        }
+    }
 }

@@ -36,7 +36,7 @@ import com.example.project1.ui.adaptive.HeightSize
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
 import com.example.project1.ui.common.launchImagePicker
 import com.example.project1.ui.common.rememberImagePicker
-import com.example.project1.ui.users.home.resolveImageModel
+import com.example.project1.ui.common.resolveImageModel
 import java.util.UUID
 import com.example.project1.ui.theme.EcoColors
 

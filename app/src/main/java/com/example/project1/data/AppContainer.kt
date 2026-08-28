@@ -16,6 +16,7 @@ interface AppContainer {
     val leaderboarduiRepository: LeaderBoarduiRepository
     val reportRepository: ReportRepository
     val settingsRepository: AppSettingsRepository
+    val passwordResetRepository: PasswordResetRepository
     fun setCurrentStudentId(studentId: String)
 }
 
@@ -74,5 +75,9 @@ class AppDataContainer(private val context: Context) : AppContainer {
     // '' local app settings ''
     override val settingsRepository: AppSettingsRepository by lazy {
         LocalAppSettingsRepository(context)
+    }
+
+    override val passwordResetRepository: PasswordResetRepository by lazy {
+        SupabasePasswordResetRepository(postgrest, SupabaseClientProvider.client)
     }
 }

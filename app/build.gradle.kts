@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.example.project1"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.example.project1"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.ui)
     implementation(libs.firebase.database)
     implementation(libs.material)
     testImplementation(libs.junit)

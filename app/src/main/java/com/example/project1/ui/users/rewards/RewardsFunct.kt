@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -30,6 +31,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
@@ -66,11 +68,13 @@ fun RewardsFunct(
     points: Int,
     available: List<VoucherEntity>,
     wallet: List<VoucherEntity>,
+    isRedeeming: Boolean = false,
     onRedeem: (VoucherEntity) -> Unit,
     snackbarHost: @Composable () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
+    var pendingRedeem by remember { mutableStateOf<VoucherEntity?>(null) }
 
     Scaffold(
         modifier = modifier,
@@ -97,12 +101,7 @@ fun RewardsFunct(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Stars,
-                            contentDescription = null,
-                            tint = EcoColors.PrimaryGreen,
-                            modifier = Modifier.size(28.dp)
-                        )
+                        Icon(imageVector = Icons.Default.Stars, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(28.dp))
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(text = "Your points", fontSize = 12.sp, color = Color(0xFF6B7280))
@@ -141,7 +140,8 @@ fun RewardsFunct(
                     vouchers = available,
                     points = points,
                     heldCounts = VoucherRules.heldCountByTitle(wallet),
-                    onRedeem = onRedeem
+                    isRedeeming = isRedeeming,
+                    onRedeem = { voucher -> pendingRedeem = voucher }
                 )
                 else -> {
                     var qrVoucher by remember { mutableStateOf<VoucherEntity?>(null) }
@@ -167,6 +167,96 @@ fun RewardsFunct(
             }
         }
     }
+
+    pendingRedeem?.let { voucher ->
+        val heldCount = VoucherRules.heldCountByTitle(wallet)[voucher.title] ?: 0
+        RedeemConfirmDialog(
+            voucher = voucher,
+            points = points,
+            heldCount = heldCount,
+            isRedeeming = isRedeeming,
+            onDismiss = { if (!isRedeeming) pendingRedeem = null },
+            onConfirm = {
+                if (!isRedeeming) {
+                    onRedeem(voucher)
+                    pendingRedeem = null
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun RedeemConfirmDialog(
+    voucher: VoucherEntity,
+    points: Int,
+    heldCount: Int,
+    isRedeeming: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    val remaining = (points - voucher.pointsCost).coerceAtLeast(0)
+    val nextHeld = heldCount + 1
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color.White,
+        title = {
+            Text(
+                text = "Redeem this voucher?",
+                fontWeight = FontWeight.Bold,
+                color = EcoColors.TextDark
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    text = voucher.title,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.sp,
+                    color = EcoColors.TextDark
+                )
+                if (voucher.merchantName.isNotBlank()) {
+                    Text(
+                        text = voucher.merchantName,
+                        fontSize = 13.sp,
+                        color = Color(0xFF6B7280)
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "This will deduct ${voucher.pointsCost} points from your balance.",
+                    fontSize = 14.sp,
+                    color = EcoColors.TextDark
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Your points: $points → $remaining",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = EcoColors.PrimaryGreen
+                )
+                Text(
+                    text = "You will then hold $nextHeld/${VoucherRules.MAX_HELD_PER_TYPE} of this voucher.",
+                    fontSize = 13.sp,
+                    color = Color(0xFF6B7280)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                enabled = !isRedeeming,
+                colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
+            ) {
+                Text(if (isRedeeming) "Redeeming..." else "Confirm redeem")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss, enabled = !isRedeeming) {
+                Text("Cancel", color = Color.Black)
+            }
+        }
+    )
 }
 
 @Composable
@@ -174,6 +264,7 @@ private fun MarketList(
     vouchers: List<VoucherEntity>,
     points: Int,
     heldCounts: Map<String, Int>,
+    isRedeeming: Boolean,
     onRedeem: (VoucherEntity) -> Unit
 ) {
     if (vouchers.isEmpty()) {
@@ -193,7 +284,7 @@ private fun MarketList(
                 voucher = voucher,
                 heldCount = heldCount,
                 atHoldLimit = atHoldLimit,
-                canRedeem = points >= voucher.pointsCost && voucher.quantity > 0 && !atHoldLimit,
+                canRedeem = points >= voucher.pointsCost && voucher.quantity > 0 && !atHoldLimit && !isRedeeming,
                 onRedeemClick = { onRedeem(voucher) }
             )
         }
@@ -249,36 +340,11 @@ private fun MarketVoucherCard(
             Spacer(modifier = Modifier.width(10.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = voucher.title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = EcoColors.TextDark,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = voucher.merchantName,
-                    fontSize = 12.sp,
-                    color = Color(0xFF6B7280),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = EcoColors.TextDark, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(text = voucher.merchantName, fontSize = 12.sp,color = Color(0xFF6B7280), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "${voucher.pointsCost} pts · ${voucher.category}",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = EcoColors.PrimaryGreen,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = if (voucher.quantity > 0) "Stock: ${voucher.quantity}" else "Out of Stock",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (voucher.quantity > 0) EcoColors.Blue else EcoColors.Danger
-                )
+                Text(text = "${voucher.pointsCost} pts · ${voucher.category}", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.PrimaryGreen, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(text = if (voucher.quantity > 0) "Stock: ${voucher.quantity}" else "Out of Stock", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (voucher.quantity > 0) EcoColors.Blue else EcoColors.Danger)
             }
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -350,10 +416,7 @@ fun WalletList(
             .background(EcoColors.PageBg)
     ) {
         items(redeemedVouchers, key = { it.id ?: it.qrCodePayload.orEmpty() }) { voucher ->
-            WalletVoucherCard(
-                voucher = voucher,
-                onClick = { onVoucherClick(voucher) }
-            )
+            WalletVoucherCard(voucher = voucher, onClick = { onVoucherClick(voucher) })
         }
     }
 }
@@ -397,12 +460,7 @@ private fun WalletVoucherCard(
                             .background(EcoColors.MintGreen),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.CardGiftcard,
-                            contentDescription = null,
-                            tint = EcoColors.PrimaryGreen,
-                            modifier = Modifier.size(28.dp)
-                        )
+                        Icon(imageVector = Icons.Default.CardGiftcard, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(28.dp))
                     }
                 }
 
@@ -447,12 +505,7 @@ private fun WalletVoucherCard(
                     Text(text = "Show this to staff to use the voucher", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = EcoColors.TextDark)
                 }
 
-                Icon(
-                    imageVector = Icons.Default.QrCode2,
-                    contentDescription = "Show QR code",
-                    tint = EcoColors.PrimaryGreen,
-                    modifier = Modifier.size(28.dp)
-                )
+                Icon(imageVector = Icons.Default.QrCode2, contentDescription = "Show QR code", tint = EcoColors.PrimaryGreen, modifier = Modifier.size(28.dp))
             }
         }
     }

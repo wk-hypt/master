@@ -79,7 +79,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.example.project1.common.toFormattedDateTime
+import com.example.project1.ui.common.toFormattedDateTime
 import com.example.project1.ui.common.ProfileEcoMetric
 import com.example.project1.ui.common.ProfilePhotoAvatar
 import com.example.project1.ui.theme.EcoColors

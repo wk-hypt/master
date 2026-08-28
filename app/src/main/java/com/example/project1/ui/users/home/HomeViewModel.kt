@@ -17,18 +17,22 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+// viewmodel handling user home screen data and eco log submissions
 class HomeViewModel(
     private val submissionRepository: SubmissionRepository,
     private val adsRepository: HomeDesignRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
 
+    // internal state flow tracking the currently logged-in student id
     private val _currentStudentId = MutableStateFlow("")
 
+    // sets the active student id for data streams
     fun setCurrentStudent(studentId: String) {
         _currentStudentId.value = studentId
     }
 
+    // state flow streaming current student's total points
     val currentPoints: StateFlow<Int> =
         _currentStudentId
             .flatMapLatest { studentId ->
@@ -45,6 +49,7 @@ class HomeViewModel(
                 initialValue = 0
             )
 
+    // state flow streaming current student's total plastic items saved
     val totalPlasticSaved: StateFlow<Int> =
         _currentStudentId
             .flatMapLatest { studentId ->
@@ -61,6 +66,7 @@ class HomeViewModel(
                 initialValue = 0
             )
 
+    // state flow streaming promotional home banners
     val banners = adsRepository.getAllBannersStream()
         .stateIn(
             scope = viewModelScope,
@@ -68,6 +74,7 @@ class HomeViewModel(
             initialValue = defaultHomeBanners()
         )
 
+    // state flow streaming home feature shortcuts
     val features = adsRepository.getAllFeaturesStream()
         .stateIn(
             scope = viewModelScope,
@@ -75,6 +82,7 @@ class HomeViewModel(
             initialValue = emptyList()
         )
 
+    // uploads proof image and submits a new eco action log
     fun submitEcoLog(
         imageBytes: ByteArray,
         actionType: String,

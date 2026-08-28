@@ -34,16 +34,17 @@ import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.TaskAlt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -64,11 +65,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.project1.common.withoutEmoji
+import com.example.project1.ui.common.withoutEmoji
 import com.example.project1.data.model.AdminEntity
 import com.example.project1.data.model.EcoSubmissionEntity
+import com.example.project1.data.model.PasswordResetRequestEntity
+import com.example.project1.data.model.RESET_STATUS_PENDING
 import com.example.project1.data.model.TaskEntity
 import com.example.project1.data.model.UserEntity
 import com.example.project1.ui.common.ProfileConfirmDialog
@@ -94,6 +98,8 @@ internal fun AdminHubPage(
     onChangePassword: () -> Unit,
     onOpenStaffDirectory: () -> Unit,
     onOpenUserManagement: () -> Unit,
+    onOpenPasswordResets: () -> Unit,
+    pendingPasswordResetsCount: Int = 0,
     onOpenPendingQueue: (tab: Int) -> Unit,
     onLogout: () -> Unit
 ) {
@@ -168,6 +174,15 @@ internal fun AdminHubPage(
                 ProfileMenuRow("CHANGE PASSWORD", Icons.Default.Lock, onChangePassword)
                 ProfileMenuRow("STAFF DIRECTORY", Icons.Default.Group, onOpenStaffDirectory)
                 ProfileMenuRow("USER MANAGEMENT", Icons.Default.ManageAccounts, onOpenUserManagement)
+                ProfileMenuRow(
+                    if (pendingPasswordResetsCount > 0) {
+                        "PASSWORD RESETS ($pendingPasswordResetsCount)"
+                    } else {
+                        "PASSWORD RESETS"
+                    },
+                    Icons.Default.LockReset,
+                    onOpenPasswordResets
+                )
                 ProfileMenuRow("LOG OUT", Icons.AutoMirrored.Filled.Logout, onLogout, tint = EcoColors.Danger)
             }
         }
@@ -760,6 +775,123 @@ private fun UserActivityRow(item: UserActivityItem) {
         Surface(shape = RoundedCornerShape(8.dp), color = statusBg) {
             Text(status, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = statusColor, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
         }
+    }
+}
+
+@Composable
+internal fun PasswordResetRequestsPage(
+    requests: List<PasswordResetRequestEntity>,
+    onBack: () -> Unit,
+    onApprove: (PasswordResetRequestEntity) -> Unit,
+    onReject: (PasswordResetRequestEntity) -> Unit,
+    onSetPassword: (PasswordResetRequestEntity, String, String) -> Unit
+) {
+    var setPasswordFor by remember { mutableStateOf<PasswordResetRequestEntity?>(null) }
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        ProfilePageHeader(title = "Password resets", onBack = onBack)
+        Text(
+            "Verify the student in person, then approve so they can set a new password, or set one here at the desk.",
+            fontSize = 12.sp,
+            color = EcoColors.TextMuted
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (requests.isEmpty()) {
+            Text("No open password reset requests.", fontSize = 13.sp, color = EcoColors.TextMuted)
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                requests.forEach { request ->
+                    val pending = request.status.equals(RESET_STATUS_PENDING, ignoreCase = true)
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (pending) Color.White else EcoColors.SoftGreen
+                        ),
+                        elevation = CardDefaults.cardElevation(1.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp).fillMaxWidth()) {
+                            Text(
+                                request.accountName.ifBlank { request.accountId },
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = EcoColors.TextDark
+                            )
+                            Text(
+                                "${request.accountId} · ${if (request.isAdmin) "Staff" else "Student"} · ${request.status}",
+                                fontSize = 12.sp,
+                                color = EcoColors.TextMuted
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                if (pending) {
+                                    Button(
+                                        onClick = { onApprove(request) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
+                                    ) { Text("Approve") }
+                                    OutlinedButton(onClick = { onReject(request) }) { Text("Reject") }
+                                }
+                                TextButton(onClick = {
+                                    setPasswordFor = request
+                                    newPassword = ""
+                                    confirmPassword = ""
+                                }) { Text("Set password") }
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
+    }
+
+    setPasswordFor?.let { request ->
+        AlertDialog(
+            onDismissRequest = { setPasswordFor = null },
+            title = { Text("Set password for ${request.accountId}") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Use this when the student is at the desk. Share the new password with them in person.",
+                        fontSize = 12.sp,
+                        color = EcoColors.TextMuted
+                    )
+                    OutlinedTextField(
+                        value = newPassword,
+                        onValueChange = { newPassword = it.withoutEmoji() },
+                        label = { Text("New password") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it.withoutEmoji() },
+                        label = { Text("Confirm password") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onSetPassword(request, newPassword, confirmPassword)
+                        setPasswordFor = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
+                ) { Text("Update") }
+            },
+            dismissButton = {
+                TextButton(onClick = { setPasswordFor = null }) { Text("Cancel") }
+            }
+        )
     }
 }
 

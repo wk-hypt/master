@@ -1,6 +1,5 @@
 package com.example.project1.ui.users.home
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,6 +41,7 @@ import com.example.project1.data.model.FeatureCardItem
 import com.example.project1.data.model.VoucherRules
 import com.example.project1.ui.adaptive.HeightSize
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
+import com.example.project1.ui.common.resolveImageModel
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
@@ -383,24 +383,6 @@ fun EcoFeatureTile(feature: FeatureCardItem, onClick: () -> Unit, modifier: Modi
                 textAlign = TextAlign.Center,
                 maxLines = 2
             )
-        }
-    }
-}
-
-@Composable
-fun resolveImageModel(imageUrl: String?, defaultPlaceholderRes: Int): Any {
-    val context = LocalContext.current
-    return remember(imageUrl) {
-        when {
-            imageUrl.isNullOrBlank() -> defaultPlaceholderRes
-            imageUrl.startsWith("http://", ignoreCase = true) ||
-                    imageUrl.startsWith("https://", ignoreCase = true) -> imageUrl
-            else -> {
-                val resId = context.resources.getIdentifier(
-                    imageUrl.trim(), "drawable", context.packageName
-                )
-                if (resId != 0) resId else defaultPlaceholderRes
-            }
         }
     }
 }

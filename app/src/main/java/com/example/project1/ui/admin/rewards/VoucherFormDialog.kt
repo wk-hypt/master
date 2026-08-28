@@ -30,8 +30,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.project1.common.RequiredLabel
-import com.example.project1.common.withoutEmoji
+import com.example.project1.ui.common.RequiredLabel
+import com.example.project1.ui.common.withoutEmoji
 import com.example.project1.data.model.VoucherEntity
 import java.text.SimpleDateFormat
 import java.util.Date

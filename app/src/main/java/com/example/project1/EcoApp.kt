@@ -1,6 +1,8 @@
 package com.example.project1
 
+import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
@@ -84,6 +86,7 @@ sealed class AdminScreen(
     object Profile : AdminScreen("admin_profile", "Profile", Icons.Filled.Person, Icons.Outlined.Person)
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun EcoApp() {
     var sessionNonce by remember { mutableIntStateOf(0) }
@@ -92,6 +95,7 @@ fun EcoApp() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun EcoAppContent(onEndSession: () -> Unit) {
     BackHandler { }

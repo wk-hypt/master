@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import com.example.project1.data.model.NewVoucher
 import com.example.project1.data.model.VoucherEntity
 import com.example.project1.data.model.VoucherRules
+import com.example.project1.data.pollingFlow
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.storage.Storage
@@ -13,6 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+
 
 // interface for vouchers and my wallet
 interface OfferRepository {

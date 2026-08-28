@@ -35,6 +35,8 @@ fun AdminProfileView(
     val allUsers by viewModel.allUsers.collectAsState()
     val allSubmissions by viewModel.allSubmissions.collectAsState()
     val allTasks by viewModel.allTasks.collectAsState()
+    val passwordResetRequests by viewModel.passwordResetRequests.collectAsState()
+    val pendingPasswordResetsCount by viewModel.pendingPasswordResetsCount.collectAsState()
     val verificationCode by viewModel.verificationCode.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -54,6 +56,8 @@ fun AdminProfileView(
         allUsers = allUsers,
         allSubmissions = allSubmissions,
         allTasks = allTasks,
+        passwordResetRequests = passwordResetRequests,
+        pendingPasswordResetsCount = pendingPasswordResetsCount,
         verificationCode = verificationCode,
         onOpenStaffDirectory = viewModel::loadStaffDirectory,
         onSaveStaffInfo = viewModel::saveStaffInfo,
@@ -62,6 +66,9 @@ fun AdminProfileView(
         onConfirmPasswordChange = viewModel::confirmPasswordChange,
         onCancelPasswordChange = viewModel::cancelPasswordChange,
         onDeleteUser = viewModel::deleteUser,
+        onApprovePasswordReset = viewModel::approvePasswordReset,
+        onRejectPasswordReset = viewModel::rejectPasswordReset,
+        onSetPasswordForReset = viewModel::setPasswordForResetRequest,
         onNavigateToApproval = onNavigateToApproval,
         onLogout = onLogout,
         snackbarHost = { SnackbarHost(snackbarHostState) },

@@ -1,4 +1,4 @@
-package com.example.project1.data.repository
+package com.example.project1.data
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow

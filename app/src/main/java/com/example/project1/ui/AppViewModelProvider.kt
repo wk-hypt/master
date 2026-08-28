@@ -17,8 +17,10 @@ import com.example.project1.ui.users.profile.ProfileViewModel
 import com.example.project1.ui.users.rewards.RewardsViewModel
 import com.example.project1.ui.users.task.TaskViewModel
 
+// factory object providing application-wide dependency injection for ViewModels
 object AppViewModelProvider {
     val Factory = viewModelFactory {
+        // factory initializer for home viewmodel
         initializer {
             val app = ecoApplication()
             HomeViewModel(
@@ -28,14 +30,17 @@ object AppViewModelProvider {
             )
         }
 
+        // factory initializer for login viewmodel
         initializer {
             val app = ecoApplication()
             LoginViewModel(
                 userRepository = app.container.userRepository,
-                adminRepository = app.container.adminRepository
+                adminRepository = app.container.adminRepository,
+                passwordResetRepository = app.container.passwordResetRepository
             )
         }
 
+        // factory initializer for admin home viewmodel
         initializer {
             val app = ecoApplication()
             AdminHomeViewModel(
@@ -46,6 +51,7 @@ object AppViewModelProvider {
             )
         }
 
+        // factory initializer for notification viewmodel
         initializer {
             val app = ecoApplication()
             NotificationViewModel(
@@ -57,6 +63,7 @@ object AppViewModelProvider {
             )
         }
 
+        // factory initializer for task viewmodel
         initializer {
             val app = ecoApplication()
             TaskViewModel(
@@ -64,6 +71,7 @@ object AppViewModelProvider {
             )
         }
 
+        // factory initializer for admin report viewmodel
         initializer {
             val app = ecoApplication()
             AdminReportViewModel(
@@ -76,6 +84,7 @@ object AppViewModelProvider {
             )
         }
 
+        // factory initializer for leaderboard viewmodel
         initializer {
             val app = ecoApplication()
             LeaderboardViewModel(
@@ -83,6 +92,7 @@ object AppViewModelProvider {
             )
         }
 
+        // factory initializer for rewards viewmodel
         initializer {
             val app = ecoApplication()
             RewardsViewModel(
@@ -91,6 +101,7 @@ object AppViewModelProvider {
             )
         }
 
+        // factory initializer for admin rewards viewmodel
         initializer {
             val app = ecoApplication()
             AdminRewardsViewModel(
@@ -98,6 +109,7 @@ object AppViewModelProvider {
             )
         }
 
+        // factory initializer for profile viewmodel
         initializer {
             val app = ecoApplication()
             ProfileViewModel(
@@ -108,19 +120,21 @@ object AppViewModelProvider {
             )
         }
 
+        // factory initializer for admin profile viewmodel
         initializer {
             val app = ecoApplication()
             AdminProfileViewModel(
                 adminRepository = app.container.adminRepository,
-                settingsRepository = app.container.settingsRepository,
                 submissionRepository = app.container.submissionRepository,
                 taskRepository = app.container.taskRepository,
                 userRepository = app.container.userRepository,
-                offerRepository = app.container.offerRepository
+                offerRepository = app.container.offerRepository,
+                passwordResetRepository = app.container.passwordResetRepository
             )
         }
     }
 }
 
+// extension function retrieving application instance from creation extras
 fun CreationExtras.ecoApplication(): EcoApplication =
     (this[AndroidViewModelFactory.APPLICATION_KEY] as EcoApplication)

@@ -7,10 +7,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-/**
- * Material 3 window width buckets describe current width only.
- * Phone landscape is still a phone: rail / two-pane use shortest side >= 600dp.
- */
 enum class WidthSize { Compact, Medium, Expanded }
 
 enum class HeightSize { Compact, Medium, Expanded }
@@ -42,8 +38,6 @@ data class AppWindowSize(
                 else -> HeightSize.Expanded
             }
             val isLandscape = widthDp > heightDp
-            // Phone landscape is still a phone: shortest side stays ~360dp.
-            // Only tablets (shortest side >= 600dp) get rail + two-pane layouts.
             val isTablet = minOf(widthDp, heightDp) >= 600.dp
             return AppWindowSize(
                 widthDp = widthDp,

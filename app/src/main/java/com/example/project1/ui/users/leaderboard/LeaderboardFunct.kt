@@ -35,12 +35,13 @@ import com.example.project1.ui.theme.EcoColors
 
 enum class LeaderboardTimeFrame { MONTHLY, DAILY }
 
+// main composable screen for displaying rankings and podium
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LeaderboardFunct(
     uiState: LeaderboardUiState,
-    selectedTimeFrame: LeaderboardTimeFrame,
-    onTimeFrameChange: (LeaderboardTimeFrame) -> Unit,
+    selectedTimeFrame: LeaderboardTimeFrame, //one of the LeaderboardTimeFrame
+    onTimeFrameChange: (LeaderboardTimeFrame) -> Unit, // switch between monthly and daily
     onRetry: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
@@ -52,13 +53,7 @@ fun LeaderboardFunct(
         containerColor = Color(0xFFF4F9EF),
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = "Eco Leaderboard",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                },
+                title = { Text(text = "Eco Leaderboard", fontWeight = FontWeight.Bold, color = Color.White) },
                 actions = {
                     IconButton(onClick = { showUpgradeDialog = true }) {
                         Icon(
@@ -144,6 +139,7 @@ fun LeaderboardFunct(
     }
 }
 
+// header container displaying top 3 podium spots and timeframe toggle
 @Composable
 fun PodiumHeader(
     podiumSlots: List<LeaderboardEntry?>,
@@ -204,6 +200,7 @@ fun PodiumHeader(
     }
 }
 
+// container surface for switching between monthly and daily timeframe views
 @Composable
 private fun TimeFrameToggle(
     selectedTimeFrame: LeaderboardTimeFrame,
@@ -217,20 +214,13 @@ private fun TimeFrameToggle(
         shadowElevation = 3.dp
     ) {
         Row(modifier = Modifier.padding(4.dp)) {
-            TimeFrameChip(
-                label = "Monthly",
-                selected = selectedTimeFrame == LeaderboardTimeFrame.MONTHLY,
-                onClick = { onTimeFrameChange(LeaderboardTimeFrame.MONTHLY) }
-            )
-            TimeFrameChip(
-                label = "Daily",
-                selected = selectedTimeFrame == LeaderboardTimeFrame.DAILY,
-                onClick = { onTimeFrameChange(LeaderboardTimeFrame.DAILY) }
-            )
+            TimeFrameChip(label = "Monthly", selected = selectedTimeFrame == LeaderboardTimeFrame.MONTHLY, onClick = { onTimeFrameChange(LeaderboardTimeFrame.MONTHLY) })
+            TimeFrameChip(label = "Daily", selected = selectedTimeFrame == LeaderboardTimeFrame.DAILY, onClick = { onTimeFrameChange(LeaderboardTimeFrame.DAILY) })
         }
     }
 }
 
+// individual selectable chip for timeframe toggle
 @Composable
 fun TimeFrameChip(label: String, selected: Boolean, onClick: () -> Unit) {
     Surface(
@@ -238,16 +228,11 @@ fun TimeFrameChip(label: String, selected: Boolean, onClick: () -> Unit) {
         shape = RoundedCornerShape(20.dp),
         color = if (selected) Color(0xFF66BB6A) else Color.Transparent
     ) {
-        Text(
-            text = label,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
-            color = if (selected) Color.White else Color(0xFF33691E),
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
-        )
+        Text(text = label, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (selected) Color.White else Color(0xFF33691E), modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
     }
 }
 
+// individual podium item display for top 3 rankers
 @Composable
 fun PodiumSlot(entry: LeaderboardEntry?, isFirst: Boolean, compact: Boolean = false) {
     val avatarSize = when {
@@ -271,12 +256,7 @@ fun PodiumSlot(entry: LeaderboardEntry?, isFirst: Boolean, compact: Boolean = fa
         modifier = Modifier.padding(top = topOffset)
     ) {
         if (rankLabel.isNotEmpty()) {
-            Text(
-                rankLabel,
-                fontSize = if (compact) 11.sp else 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            Text(rankLabel, fontSize = if (compact) 11.sp else 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
             Spacer(modifier = Modifier.height(if (compact) 2.dp else 6.dp))
         }
 
@@ -302,23 +282,14 @@ fun PodiumSlot(entry: LeaderboardEntry?, isFirst: Boolean, compact: Boolean = fa
 
         Spacer(modifier = Modifier.height(if (compact) 2.dp else 6.dp))
 
-        Text(
-            text = entry?.userName ?: "-",
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            fontSize = if (compact) 12.sp else if (isFirst) 15.sp else 13.sp,
-            maxLines = 1
-        )
+        Text(text = entry?.userName ?: "-", color = Color.White, fontWeight = FontWeight.Bold, fontSize = if (compact) 12.sp else if (isFirst) 15.sp else 13.sp, maxLines = 1)
         if (!compact) {
-            Text(
-                text = entry?.let { "${it.points} pts" } ?: "",
-                color = Color.White.copy(alpha = 0.85f),
-                fontSize = 11.sp
-            )
+            Text(text = entry?.let { "${it.points} pts" } ?: "", color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp)
         }
     }
 }
 
+// list row item for regular leaderboard rankings
 @Composable
 fun LeaderboardRowItem(entry: LeaderboardEntry, modifier: Modifier = Modifier) {
     val bgColor = if (entry.isCurrentUser) Color(0xFFAED581) else Color(0xFFDCEDC8)
@@ -334,32 +305,16 @@ fun LeaderboardRowItem(entry: LeaderboardEntry, modifier: Modifier = Modifier) {
                 .padding(horizontal = 20.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "#${entry.rank}",
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
-                color = EcoColors.DarkGreen,
-                modifier = Modifier.width(44.dp)
-            )
+            Text(text = "#${entry.rank}", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = EcoColors.DarkGreen, modifier = Modifier.width(44.dp))
 
-            Text(
-                text = entry.userName + if (entry.isCurrentUser) " (You)" else "",
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
-                color = EcoColors.TextDark,
-                modifier = Modifier.weight(1f)
-            )
+            Text(text = entry.userName + if (entry.isCurrentUser) " (You)" else "", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = EcoColors.TextDark, modifier = Modifier.weight(1f))
 
-            Text(
-                text = "${entry.points} pts",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF33691E)
-            )
+            Text(text = "${entry.points} pts", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF33691E))
         }
     }
 }
 
+// dialog displaying payment qr code for pro upgrade (彩蛋)
 @Composable
 fun UpgradeQrDialog(onDismiss: () -> Unit) {
     Dialog(
@@ -391,12 +346,7 @@ fun UpgradeQrDialog(onDismiss: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Text(
-                    text = "Pay Amount: $29.90",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+                Text(text = "Pay Amount: $29.90", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
     }

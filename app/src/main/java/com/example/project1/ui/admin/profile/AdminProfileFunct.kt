@@ -14,13 +14,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.project1.data.model.AdminEntity
 import com.example.project1.data.model.EcoSubmissionEntity
+import com.example.project1.data.model.PasswordResetRequestEntity
 import com.example.project1.data.model.TaskEntity
 import com.example.project1.data.model.UserEntity
 import com.example.project1.ui.common.ChangePasswordDialog
 import com.example.project1.ui.common.ProfileConfirmDialog
 import com.example.project1.ui.theme.EcoColors
 
-private enum class AdminProfilePage { Hub, Info, StaffDirectory, StaffDetails, UserManagement, UserDetails }
+private enum class AdminProfilePage { Hub, Info, StaffDirectory, StaffDetails, UserManagement, UserDetails, PasswordResets }
 
 @Composable
 fun AdminProfileFunct(
@@ -34,6 +35,8 @@ fun AdminProfileFunct(
     allUsers: List<UserEntity> = emptyList(),
     allSubmissions: List<EcoSubmissionEntity> = emptyList(),
     allTasks: List<TaskEntity> = emptyList(),
+    passwordResetRequests: List<PasswordResetRequestEntity> = emptyList(),
+    pendingPasswordResetsCount: Int = 0,
     verificationCode: String? = null,
     onOpenStaffDirectory: () -> Unit = {},
     onSaveStaffInfo: (name: String, faculty: String) -> Unit,
@@ -42,6 +45,9 @@ fun AdminProfileFunct(
     onConfirmPasswordChange: (code: String) -> Unit,
     onCancelPasswordChange: () -> Unit = {},
     onDeleteUser: (studentId: String) -> Unit = {},
+    onApprovePasswordReset: (PasswordResetRequestEntity) -> Unit = {},
+    onRejectPasswordReset: (PasswordResetRequestEntity) -> Unit = {},
+    onSetPasswordForReset: (PasswordResetRequestEntity, String, String) -> Unit = { _, _, _ -> },
     onNavigateToApproval: (tab: Int) -> Unit = {},
     onLogout: () -> Unit,
     snackbarHost: @Composable () -> Unit = {}
@@ -73,6 +79,8 @@ fun AdminProfileFunct(
                         page = AdminProfilePage.StaffDirectory
                     },
                     onOpenUserManagement = { page = AdminProfilePage.UserManagement },
+                    onOpenPasswordResets = { page = AdminProfilePage.PasswordResets },
+                    pendingPasswordResetsCount = pendingPasswordResetsCount,
                     onOpenPendingQueue = onNavigateToApproval,
                     onLogout = { showLogoutConfirm = true }
                 )
@@ -113,6 +121,13 @@ fun AdminProfileFunct(
                     submissions = allSubmissions,
                     tasks = allTasks,
                     onBack = { page = AdminProfilePage.UserManagement }
+                )
+                AdminProfilePage.PasswordResets -> PasswordResetRequestsPage(
+                    requests = passwordResetRequests,
+                    onBack = { page = AdminProfilePage.Hub },
+                    onApprove = onApprovePasswordReset,
+                    onReject = onRejectPasswordReset,
+                    onSetPassword = onSetPasswordForReset
                 )
             }
         }
