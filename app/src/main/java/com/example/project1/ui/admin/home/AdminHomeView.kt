@@ -20,7 +20,6 @@ import com.example.project1.ui.admin.AdminHomeViewModel
 @Composable
 fun AdminHomeView(
     adminId: String,
-    onLogout: () -> Unit,
     modifier: Modifier = Modifier,
     initialTab: Int = 0,
     viewModel: AdminHomeViewModel = viewModel(key = adminId, factory = AppViewModelProvider.Factory)

@@ -19,19 +19,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project1.ui.theme.EcoColors
 
+// Standard card shape with 16dp rounded corners
 internal val CardShape = RoundedCornerShape(16.dp)
 
+// Extension modifier for uniform card styling (surface, border, clip)
 internal fun Modifier.flatCard() = this
     .clip(CardShape)
     .background(EcoColors.Surface)
     .border(BorderStroke(1.dp, EcoColors.CardBorder), CardShape)
 
+// Returns text and background colors based on status (approved, rejected, pending)
 internal fun statusColors(status: String): Pair<Color, Color> = when (status.lowercase()) {
     "approved" -> EcoColors.PrimaryGreen to EcoColors.ApprovedBg
     "rejected" -> EcoColors.Rejected to EcoColors.RejectedBg
     else -> EcoColors.Amber to EcoColors.PendingAmberBg
 }
 
+// Circular user avatar displaying the first two characters of the user ID
 @Composable
 fun Avatar(userId: String, size: Dp = 46.dp) {
     Box(
@@ -42,6 +46,7 @@ fun Avatar(userId: String, size: Dp = 46.dp) {
     }
 }
 
+// Generates a consistent, hash-based background color for a given seed (user ID)
 fun avatarColorFor(seed: String): Color {
     val palette = EcoColors.AvatarPalette + Color(0xFFE91E63)
     return palette[(seed.hashCode() and 0x7FFFFFFF) % palette.size]

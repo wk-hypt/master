@@ -24,7 +24,7 @@ interface PasswordResetRepository {
     suspend fun verifyEmailOtp(email: String, code: String)
 }
 
-// concrete class to implement password reset repository
+// concrete class to implement password reset
 class SupabasePasswordResetRepository(
     private val postgrest: Postgrest,
     private val supabaseClient: SupabaseClient
@@ -51,7 +51,7 @@ class SupabasePasswordResetRepository(
         }
     }
 
-    // create a pending password reset request
+    // add a new password reset request into supa (c)
     override suspend fun createPendingRequest(
         accountId: String,
         accountName: String,

@@ -46,12 +46,15 @@ class AdminProfileViewModel(
     private val passwordResetRepository: PasswordResetRepository
 ) : ViewModel() {
 
+    // Active admin ID
     private val _adminId = MutableStateFlow("")
 
+    // Set current active admin ID
     fun setCurrentAdmin(id: String) {
         _adminId.value = id
     }
 
+    // Current admin data stream
     val admin: StateFlow<AdminEntity?> = _adminId
         .flatMapLatest { id ->
             if (id.isBlank()) flowOf(null) else adminRepository.getAdminStream(id)
@@ -65,11 +68,12 @@ class AdminProfileViewModel(
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
+    // Clear feedback message
     fun clearMessage() {
         _message.value = null
     }
 
-    // Quick campus stats surfaced on the staff hub.
+    // Pending submissions count for valid users
     val pendingSubmissionsCount: StateFlow<Int> = combine(
         submissionRepository.getAllPendingSubmissionsStream(),
         userRepository.getAllUsersStream()
@@ -83,6 +87,7 @@ class AdminProfileViewModel(
         }
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = 0)
 
+    // Pending tasks count for valid users
     val pendingTasksCount: StateFlow<Int> = combine(
         taskRepository.getAllPendingTasksStream(),
         userRepository.getAllUsersStream()
@@ -96,6 +101,7 @@ class AdminProfileViewModel(
         }
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = 0)
 
+    // Total registered students
     val totalStudents: StateFlow<Int> = userRepository.getAllUsersStream()
         .map { it.size }
         .catch { e ->
@@ -104,8 +110,7 @@ class AdminProfileViewModel(
         }
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = 0)
 
-    // Full submission + task history, used to power the Report Submission Analysis
-    // drill-down and each staff member's "Reviewed by me" performance numbers.
+    // All submissions for reports
     val allSubmissions: StateFlow<List<EcoSubmissionEntity>> = submissionRepository.getReportSubmissionsStream()
         .catch { e ->
             Log.e("AdminProfileViewModel", "Error streaming submissions: ${e.message}")
@@ -113,6 +118,7 @@ class AdminProfileViewModel(
         }
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = emptyList())
 
+    // All tasks for reports
     val allTasks: StateFlow<List<TaskEntity>> = taskRepository.getReportTasksStream()
         .catch { e ->
             Log.e("AdminProfileViewModel", "Error streaming tasks: ${e.message}")
@@ -120,13 +126,14 @@ class AdminProfileViewModel(
         }
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = emptyList())
 
-    // Staff directory, loaded on demand when the admin opens that page.
+    // Staff directory list
     private val _staffDirectory = MutableStateFlow<List<AdminEntity>>(emptyList())
     val staffDirectory: StateFlow<List<AdminEntity>> = _staffDirectory.asStateFlow()
 
     private val _staffDirectoryLoading = MutableStateFlow(false)
     val staffDirectoryLoading: StateFlow<Boolean> = _staffDirectoryLoading.asStateFlow()
 
+    // Load staff directory list
     fun loadStaffDirectory() = viewModelScope.launch {
         _staffDirectoryLoading.value = true
         try {
@@ -138,7 +145,7 @@ class AdminProfileViewModel(
         }
     }
 
-    // ---- User management (students) ----
+    // All users with calculated points
     val allUsers: StateFlow<List<UserEntity>> = combine(
         userRepository.getAllUsersStream(),
         submissionRepository.getReportSubmissionsStream(),
@@ -155,6 +162,7 @@ class AdminProfileViewModel(
         }
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = emptyList())
 
+    // Open password reset requests
     val passwordResetRequests: StateFlow<List<PasswordResetRequestEntity>> =
         passwordResetRepository.getOpenRequestsStream()
             .catch { e ->
@@ -163,12 +171,14 @@ class AdminProfileViewModel(
             }
             .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = emptyList())
 
+    // Count of pending password resets
     val pendingPasswordResetsCount: StateFlow<Int> = passwordResetRequests
         .map { requests ->
             requests.count { it.status.equals(RESET_STATUS_PENDING, ignoreCase = true) }
         }
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = 0)
 
+    // Approve password reset request
     fun approvePasswordReset(request: PasswordResetRequestEntity) = viewModelScope.launch {
         if (request.isAdmin && request.accountId.equals(_adminId.value, ignoreCase = true)) {
             _message.value = "Ask another admin to approve your own reset"
@@ -186,6 +196,7 @@ class AdminProfileViewModel(
         }
     }
 
+    // Reject password reset request
     fun rejectPasswordReset(request: PasswordResetRequestEntity) = viewModelScope.launch {
         try {
             passwordResetRepository.updateStatus(
@@ -199,6 +210,7 @@ class AdminProfileViewModel(
         }
     }
 
+    // Set password directly for reset request
     fun setPasswordForResetRequest(
         request: PasswordResetRequestEntity,
         newPassword: String,
@@ -239,6 +251,7 @@ class AdminProfileViewModel(
         }
     }
 
+    // Delete student account
     fun deleteUser(studentId: String) = viewModelScope.launch {
         try {
             userRepository.deleteUser(studentId)
@@ -253,6 +266,7 @@ class AdminProfileViewModel(
 
     private var pendingNewPassword: String? = null
 
+    // Request password change and generate code
     fun requestPasswordChange(current: String, newPassword: String, confirm: String) = viewModelScope.launch {
         val id = _adminId.value
         val existing = admin.value ?: adminRepository.getAdminById(id)
@@ -277,12 +291,14 @@ class AdminProfileViewModel(
         }
     }
 
+    // Regenerate verification code
     fun regenerateVerificationCode() {
         if (pendingNewPassword != null) {
             _verificationCode.value = generateVerificationCode()
         }
     }
 
+    // Confirm password change with code
     fun confirmPasswordChange(enteredCode: String) = viewModelScope.launch {
         val id = _adminId.value
         val newPassword = pendingNewPassword
@@ -305,14 +321,17 @@ class AdminProfileViewModel(
         }
     }
 
+    // Cancel password change
     fun cancelPasswordChange() {
         pendingNewPassword = null
         _verificationCode.value = null
     }
 
+    // Generate random 6-digit code
     private fun generateVerificationCode(): String =
         Random.nextInt(0, 1_000_000).toString().padStart(6, '0')
 
+    // Save staff profile info
     fun saveStaffInfo(name: String, faculty: String) = viewModelScope.launch {
         val id = _adminId.value
         if (id.isBlank()) return@launch

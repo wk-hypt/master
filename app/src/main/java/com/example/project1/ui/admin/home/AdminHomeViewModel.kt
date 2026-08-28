@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+// view model responsible for managing admin home dashboard data, submissions, tasks, and home banners
 class AdminHomeViewModel(
     private val submissionRepository: SubmissionRepository,
     private val taskRepository: TaskRepository,
@@ -31,6 +32,7 @@ class AdminHomeViewModel(
 
     private var currentAdminId: String = ""
 
+    // set the currently authenticated administrator ID
     fun setCurrentAdmin(adminId: String) {
         currentAdminId = adminId
     }
@@ -41,6 +43,7 @@ class AdminHomeViewModel(
         }
     }
 
+    // stream of pending eco submissions filtered by valid registered users
     val pendingSubmissionsUiState: StateFlow<List<EcoSubmissionEntity>> =
         combine(
             submissionRepository.getAllPendingSubmissionsStream(),
@@ -59,6 +62,7 @@ class AdminHomeViewModel(
                 initialValue = emptyList()
             )
 
+    // stream of pending tasks filtered by valid registered users
     val pendingTasksUiState: StateFlow<List<TaskEntity>> =
         combine(
             taskRepository.getAllPendingTasksStream(),
@@ -77,6 +81,7 @@ class AdminHomeViewModel(
                 initialValue = emptyList()
             )
 
+    // stream of home design advertisement banners
     val banners: StateFlow<List<BannerItem>> =
         adsRepository.getAllBannersStream()
             .catch { e ->
@@ -95,10 +100,12 @@ class AdminHomeViewModel(
     private val _bannerMessage = MutableStateFlow<String?>(null)
     val bannerMessage: StateFlow<String?> = _bannerMessage.asStateFlow()
 
+    // clear banner operation feedback message
     fun clearBannerMessage() {
         _bannerMessage.value = null
     }
 
+    // upload and add a new home design banner image
     fun addBanner(bytes: ByteArray, fileName: String) {
         if (_isSavingBanner.value) return
         viewModelScope.launch {
@@ -114,6 +121,7 @@ class AdminHomeViewModel(
         }
     }
 
+    // delete a home banner item by its unique ID
     fun deleteBanner(id: String) {
         if (_isSavingBanner.value) return
         viewModelScope.launch {
@@ -129,6 +137,7 @@ class AdminHomeViewModel(
         }
     }
 
+    // approve student eco submission and reward user with points and plastic saved
     fun approveSubmission(submissionId: Int, studentId: String, points: Int, plasticSaved: Int) {
         viewModelScope.launch {
             try {
@@ -157,10 +166,7 @@ class AdminHomeViewModel(
         }
     }
 
-    fun rejectSubmission(submission: EcoSubmissionEntity, feedback: String) {
-        rejectSubmission(submissionId = submission.id, feedback = feedback)
-    }
-
+    // reject student eco submission by ID with feedback
     fun rejectSubmission(submissionId: Int, feedback: String) {
         viewModelScope.launch {
             try {
@@ -180,6 +186,7 @@ class AdminHomeViewModel(
         }
     }
 
+    // approve student task submission and update user total points and plastics saved
     fun approveTask(task: TaskEntity, points: Int, plasticSaved: Int) {
         viewModelScope.launch {
             try {
@@ -207,6 +214,7 @@ class AdminHomeViewModel(
         }
     }
 
+    // reject student task submission with feedback
     fun rejectTask(task: TaskEntity, feedback: String) {
         viewModelScope.launch {
             try {
@@ -225,6 +233,7 @@ class AdminHomeViewModel(
         }
     }
 
+    // clean up and delete orphaned submission and task records belonging to deleted users
     private suspend fun dropRecordsForDeletedUsers() {
         try {
             val studentIds = userRepository.getAllUsersStream().first()

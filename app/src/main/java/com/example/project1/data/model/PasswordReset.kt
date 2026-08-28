@@ -10,6 +10,7 @@ const val RESET_STATUS_REJECTED = "rejected"
 
 const val RESET_APPROVED_TTL_MS = 24L * 60L * 60L * 1000L
 
+// data class for each password reset request record
 @Serializable
 data class PasswordResetRequestEntity(
     val id: Long = 0,
@@ -22,6 +23,7 @@ data class PasswordResetRequestEntity(
     @SerialName("reviewed_at_millis") val reviewedAtMillis: Long? = null
 )
 
+// add password reset request into supa
 @Serializable
 data class NewPasswordResetRequest(
     @SerialName("account_id") val accountId: String,
@@ -31,6 +33,7 @@ data class NewPasswordResetRequest(
     @SerialName("created_at_millis") val createdAtMillis: Long
 )
 
+// update the attributes of the password reset entity in supa
 @Serializable
 data class PasswordResetReviewUpdate(
     val status: String,
@@ -38,6 +41,7 @@ data class PasswordResetReviewUpdate(
     @SerialName("reviewed_at_millis") val reviewedAtMillis: Long? = null
 )
 
+// check if the password reset request is approved
 fun PasswordResetRequestEntity.isApprovedAndFresh(nowMillis: Long = System.currentTimeMillis()): Boolean {
     if (!status.equals(RESET_STATUS_APPROVED, ignoreCase = true)) return false
     val approvedAt = reviewedAtMillis ?: createdAtMillis

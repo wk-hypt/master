@@ -77,6 +77,7 @@ class AppDataContainer(private val context: Context) : AppContainer {
         LocalAppSettingsRepository(context)
     }
 
+    // '' password reset ''
     override val passwordResetRepository: PasswordResetRepository by lazy {
         SupabasePasswordResetRepository(postgrest, SupabaseClientProvider.client)
     }
