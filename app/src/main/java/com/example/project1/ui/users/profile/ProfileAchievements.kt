@@ -84,8 +84,10 @@ import com.example.project1.ui.common.ProfileEcoMetric
 import com.example.project1.ui.common.ProfilePhotoAvatar
 import com.example.project1.ui.theme.EcoColors
 
+// filter options for the badge collection board
 private enum class BadgeBoardFilter { All, InProgress, Unlocked }
 
+// icons corresponding to various badges
 private val BadgeIcons = listOf(
     Icons.Default.Eco,
     Icons.Default.WaterDrop,
@@ -96,6 +98,8 @@ private val BadgeIcons = listOf(
     Icons.Default.TaskAlt,
     Icons.Default.Recycling
 )
+
+// icons corresponding to milestones
 private val MilestoneIcons = listOf(
     Icons.Default.Park,
     Icons.Default.WbSunny,
@@ -137,11 +141,15 @@ internal fun AchievementsPage(
     val claimable = milestones.filter { !it.locked && it.id !in claimedMilestones }
     val todaysQuest = remember { todaysEcoQuest() }
     val nextChallenge = remember(badges) { nextBadgeChallenge(badges) }
+
+    // filter badges based on active filter chip selection
     val visibleBadges = when (badgeFilter) {
         BadgeBoardFilter.All -> badges
         BadgeBoardFilter.InProgress -> badges.filter { !it.unlocked }
         BadgeBoardFilter.Unlocked -> badges.filter { it.unlocked }
     }
+
+    // infinite pulse animation for claimable items
     val pulse by rememberInfiniteTransition(label = "claimPulse").animateFloat(
         initialValue = 1f,
         targetValue = 1.04f,
@@ -149,6 +157,7 @@ internal fun AchievementsPage(
         label = "claimPulseValue"
     )
 
+    // helper function to open system share sheet with message
     fun shareText(message: String) {
         context.startActivity(
             Intent.createChooser(
@@ -162,6 +171,7 @@ internal fun AchievementsPage(
     }
 
     Column(modifier = Modifier.fillMaxSize().background(EcoColors.Cream)) {
+        // top app bar with back button and title
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -186,6 +196,7 @@ internal fun AchievementsPage(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
+            // user summary and tier progress card
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -223,12 +234,14 @@ internal fun AchievementsPage(
                 onLogAction = onNavigateToLogAction
             )
 
+            // display next badge challenge if available
             nextChallenge?.let { challenge ->
                 Spacer(modifier = Modifier.height(12.dp))
                 NextChallengeCard(challenge, onNavigateToLogAction)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
+            // quick navigation action buttons
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                 OutlinedButton(
                     onClick = onNavigateToLogAction,
@@ -257,6 +270,8 @@ internal fun AchievementsPage(
                 color = EcoColors.TextMuted
             )
             Spacer(modifier = Modifier.height(8.dp))
+
+            // badge board filter chips
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BadgeBoardFilter.entries.forEach { option ->
                     FilterChip(
@@ -280,9 +295,12 @@ internal fun AchievementsPage(
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
+
             if (visibleBadges.isEmpty()) {
                 Text("Nothing in this filter yet. Log an eco action to start unlocking badges.", fontSize = 12.sp, color = EcoColors.TextMuted)
             }
+
+            // render badges grid in rows of 2
             visibleBadges.chunked(2).forEach { rowItems ->
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                     rowItems.forEach { badge ->
@@ -344,6 +362,7 @@ internal fun AchievementsPage(
             EnvironmentalImpactCard(points, plastics)
             Spacer(modifier = Modifier.height(16.dp))
 
+            // quick metric stats overview card
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -378,6 +397,8 @@ internal fun AchievementsPage(
             }
 
             SectionTitle("UPCOMING MILESTONES")
+
+            // banner for batch claiming claimable milestones
             if (claimable.isNotEmpty()) {
                 Card(
                     shape = RoundedCornerShape(12.dp),
@@ -405,6 +426,8 @@ internal fun AchievementsPage(
                 }
                 Spacer(modifier = Modifier.height(10.dp))
             }
+
+            // render milestones grid in rows of 2
             milestones.chunked(2).forEach { rowItems ->
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                     rowItems.forEach { milestone ->
@@ -463,6 +486,7 @@ internal fun AchievementsPage(
                 Spacer(modifier = Modifier.height(10.dp))
             }
 
+            // share impact button
             OutlinedButton(
                 onClick = {
                     shareText(
@@ -480,6 +504,7 @@ internal fun AchievementsPage(
         }
     }
 
+    // dialog for selected badge details and management actions
     selectedBadge?.let { badge ->
         val collected = badge.id in collectedBadges
         val equipped = badge.id == showcaseBadgeId
@@ -555,6 +580,7 @@ internal fun AchievementsPage(
         )
     }
 
+    // dialog for selected milestone details and claiming rewards
     selectedMilestone?.let { milestone ->
         val claimed = milestone.id in claimedMilestones
         val readyToClaim = !milestone.locked && !claimed
@@ -615,6 +641,7 @@ internal fun AchievementsPage(
         )
     }
 
+    // bottom sheet or dialog to inspect daily weekly activity logs
     if (showWeekDayDetail && selectedWeekDay >= 0) {
         val day = ecoStats.weeklyDays.getOrNull(selectedWeekDay) ?: WeeklyDayActivity(
             dayIndex = selectedWeekDay,
@@ -625,7 +652,6 @@ internal fun AchievementsPage(
         WeeklyDayDetailDialog(day = day, onDismiss = { showWeekDayDetail = false })
     }
 }
-
 @Composable
 private fun DailyQuestCard(
     quest: DailyEcoQuest,
@@ -645,12 +671,14 @@ private fun DailyQuestCard(
             Text(quest.hint, fontSize = 12.sp, color = EcoColors.TextMuted)
             Spacer(modifier = Modifier.height(10.dp))
             if (completed) {
+                // display completion state when quest is finished
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.CheckCircle, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
                     Text("Done · +5 pts added", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = EcoColors.DarkGreen)
                 }
             } else {
+                // action buttons to complete or submit proof for the quest
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                     Button(
                         onClick = onComplete,
@@ -723,6 +751,7 @@ private fun WeeklyEcoActivityCard(
                 Icon(Icons.Default.BarChart, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(20.dp))
             }
             Spacer(modifier = Modifier.height(14.dp))
+            // interactive weekly bar chart visualization
             Row(
                 modifier = Modifier.fillMaxWidth().height(108.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -796,6 +825,7 @@ private fun WeeklyDayDetailDialog(day: WeeklyDayActivity, onDismiss: () -> Unit)
                     .padding(20.dp)
                     .verticalScroll(rememberScrollState())
             ) {
+                // dialog header with title and close button
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
@@ -813,6 +843,7 @@ private fun WeeklyDayDetailDialog(day: WeeklyDayActivity, onDismiss: () -> Unit)
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
+                // summary statistic chips for the selected day
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                     DayStatChip(Modifier.weight(1f), "+${day.totalPoints}", "Points earned")
                     DayStatChip(Modifier.weight(1f), day.actionCount.toString(), "Approved actions")
@@ -831,6 +862,7 @@ private fun WeeklyDayDetailDialog(day: WeeklyDayActivity, onDismiss: () -> Unit)
                         color = EcoColors.TextMuted
                     )
                 } else {
+                    // list activity entries for this day
                     day.entries.forEachIndexed { index, entry ->
                         WeeklyEntryRow(entry)
                         if (index != day.entries.lastIndex) {

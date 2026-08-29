@@ -77,6 +77,7 @@ private val CardBorder = Color(0xFFE9E4D8)
 private val TealAccent = Color(0xFF00897B)
 private val PurpleAccent = Color(0xFF5E35B1)
 
+// Modal dialog composable displaying the full comprehensive report snapshot
 @Composable
 fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
     val dateFormat = remember { SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault()) }
@@ -87,6 +88,7 @@ fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
 
     AdaptiveDialogSurface(onDismiss = onDismiss, color = Paper) {
         Column(modifier = Modifier.fillMaxSize()) {
+            // Header banner container with gradient background and close button
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -176,6 +178,7 @@ fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
                 }
             }
 
+            // Scrollable body content section containing metrics, figures, and details
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -195,6 +198,7 @@ fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
                     DocumentSection(icon = Icons.Filled.Description, accent = Forest, title = "Executive summary", body = narrative.summary)
                 }
 
+                // Grid section showcasing impact numbers and statistics
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SectionHeading(icon = Icons.Filled.Assessment, accent = Forest, title = "Impact figures")
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
@@ -207,6 +211,7 @@ fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
                     }
                 }
 
+                // Breakdown list displaying progress status distribution bars
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -259,6 +264,7 @@ fun ReportDetailDialog(report: ReportEntity, onDismiss: () -> Unit) {
     }
 }
 
+// Grid layout grouping document metadata details (prepared by, department, purpose, date)
 @Composable
 private fun MetaGrid(
     preparedBy: String,
@@ -291,6 +297,7 @@ private fun MetaGrid(
     }
 }
 
+// Individual cell layout representing a single metadata property with an icon badge
 @Composable
 private fun MetaCell(modifier: Modifier = Modifier, icon: ImageVector, accent: Color, label: String, value: String) {
     Row(modifier = modifier.padding(end = 8.dp)) {
@@ -325,6 +332,7 @@ private fun MetaCell(modifier: Modifier = Modifier, icon: ImageVector, accent: C
     }
 }
 
+// Section header containing an icon badge and capitalized title text
 @Composable
 private fun SectionHeading(icon: ImageVector, accent: Color, title: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -348,6 +356,7 @@ private fun SectionHeading(icon: ImageVector, accent: Color, title: String) {
     }
 }
 
+// Standard document text section card housing narrative content blocks
 @Composable
 private fun DocumentSection(icon: ImageVector, accent: Color, title: String, body: String) {
     Column(
@@ -369,6 +378,7 @@ private fun DocumentSection(icon: ImageVector, accent: Color, title: String, bod
     }
 }
 
+// Metric tile component highlighting quantitative key statistics
 @Composable
 private fun FigureCell(modifier: Modifier = Modifier, icon: ImageVector, value: String, label: String, accent: Color) {
     Column(
@@ -394,6 +404,7 @@ private fun FigureCell(modifier: Modifier = Modifier, icon: ImageVector, value: 
     }
 }
 
+// Outcome status row component featuring progress distribution bar and ratio metrics
 @Composable
 private fun OutcomeRow(icon: ImageVector, accent: Color, label: String, count: Int, total: Int, showDivider: Boolean = true) {
     val percent = ((count * 100f) / total.toFloat()).toInt()

@@ -426,19 +426,8 @@ private fun DescriptionCard(text: String) {
             .flatCard()
             .padding(14.dp)
     ) {
-        Text(
-            "DESCRIPTION",
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 0.6.sp,
-            color = EcoColors.TextGrey
-        )
+        Text("DESCRIPTION", fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp, color = EcoColors.TextGrey)
         Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text,
-            fontSize = 13.sp,
-            color = Color(0xFF3A3F3B),
-            lineHeight = 19.sp
-        )
+        Text(text, fontSize = 13.sp, color = Color(0xFF3A3F3B), lineHeight = 19.sp)
     }
 }

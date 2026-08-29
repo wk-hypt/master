@@ -58,6 +58,7 @@ import java.util.Date
 import java.util.Locale
 import com.example.project1.ui.theme.EcoColors
 
+// Main screen displaying administrator reports and overview metrics
 @Composable
 fun AdminReportFunct(
     uiState: ReportUiState,
@@ -118,6 +119,7 @@ fun AdminReportFunct(
     }
 }
 
+// Loading indicator state for the report screen
 @Composable
 private fun LoadingState() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -125,6 +127,7 @@ private fun LoadingState() {
     }
 }
 
+// Empty state placeholder when no report data is available
 @Composable
 private fun EmptyReportState() {
     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
@@ -156,6 +159,7 @@ private fun EmptyReportState() {
     }
 }
 
+// Top header bar containing title and save report action button
 @Composable
 private fun ReportHeader(onSaveReportClick: () -> Unit = {}) {
     Row(
@@ -193,6 +197,7 @@ private fun ReportHeader(onSaveReportClick: () -> Unit = {}) {
     }
 }
 
+// Highlight hero card showcasing aggregate campus impact metrics
 @Composable
 private fun ImpactHeroCard(uiState: ReportUiState) {
     Box(
@@ -227,6 +232,7 @@ private fun ImpactHeroCard(uiState: ReportUiState) {
     }
 }
 
+// Individual statistic item displayed inside the hero card
 @Composable
 private fun HeroStat(value: String, label: String, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
@@ -236,6 +242,7 @@ private fun HeroStat(value: String, label: String, modifier: Modifier = Modifier
     }
 }
 
+// Responsive layout grid containing key performance indicator cards
 @Composable
 private fun KpiGrid(uiState: ReportUiState) {
     val kpiItems: @Composable RowScope.() -> Unit = {
@@ -260,6 +267,7 @@ private fun KpiGrid(uiState: ReportUiState) {
     }
 }
 
+// Individual KPI metric card component
 @Composable
 private fun KpiCard(icon: ImageVector, iconColor: Color, iconBg: Color, value: String, label: String, modifier: Modifier = Modifier) {
     Box(modifier = modifier.reportCard()) {
@@ -277,6 +285,7 @@ private fun KpiCard(icon: ImageVector, iconColor: Color, iconBg: Color, value: S
     }
 }
 
+// Card displaying the status breakdown of all submissions (approved, pending, rejected)
 @Composable
 private fun SubmissionStatusCard(uiState: ReportUiState) {
     Box(modifier = Modifier.fillMaxWidth().reportCard()) {
@@ -304,6 +313,7 @@ private fun SubmissionStatusCard(uiState: ReportUiState) {
     }
 }
 
+// Proportional segment bar representing individual status counts
 @Composable
 private fun RowScope.StatusSegment(weightValue: Int, total: Int, color: Color) {
     val fraction = (weightValue.toFloat() / total.toFloat()).coerceIn(0f, 1f)
@@ -312,6 +322,7 @@ private fun RowScope.StatusSegment(weightValue: Int, total: Int, color: Color) {
     }
 }
 
+// Legend item detailing count and description for a status type
 @Composable
 private fun StatusLegendItem(label: String, count: Int) {
     Column {
@@ -320,6 +331,7 @@ private fun StatusLegendItem(label: String, count: Int) {
     }
 }
 
+// Weekly trend card illustrating submission counts over the last 7 days
 @Composable
 private fun WeeklyTrendCard(trend: List<DayTrendItem>) {
     var selectedDay by remember { mutableStateOf<DayTrendItem?>(null) }
@@ -370,6 +382,7 @@ private fun WeeklyTrendCard(trend: List<DayTrendItem>) {
     }
 }
 
+// Ranked breakdown card displaying a vertical list of top categories/actions
 @Composable
 private fun RankedBreakdownCard(title: String, subtitle: String, icon: ImageVector, items: List<ReportBarItem>, barColor: Color) {
     Box(modifier = Modifier.fillMaxWidth().reportCard()) {
@@ -405,6 +418,7 @@ private fun RankedBreakdownCard(title: String, subtitle: String, icon: ImageVect
     }
 }
 
+// Card showing top student contributors based on earned points
 @Composable
 private fun TopContributorsCard(topUsers: List<UserEntity>) {
     var showLeaderboard by remember { mutableStateOf(false) }
@@ -439,6 +453,7 @@ private fun TopContributorsCard(topUsers: List<UserEntity>) {
     }
 }
 
+// Section container listing all official saved reports
 @Composable
 private fun SavedReportsCard(reports: List<ReportEntity>, onView: (ReportEntity) -> Unit, onEdit: (ReportEntity) -> Unit, onDelete: (ReportEntity) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -522,6 +537,7 @@ private fun SavedReportsCard(reports: List<ReportEntity>, onView: (ReportEntity)
     }
 }
 
+// Individual list row representation of a saved report item
 @Composable
 private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
     val dateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
@@ -532,7 +548,7 @@ private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: ()
     val purposeLine = listOfNotNull(
         narrative.purpose?.takeIf { it.isNotBlank() },
         report.periodLabel()
-    ).joinToString("  Â·  ")
+    ).joinToString("  ·  ")
 
     Column(
         modifier = Modifier
@@ -544,7 +560,6 @@ private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: ()
             .clickable { onClick() }
             .padding(14.dp)
     ) {
-        // Top row: document icon, reference + type badge, chevron
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -625,7 +640,6 @@ private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: ()
         HorizontalDivider(color = EcoColors.CardBorder, thickness = 1.dp)
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Stats strip
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             MiniMetric(Modifier.weight(1f), Icons.Filled.FactCheck, "${report.totalSubmissions}", "Filed", EcoColors.Blue)
             MiniMetric(Modifier.weight(1f), Icons.Filled.CheckCircle, "${report.approvedCount}", "Approved", EcoColors.PrimaryGreen)
@@ -635,7 +649,6 @@ private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: ()
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Footer: date + actions
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -658,6 +671,7 @@ private fun SavedReportRow(report: ReportEntity, onClick: () -> Unit, onEdit: ()
     }
 }
 
+// Circular icon button component used for row-level actions like editing or deleting
 @Composable
 private fun RowActionButton(icon: ImageVector, tint: Color, bg: Color, contentDescription: String, onClick: () -> Unit) {
     Box(
@@ -672,6 +686,7 @@ private fun RowActionButton(icon: ImageVector, tint: Color, bg: Color, contentDe
     }
 }
 
+// Compact metric pill component displaying an icon, value, and label
 @Composable
 private fun MiniMetric(modifier: Modifier = Modifier, icon: ImageVector, value: String, label: String, accent: Color) {
     Column(
@@ -688,6 +703,7 @@ private fun MiniMetric(modifier: Modifier = Modifier, icon: ImageVector, value: 
     }
 }
 
+// Section title component containing a primary title and descriptive subtitle
 @Composable
 private fun SectionTitle(title: String, subtitle: String) {
     Column {
@@ -696,6 +712,7 @@ private fun SectionTitle(title: String, subtitle: String) {
     }
 }
 
+// Header row layout combining an icon badge with a section title block
 @Composable
 private fun CardHeaderIconRow(icon: ImageVector, iconBg: Color, iconTint: Color, title: String, subtitle: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {

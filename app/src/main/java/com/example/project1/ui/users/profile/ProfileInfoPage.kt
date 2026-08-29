@@ -74,6 +74,7 @@ import com.example.project1.ui.theme.EcoColors
 import java.util.Calendar
 import java.util.TimeZone
 
+// list of available TAR UMT faculties with their respective codes and full titles
 private val TarUmtFaculties = listOf(
     "FAFB" to "Faculty of Accountancy, Finance and Business",
     "FOAS" to "Faculty of Applied Sciences",
@@ -84,6 +85,7 @@ private val TarUmtFaculties = listOf(
     "FSSH" to "Faculty of Social Science and Humanities"
 )
 
+// helper to retrieve full faculty name or return code as fallback
 private fun facultyDisplayName(code: String): String {
     val trimmed = code.trim()
     if (trimmed.isBlank()) return "Select your faculty"
@@ -96,6 +98,7 @@ private const val MinBirthdayYear = 1920
 
 private fun utcCalendar(): Calendar = Calendar.getInstance(BirthdayUtc)
 
+// convert date string (dd/MM/yyyy) to UTC milliseconds for date picker
 private fun birthdayToMillis(birthday: String): Long? {
     val parts = birthday.trim().split("/")
     if (parts.size != 3) return null
@@ -108,6 +111,7 @@ private fun birthdayToMillis(birthday: String): Long? {
     }.timeInMillis
 }
 
+// convert UTC milliseconds to formatted date string (dd/MM/yyyy)
 private fun millisToBirthday(millis: Long): String {
     val cal = utcCalendar().apply { timeInMillis = millis }
     return "%02d/%02d/%04d".format(
@@ -117,6 +121,7 @@ private fun millisToBirthday(millis: Long): String {
     )
 }
 
+// default date set to 18 years prior to current year
 private fun defaultBirthdayMillis(): Long = utcCalendar().apply {
     add(Calendar.YEAR, -18)
 }.timeInMillis
@@ -149,6 +154,7 @@ internal fun ProfileInfoPage(
     var errorEmail by remember { mutableStateOf<String?>(null) }
     var errorPhoneNumber by remember { mutableStateOf<String?>(null) }
 
+    // form validation rules for user inputs
     fun validate(): Boolean {
         errorName = when {
             name.isBlank() -> "Name cannot be empty"
@@ -183,6 +189,7 @@ internal fun ProfileInfoPage(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(8.dp))
+            // avatar container with badge and color palette trigger
             Box {
                 ProfilePhotoAvatar(
                     name = name.ifBlank { "S" },
@@ -225,6 +232,7 @@ internal fun ProfileInfoPage(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
+            // input fields for user profile details
             ProfileField(label = "Student ID", value = user?.studentId.orEmpty().ifBlank { "—" }, readOnly = true, enabled = false, headingIcon = Icons.Default.Badge)
             ProfileField(
                 label = "Name",
@@ -287,6 +295,7 @@ internal fun ProfileInfoPage(
         }
     }
 
+    // dialog to pick custom avatar color when no photo is set
     if (showColorPicker && profilePhotoPath == null) {
         AlertDialog(
             onDismissRequest = { showColorPicker = false },
@@ -324,6 +333,7 @@ internal fun ProfileInfoPage(
         )
     }
 
+    // material date picker dialog for selecting birth date
     if (showBirthdayPicker) {
         val currentYear = remember { Calendar.getInstance().get(Calendar.YEAR) }
         val datePickerState = rememberDatePickerState(
@@ -359,6 +369,7 @@ internal fun ProfileInfoPage(
         }
     }
 
+    // dialog to select university faculty from list
     if (showFacultyPicker) {
         AlertDialog(
             onDismissRequest = { showFacultyPicker = false },
@@ -420,7 +431,7 @@ private fun ProfileField(
                 onValueChange = { onValueChange(it.withoutEmoji()) },
                 readOnly = readOnly || onClick != null,
                 enabled = enabled && onClick == null,
-                placeholder = holder?.let{holder -> {Text(text = holder)}},
+                placeholder = holder?.let { holderText -> { Text(text = holderText) } },
                 isError = isError,
                 singleLine = true,
                 keyboardOptions = keyboardOptions,

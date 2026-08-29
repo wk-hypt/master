@@ -19,6 +19,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+// login form state model
 data class LoginUiState(
     val studentId: String = "",
     val name: String = "",
@@ -31,6 +32,7 @@ data class LoginUiState(
     val isLoginSuccess: Boolean = false
 )
 
+// forgot password recovery steps
 enum class ForgotPasswordStep {
     Identify,
     ConfirmEmail,
@@ -40,6 +42,7 @@ enum class ForgotPasswordStep {
     Done
 }
 
+// forgot password dialog state model
 data class ForgotPasswordUiState(
     val isOpen: Boolean = false,
     val step: ForgotPasswordStep = ForgotPasswordStep.Identify,
@@ -61,6 +64,7 @@ data class ForgotPasswordUiState(
     val resendSecondsLeft: Int = 0
 )
 
+// viewmodel handling login authentication and password recovery flows
 class LoginViewModel(
     private val userRepository: UserRepository,
     private val adminRepository: AdminRepository,
@@ -73,6 +77,7 @@ class LoginViewModel(
     var forgotUiState by mutableStateOf(ForgotPasswordUiState())
         private set
 
+    // internal recovery tracking fields
     private var resetAccountId: String? = null
     private var resetAccountName: String? = null
     private var resetAccountEmail: String? = null
@@ -86,11 +91,13 @@ class LoginViewModel(
     private var resendAllowedAtMillis: Long = 0L
     private var resendCooldownJob: Job? = null
 
+    // reset login and forgot password state
     fun reset() {
         uiState = LoginUiState()
         closeForgotPassword()
     }
 
+    // handle student id input changes and filtering
     fun onStudentIdChange(newId: String) {
         if (containsAdminWord(newId) && (uiState.isRegisterMode || !isAdminLoginId(newId))) {
             uiState = uiState.copy(studentIdError = "Cannot use the sensitive word \"admin\"")
@@ -108,6 +115,7 @@ class LoginViewModel(
         uiState = uiState.copy(studentId = nextId, studentIdError = null, errorMessage = null)
     }
 
+    // handle name input changes
     fun onNameChange(newName: String) {
         if (containsAdminWord(newName)) {
             uiState = uiState.copy(nameError = "Cannot use the sensitive word \"admin\"")
@@ -116,14 +124,17 @@ class LoginViewModel(
         uiState = uiState.copy(name = newName, nameError = null, errorMessage = null)
     }
 
+    // handle password input changes
     fun onPasswordChange(newPassword: String) {
         uiState = uiState.copy(password = newPassword, passwordError = null, errorMessage = null)
     }
 
+    // toggle between login and register mode
     fun toggleMode() {
         uiState = LoginUiState(isRegisterMode = !uiState.isRegisterMode)
     }
 
+    // validate login/register input fields
     fun validate(): Boolean {
         val id = uiState.studentId.trim()
         val name = uiState.name.trim()
@@ -163,6 +174,7 @@ class LoginViewModel(
         return studentIdError == null && nameError == null && passwordError == null
     }
 
+    // perform login or account registration
     fun login(onSuccess: (String) -> Unit) {
         if (!validate()) return
 
@@ -229,15 +241,18 @@ class LoginViewModel(
         }
     }
 
+    // check if string contains admin keyword
     private fun containsAdminWord(value: String): Boolean =
         value.contains("admin", ignoreCase = true)
 
+    // check if input is forming an admin id
     private fun isBuildingAdminId(value: String): Boolean {
         val trimmed = value.trim()
         if (trimmed.isEmpty()) return false
         return "admin".startsWith(trimmed, ignoreCase = true) || isAdminLoginId(trimmed)
     }
 
+    // check if input is a valid admin login id
     private fun isAdminLoginId(value: String): Boolean {
         val trimmed = value.trim()
         return !uiState.isRegisterMode &&
@@ -245,6 +260,7 @@ class LoginViewModel(
                 trimmed.drop(5).all { it.isDigit() }
     }
 
+    // open forgot password dialog
     fun openForgotPassword() {
         val loginId = uiState.studentId.trim()
         val prefill = if (isAdminAccountId(loginId) || isBuildingAdminId(loginId)) {
@@ -255,6 +271,7 @@ class LoginViewModel(
         forgotUiState = ForgotPasswordUiState(isOpen = true, studentId = prefill)
     }
 
+    // close forgot password dialog and reset recovery state
     fun closeForgotPassword() {
         resendCooldownJob?.cancel()
         resendCooldownJob = null
@@ -272,6 +289,7 @@ class LoginViewModel(
         forgotUiState = ForgotPasswordUiState()
     }
 
+    // handle student id input in forgot password flow
     fun onForgotStudentIdChange(newId: String) {
         val nextId = if (isBuildingAdminId(newId)) {
             newId.trim().take(10)
@@ -285,6 +303,7 @@ class LoginViewModel(
         )
     }
 
+    // handle email input in forgot password flow
     fun onForgotEmailChange(email: String) {
         forgotUiState = forgotUiState.copy(
             emailInput = email,
@@ -293,6 +312,7 @@ class LoginViewModel(
         )
     }
 
+    // handle otp code input in forgot password flow
     fun onForgotOtpChange(code: String) {
         forgotUiState = forgotUiState.copy(
             otpCode = code.filter { it.isDigit() }.take(6),
@@ -301,6 +321,7 @@ class LoginViewModel(
         )
     }
 
+    // handle new password input
     fun onForgotNewPasswordChange(newPassword: String) {
         forgotUiState = forgotUiState.copy(
             newPassword = newPassword,
@@ -309,6 +330,7 @@ class LoginViewModel(
         )
     }
 
+    // handle confirm password input
     fun onForgotConfirmPasswordChange(confirmPassword: String) {
         forgotUiState = forgotUiState.copy(
             confirmPassword = confirmPassword,
@@ -317,6 +339,7 @@ class LoginViewModel(
         )
     }
 
+    // handle back navigation between forgot password steps
     fun backForgotPasswordStep() {
         when (forgotUiState.step) {
             ForgotPasswordStep.ConfirmEmail,
@@ -356,6 +379,7 @@ class LoginViewModel(
         }
     }
 
+    // lookup account for password reset
     fun lookupResetAccount() {
         val id = forgotUiState.studentId.trim()
         val studentIdError = when {
@@ -415,6 +439,7 @@ class LoginViewModel(
         }
     }
 
+    // confirm registered email address matches account
     fun confirmRegisteredEmail() {
         val expected = resetAccountEmail
         if (resetAccountId == null || expected == null) {
@@ -440,10 +465,12 @@ class LoginViewModel(
         viewModelScope.launch { sendOtpToRegisteredEmail() }
     }
 
+    // request manual staff reset approval
     fun requestStaffReset() {
         viewModelScope.launch { openStaffResetPath(reason = StaffResetReason.UserAsked) }
     }
 
+    // resend email verification otp
     fun resendEmailOtp() {
         if (resetAccountEmail.isNullOrBlank()) {
             forgotUiState = forgotUiState.copy(errorMessage = "Start the password reset again")
@@ -459,6 +486,7 @@ class LoginViewModel(
         viewModelScope.launch { sendOtpToRegisteredEmail() }
     }
 
+    // verify email otp code
     fun verifyEmailOtp() {
         val email = resetAccountEmail
         val code = forgotUiState.otpCode.trim()
@@ -467,7 +495,7 @@ class LoginViewModel(
             return
         }
         if (code.length != 6) {
-            forgotUiState = forgotUiState.copy(otpError = "Enter the 6-digit code from your email")
+            forgotUiState = forgotUiState.copy(otpError = "Enter the code from your email")
             return
         }
         viewModelScope.launch {
@@ -496,6 +524,7 @@ class LoginViewModel(
         }
     }
 
+    // confirm and save new password
     fun confirmResetPassword() {
         val accountId = resetAccountId
         if (accountId == null) {
@@ -549,6 +578,7 @@ class LoginViewModel(
         }
     }
 
+    // store temporary account details for recovery process
     private fun rememberAccount(id: String, name: String, email: String?, isAdmin: Boolean) {
         resetAccountId = id
         resetAccountName = name
@@ -562,6 +592,7 @@ class LoginViewModel(
         otpSendSucceeded = false
     }
 
+    // send otp to registered email address
     private suspend fun sendOtpToRegisteredEmail() {
         val email = resetAccountEmail ?: return
         forgotUiState = forgotUiState.copy(isLoading = true, otpError = null, errorMessage = null)
@@ -596,6 +627,7 @@ class LoginViewModel(
         }
     }
 
+    // start resend cooldown timer
     private fun startResendCooldown() {
         resendAllowedAtMillis = System.currentTimeMillis() + 60_000L
         resendCooldownJob?.cancel()
@@ -609,11 +641,13 @@ class LoginViewModel(
         }
     }
 
+    // calculate seconds remaining until resend is allowed
     private fun secondsUntilResendAllowed(): Int {
         val remaining = resendAllowedAtMillis - System.currentTimeMillis()
         return ((remaining + 999) / 1000).toInt().coerceAtLeast(0)
     }
 
+    // parse error message for otp rate limits
     private fun otpSendWaitMessage(raw: String): String? {
         val message = raw.lowercase()
         return when {
@@ -626,8 +660,10 @@ class LoginViewModel(
         }
     }
 
+    // reasons for triggering staff assistance flow
     private enum class StaffResetReason { NoEmail, OtpFailed, EmailMismatch, UserAsked }
 
+    // open staff reset path and create pending request
     private suspend fun openStaffResetPath(reason: StaffResetReason) {
         val accountId = resetAccountId ?: return
         var existing = withContext(Dispatchers.IO) {
@@ -662,31 +698,29 @@ class LoginViewModel(
         forgotUiState = forgotUiState.copy(
             isLoading = false,
             step = ForgotPasswordStep.StaffPending,
-            staffTitle = if (waiting) "Waiting for campus staff" else "Staff reset requested",
+            staffTitle = if (waiting) "Waiting for staff" else "See campus staff",
             staffBody = staffResetMessage(waiting, reason),
             errorMessage = null
         )
     }
 
+    // generate message for staff reset screen
     private fun staffResetMessage(waiting: Boolean, reason: StaffResetReason): String {
-        val prefix = when (reason) {
-            StaffResetReason.NoEmail ->
-                "This account has no email saved, so a staff reset is required. "
-            StaffResetReason.OtpFailed ->
-                "The reset code could not be emailed, so a staff reset is required. "
-            StaffResetReason.EmailMismatch ->
-                "Too many incorrect email tries, so a staff reset is required. "
-            StaffResetReason.UserAsked ->
-                "A staff reset was requested. "
+        val why = when (reason) {
+            StaffResetReason.NoEmail -> "This account has no email."
+            StaffResetReason.OtpFailed -> "We couldn't send a code."
+            StaffResetReason.EmailMismatch -> "Too many wrong emails."
+            StaffResetReason.UserAsked -> "Staff reset requested."
         }
-        val rest = if (waiting) {
-            "Your request is already with campus staff. After they approve it, open Forgot Password again and enter your Student ID to set a new password."
+        val next = if (waiting) {
+            "Staff already has your request. After they approve, open Forgot Password again."
         } else {
-            "A campus admin must verify you in person, then approve the request. After that, open Forgot Password again and enter your Student ID to set a new password."
+            "See campus staff. After they approve, open Forgot Password again."
         }
-        return prefix + rest
+        return "$why $next"
     }
 
+    // mask email address for privacy display
     private fun maskEmail(email: String): String {
         val parts = email.split("@", limit = 2)
         if (parts.size != 2) return "***"
@@ -699,6 +733,7 @@ class LoginViewModel(
         return "$maskedLocal@${parts[1]}"
     }
 
+    // validate password strength rules
     private fun passwordRuleError(password: String): String? = when {
         password.isBlank() -> "Password cannot be empty"
         password.length < 8 -> "Password must be at least 8 characters"
@@ -709,6 +744,7 @@ class LoginViewModel(
         else -> null
     }
 
+    // check if id string belongs to an admin account
     private fun isAdminAccountId(value: String): Boolean {
         val trimmed = value.trim()
         return trimmed.startsWith("admin", ignoreCase = true) &&

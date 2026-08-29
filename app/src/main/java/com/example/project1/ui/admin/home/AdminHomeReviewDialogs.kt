@@ -203,7 +203,7 @@ fun RejectFeedbackDialog(studentId: String, onDismiss: () -> Unit, onConfirm: (f
         titleContentColor = EcoColors.TextDark,
         textContentColor = Color(0xFF495057),
         shape = RoundedCornerShape(20.dp),
-        title = { DialogBadgeTitle("Reject Submission", "\u2715", EcoColors.RejectedBg, EcoColors.Rejected) },
+        title = { Text("Reject Submission", color = EcoColors.Rejected) },
         text = {
             Column {
                 Text("Student: $studentId", fontSize = 13.sp, color = EcoColors.TextGrey2)
@@ -232,13 +232,3 @@ fun RejectFeedbackDialog(studentId: String, onDismiss: () -> Unit, onConfirm: (f
     )
 }
 
-@Composable
-private fun DialogBadgeTitle(text: String, symbol: String, bg: Color, fg: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(bg), contentAlignment = Alignment.Center) {
-            Text(symbol, color = fg, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-        }
-        Spacer(modifier = Modifier.width(10.dp))
-        Text(text, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-    }
-}

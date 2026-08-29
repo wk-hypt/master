@@ -111,6 +111,7 @@ fun RewardsFunct(
                 }
             }
 
+            // tab row to switch between marketplace and user wallet
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Color.White,
@@ -135,39 +136,42 @@ fun RewardsFunct(
             }
 
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            when (selectedTab) {
-                0 -> MarketList(
-                    vouchers = available,
-                    points = points,
-                    heldCounts = VoucherRules.heldCountByTitle(wallet),
-                    isRedeeming = isRedeeming,
-                    onRedeem = { voucher -> pendingRedeem = voucher }
-                )
-                else -> {
-                    var qrVoucher by remember { mutableStateOf<VoucherEntity?>(null) }
-                    LaunchedEffect(wallet, qrVoucher?.id) {
-                        val openVoucher = qrVoucher ?: return@LaunchedEffect
-                        val stillInWallet = wallet.any { it.id == openVoucher.id }
-                        if (!stillInWallet) {
-                            qrVoucher = null
+                when (selectedTab) {
+                    // market tab listing available vouchers
+                    0 -> MarketList(
+                        vouchers = available,
+                        points = points,
+                        heldCounts = VoucherRules.heldCountByTitle(wallet),
+                        isRedeeming = isRedeeming,
+                        onRedeem = { voucher -> pendingRedeem = voucher }
+                    )
+                    // wallet tab listing redeemed vouchers with qr popup handling
+                    else -> {
+                        var qrVoucher by remember { mutableStateOf<VoucherEntity?>(null) }
+                        LaunchedEffect(wallet, qrVoucher?.id) {
+                            val openVoucher = qrVoucher ?: return@LaunchedEffect
+                            val stillInWallet = wallet.any { it.id == openVoucher.id }
+                            if (!stillInWallet) {
+                                qrVoucher = null
+                            }
+                        }
+                        WalletList(
+                            redeemedVouchers = wallet,
+                            onVoucherClick = { qrVoucher = it }
+                        )
+                        qrVoucher?.let { voucher ->
+                            VoucherQrDialog(
+                                voucher = voucher,
+                                onDismiss = { qrVoucher = null }
+                            )
                         }
                     }
-                    WalletList(
-                        redeemedVouchers = wallet,
-                        onVoucherClick = { qrVoucher = it }
-                    )
-                    qrVoucher?.let { voucher ->
-                        VoucherQrDialog(
-                            voucher = voucher,
-                            onDismiss = { qrVoucher = null }
-                        )
-                    }
                 }
-            }
             }
         }
     }
 
+    // confirmation dialog before redeeming a voucher
     pendingRedeem?.let { voucher ->
         val heldCount = VoucherRules.heldCountByTitle(wallet)[voucher.title] ?: 0
         RedeemConfirmDialog(
@@ -311,6 +315,7 @@ private fun MarketVoucherCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // display voucher image
             if (!voucher.imageUrl.isNullOrEmpty()) {
                 AsyncImage(
                     model = voucher.imageUrl,
@@ -339,6 +344,7 @@ private fun MarketVoucherCard(
 
             Spacer(modifier = Modifier.width(10.dp))
 
+            // voucher details info
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = EcoColors.TextDark, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(text = voucher.merchantName, fontSize = 12.sp,color = Color(0xFF6B7280), maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -349,6 +355,7 @@ private fun MarketVoucherCard(
 
             Spacer(modifier = Modifier.width(8.dp))
 
+            // redeem button and limit counter column
             Column(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -443,6 +450,7 @@ private fun WalletVoucherCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // voucher image or placeholder icon
                 if (!voucher.imageUrl.isNullOrEmpty()) {
                     AsyncImage(
                         model = voucher.imageUrl,
@@ -474,6 +482,7 @@ private fun WalletVoucherCard(
                     Text(text = "${voucher.pointsCost} pts · ${voucher.category}", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.PrimaryGreen)
                 }
 
+                // redeemed badge indicator
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -495,6 +504,7 @@ private fun WalletVoucherCard(
             Divider(color = Color(0xFFEEEEEE), thickness = 1.dp)
             Spacer(modifier = Modifier.height(10.dp))
 
+            // prompt text to show QR code to staff
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

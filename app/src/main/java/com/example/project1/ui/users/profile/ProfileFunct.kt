@@ -153,7 +153,7 @@ fun ProfileFunct(
                     onBack = { page = UserProfilePage.Settings },
                     blocks = listOf(
                         "I forgot my Student ID or password." to
-                                "Tap Forgot Password, enter your Student ID, then the email saved on that account. A 6-digit code is sent to that inbox only — type it in the app and ignore any email link. If the account has no email, or the code cannot be sent, campus staff must verify you.",
+                                "Tap Forgot Password, enter your Student ID and registered email, then type the code from that inbox. Ignore any email link. If you cannot use email, ask campus staff.",
                         "Why was my submission rejected?" to
                                 "Check the feedback given by the reviewing staff. Common reasons include unclear photos or incomplete details.",
                         "How are points awarded?" to

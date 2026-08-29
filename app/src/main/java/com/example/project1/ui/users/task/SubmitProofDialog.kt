@@ -56,6 +56,7 @@ fun SubmitProofDialog(
         }
     }
 
+    // checks camera permission before launching the camera intent
     fun launchCamera() {
         val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
         if (hasPermission) {
@@ -71,68 +72,70 @@ fun SubmitProofDialog(
 
     AdaptiveDialogSurface(onDismiss = onDismiss) {
         Column(modifier = Modifier.fillMaxSize()) {
-                TopAppBar(
-                    title = { Text("Submit Proof") },
-                    navigationIcon = {
-                        IconButton(onClick = onDismiss) {
-                            Icon(Icons.Default.Close, contentDescription = "Close")
-                        }
-                    }
-                )
-
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(photoHeight)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFF0F0F0)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (capturedUri != null) {
-                            AsyncImage(
-                                model = capturedUri,
-                                contentDescription = "Proof photo",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        } else {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Default.CameraAlt, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(44.dp))
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text("Take a photo to prove your progress", color = Color.Gray, fontSize = 13.sp)
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Button(
-                        onClick = { launchCamera() },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
-                    ) {
-                        Icon(Icons.Default.CameraAlt, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (capturedUri == null) "Take Photo" else "Retake Photo")
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Button(
-                        onClick = { capturedUri?.let { onSubmit(it.toString()) } },
-                        enabled = capturedUri != null,
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.Blue)
-                    ) {
-                        Text("Submit", fontWeight = FontWeight.Bold)
+            TopAppBar(
+                title = { Text("Submit Proof") },
+                navigationIcon = {
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "Close")
                     }
                 }
+            )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(photoHeight)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFF0F0F0)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (capturedUri != null) {
+                        AsyncImage(
+                            model = capturedUri,
+                            contentDescription = "Proof photo",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.CameraAlt, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(44.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Take a photo to prove your progress", color = Color.Gray, fontSize = 13.sp)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // button to trigger camera capture or retake
+                Button(
+                    onClick = { launchCamera() },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen)
+                ) {
+                    Icon(Icons.Default.CameraAlt, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(if (capturedUri == null) "Take Photo" else "Retake Photo")
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // submit proof button enabled only when photo is captured
+                Button(
+                    onClick = { capturedUri?.let { onSubmit(it.toString()) } },
+                    enabled = capturedUri != null,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = EcoColors.Blue)
+                ) {
+                    Text("Submit", fontWeight = FontWeight.Bold)
+                }
             }
+        }
     }
 }

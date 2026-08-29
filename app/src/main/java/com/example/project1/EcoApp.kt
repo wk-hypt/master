@@ -74,6 +74,7 @@ sealed class Screen(
     object Leaderboard : Screen("leaderboard", "Leaderboard")
 }
 
+
 sealed class AdminScreen(
     val route: String,
     val title: String,
@@ -86,6 +87,7 @@ sealed class AdminScreen(
     object Profile : AdminScreen("admin_profile", "Profile", Icons.Filled.Person, Icons.Outlined.Person)
 }
 
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun EcoApp() {
@@ -95,6 +97,7 @@ fun EcoApp() {
     }
 }
 
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun EcoAppContent(onEndSession: () -> Unit) {
@@ -102,6 +105,7 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
     val navController = rememberNavController()
     val app = LocalContext.current.applicationContext as EcoApplication
     val notificationViewModel: NotificationViewModel = viewModel(factory = AppViewModelProvider.Factory)
+
     val studentItems = listOf(
         Screen.Home,
         Screen.Task,
@@ -116,15 +120,16 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
         AdminScreen.Profile
     )
 
+    // Persistent state variables tracking logged-in user identifiers and tab configurations
     var loggedInStudentId by rememberSaveable { mutableStateOf("") }
     var loggedInAdminId by rememberSaveable { mutableStateOf("") }
     var approvalInitialTab by remember { mutableIntStateOf(0) }
 
+    // Track current navigation stack entry and active route
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     val isAdminMode = currentRoute?.startsWith("admin_") == true
-
     val isStudentMainTab = currentRoute?.startsWith("home/") == true ||
             currentRoute == Screen.Task.route ||
             currentRoute == Screen.Rewards.route ||
@@ -151,6 +156,7 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
         notificationViewModel.setTaskTabOpen(currentRoute == Screen.Task.route)
     }
 
+    // Map screen items to adaptive navigation destinations with corresponding badge configs and click behaviors
     val navDestinations = if (isAdminMode) {
         adminItems.map { screen ->
             EcoNavDestination(
@@ -231,6 +237,7 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                 startDestination = Screen.Login.route,
                 modifier = Modifier.padding(innerPadding)
             ) {
+                // Login view destination handling role redirection logic upon successful authentication
                 composable(Screen.Login.route) {
                     LoginView(
                         onLoginSuccess = { loginId ->
@@ -253,6 +260,7 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                     )
                 }
 
+                // Student Home destination route configured with dynamic student ID argument injection
                 composable(
                     route = Screen.Home.route,
                     arguments = listOf(navArgument("studentId") { type = NavType.StringType })
@@ -267,14 +275,17 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                         supabaseClient = SupabaseClientProvider.client
                     )
                 }
+                // Student Task feature view destination route
                 composable(Screen.Task.route) {
                     TaskView(studentId = loggedInStudentId, onOpenLeaderboard = {
                         navController.navigate(Screen.Leaderboard.route)
                     })
                 }
+                // Student Rewards store/redemption view destination route
                 composable(Screen.Rewards.route) {
                     RewardsView(studentId = loggedInStudentId)
                 }
+                // Student Profile account and settings view destination route
                 composable(Screen.Profile.route) {
                     ProfileView(
                         studentId = loggedInStudentId,
@@ -294,6 +305,7 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                         }
                     )
                 }
+                // Student Profile history sub-view route configuration
                 composable(Screen.ProfileHistory.route) {
                     ProfileView(
                         studentId = loggedInStudentId,
@@ -314,6 +326,7 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                         }
                     )
                 }
+                // Global student and community rankings leaderboard destination route
                 composable(Screen.Leaderboard.route) {
                     LeaderboardView(
                         studentId = loggedInStudentId,
@@ -321,20 +334,22 @@ private fun EcoAppContent(onEndSession: () -> Unit) {
                     )
                 }
 
-                //admin page start
+                // Admin dashboard / task approval review page destination route
                 composable(AdminScreen.Approval.route) {
                     AdminHomeView(
                         adminId = loggedInAdminId,
                         initialTab = approvalInitialTab
                     )
                 }
-
+                // Admin reward catalog management dashboard view route
                 composable(AdminScreen.Rewards.route) {
                     AdminRewardsView()
                 }
+                // Admin data reports and analytics summary view route
                 composable(AdminScreen.Report.route) {
                     AdminReportView(adminId = loggedInAdminId)
                 }
+                // Admin account settings and management view route
                 composable(AdminScreen.Profile.route) {
                     AdminProfileView(
                         adminId = loggedInAdminId,

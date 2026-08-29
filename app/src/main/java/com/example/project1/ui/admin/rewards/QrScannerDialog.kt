@@ -52,6 +52,7 @@ import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
 import com.example.project1.ui.theme.EcoColors
 
+// fullscreen dialog component for handling camera permission and qr code scanning
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QrScannerDialog(
@@ -64,14 +65,16 @@ fun QrScannerDialog(
     var hasPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
-                PackageManager.PERMISSION_GRANTED
+                    PackageManager.PERMISSION_GRANTED
         )
     }
 
+    // launcher for requesting camera runtime permissions
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted -> hasPermission = granted }
 
+    // request camera permission on first composition if missing
     LaunchedEffect(Unit) {
         if (!hasPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
     }
@@ -82,15 +85,12 @@ fun QrScannerDialog(
     ) {
         Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
             Column(modifier = Modifier.fillMaxSize()) {
+                // top app bar showing scanner title and target voucher name
                 TopAppBar(
                     title = {
                         Column {
                             Text("Scan voucher QR", color = Color.White, fontSize = 18.sp)
-                            Text(
-                                text = voucherTitle,
-                                color = Color(0xFFB2DFDB),
-                                fontSize = 12.sp
-                            )
+                            Text(text = voucherTitle, color = Color(0xFFB2DFDB), fontSize = 12.sp)
                         }
                     },
                     navigationIcon = {
@@ -102,18 +102,16 @@ fun QrScannerDialog(
                 )
 
                 when {
+                    // show warning state if camera permission is denied
                     !hasPermission -> {
                         Box(
                             modifier = Modifier.fillMaxSize().padding(24.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "Camera permission is required to scan voucher QR codes.",
-                                color = Color.White,
-                                fontSize = 14.sp
-                            )
+                            Text(text = "Camera permission is required to scan voucher QR codes.", color = Color.White, fontSize = 14.sp)
                         }
                     }
+                    // display camera preview and targeting box
                     else -> {
                         Box(modifier = Modifier.fillMaxSize()) {
                             QrCameraPreview(
@@ -142,6 +140,7 @@ fun QrScannerDialog(
     }
 }
 
+// cameraX preview and mlkit barcode analysis pipeline implementation
 @androidx.annotation.OptIn(ExperimentalGetImage::class)
 @Composable
 private fun QrCameraPreview(
@@ -157,6 +156,7 @@ private fun QrCameraPreview(
         }
     }
 
+    // bind camera provider and mlkit barcode analyzer to lifecycle
     DisposableEffect(lifecycleOwner) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         val listener = Runnable {

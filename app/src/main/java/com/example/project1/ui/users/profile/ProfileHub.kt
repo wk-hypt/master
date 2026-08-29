@@ -96,12 +96,14 @@ internal fun ProfileHubPage(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
+        // top header banner with background image support
         HubHeader(
             backgroundPhotoPath = backgroundPhotoPath,
             onPickBackground = { launchImagePicker(backgroundPicker) },
             onRemoveBackground = onRemoveBackgroundPhoto
         )
 
+        // overlapping user info card with avatar and title
         Card(
             modifier = Modifier
                 .padding(horizontal = 20.dp)
@@ -153,6 +155,7 @@ internal fun ProfileHubPage(
             }
         }
 
+        // key statistics chips row
         Row(
             modifier = Modifier
                 .padding(horizontal = 20.dp)
@@ -165,14 +168,17 @@ internal fun ProfileHubPage(
             ProfileStatChip(Modifier.weight(1f), Icons.Default.EmojiEvents, "Tier", tier.name)
         }
 
+        // optional profile completeness card if setup is incomplete
         if (completeness < 1f) {
             CompletenessCard(completeness, onOpenInfo)
             Spacer(modifier = Modifier.height(12.dp))
         }
 
+        // overall campus eco impact snapshot card
         EcoSnapshotCard(stats = ecoStats)
 
         Spacer(modifier = Modifier.height(12.dp))
+        // navigation menu options list
         Card(
             modifier = Modifier
                 .padding(horizontal = 20.dp)
@@ -217,6 +223,7 @@ private fun HubHeader(
             ),
         contentAlignment = Alignment.Center
     ) {
+        // display custom background photo if provided
         if (backgroundPhotoPath != null) {
             AsyncImage(
                 model = File(backgroundPhotoPath),
@@ -238,6 +245,7 @@ private fun HubHeader(
             Text("ECO TARUMT", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
 
+        // action buttons to modify or remove background image
         Row(
             modifier = Modifier.align(Alignment.TopEnd).padding(10.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -352,6 +360,7 @@ private fun EcoSnapshotCard(stats: EcoProfileStats) {
     }
 }
 
+// helper function to calculate time-based greeting string
 private fun timeBasedGreeting(): String = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
     in 5..11 -> "Good morning"
     in 12..17 -> "Good afternoon"

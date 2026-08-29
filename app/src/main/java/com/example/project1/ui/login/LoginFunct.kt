@@ -392,7 +392,7 @@ fun HelpSupportDialog(onDismiss: () -> Unit) {
 
                     HelpSection(
                         question = "I forgot my Student ID or password.",
-                        answer = "Tap Forgot Password, enter your Student ID, then the email saved on that account. A 6-digit code is sent to that inbox only — type it in the app and ignore any email link. If the account has no email, or the code cannot be sent, campus staff must verify you."
+                        answer = "Tap Forgot Password, enter your Student ID and registered email, then type the code from that inbox. Ignore any email link. If you cannot use email, ask campus staff."
                     )
                     HelpSection(
                         question = "Why was my submission rejected?",

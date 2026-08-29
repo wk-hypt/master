@@ -23,10 +23,12 @@ fun ProfileView(
     onNavigateToLogAction: () -> Unit = {},
     viewModel: ProfileViewModel = viewModel(key = studentId, factory = AppViewModelProvider.Factory)
 ) {
+    // update current student context in view model when studentId changes
     LaunchedEffect(studentId) {
         viewModel.setCurrentStudent(studentId)
     }
 
+    // collect state flows from view model
     val user by viewModel.user.collectAsState()
     val ecoStats by viewModel.ecoStats.collectAsState()
     val submissions by viewModel.submissions.collectAsState()
@@ -43,12 +45,14 @@ fun ProfileView(
     val completedDailyQuestId by viewModel.completedDailyQuestId.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // display snackbar messages emitted from view model and clear them afterward
     LaunchedEffect(message) {
         val text = message ?: return@LaunchedEffect
         snackbarHostState.showSnackbar(text)
         viewModel.clearMessage()
     }
 
+    // route all state and actions to the main profile composable function
     ProfileFunct(
         user = user,
         ecoStats = ecoStats,

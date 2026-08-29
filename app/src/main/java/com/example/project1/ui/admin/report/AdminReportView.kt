@@ -12,25 +12,30 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project1.data.model.ReportEntity
 import com.example.project1.ui.AppViewModelProvider
 
+// Root screen composable managing state and dialog flows for the admin report dashboard
 @Composable
 fun AdminReportView(
     adminId: String,
     modifier: Modifier = Modifier,
     viewModel: AdminReportViewModel = viewModel(key = adminId, factory = AppViewModelProvider.Factory)
 ) {
+    // Initialize or update the active admin ID when it changes
     LaunchedEffect(adminId) {
         viewModel.setCurrentAdmin(adminId)
     }
 
+    // Collect reactive UI states and data streams from the ViewModel
     val uiState by viewModel.reportUiState.collectAsState()
     val savedReports by viewModel.savedReports.collectAsState()
     val currentAdmin by viewModel.currentAdmin.collectAsState()
 
+    // Dialog state controllers for viewing, saving, editing, and deleting reports
     var showSaveDialog by remember { mutableStateOf(false) }
     var viewingReport by remember { mutableStateOf<ReportEntity?>(null) }
     var editingReport by remember { mutableStateOf<ReportEntity?>(null) }
     var reportPendingDelete by remember { mutableStateOf<ReportEntity?>(null) }
 
+    // Main functional UI content component passing down states and action callbacks
     AdminReportFunct(
         uiState = uiState,
         savedReports = savedReports,
@@ -41,6 +46,7 @@ fun AdminReportView(
         modifier = modifier
     )
 
+    // Detailed report view modal dialog
     viewingReport?.let { report ->
         ReportDetailDialog(
             report = report,
@@ -48,6 +54,7 @@ fun AdminReportView(
         )
     }
 
+    // Modal dialog for creating a new report snapshot
     if (showSaveDialog) {
         ReportFormDialog(
             existing = null,
@@ -62,6 +69,7 @@ fun AdminReportView(
         )
     }
 
+    // Modal dialog for editing an existing report entry
     editingReport?.let { report ->
         ReportFormDialog(
             existing = report,
@@ -76,6 +84,7 @@ fun AdminReportView(
         )
     }
 
+    // Confirmation dialog for deleting a saved report
     reportPendingDelete?.let { report ->
         DeleteReportDialog(
             report = report,

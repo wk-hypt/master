@@ -21,6 +21,7 @@ import com.example.project1.ui.common.ChangePasswordDialog
 import com.example.project1.ui.common.ProfileConfirmDialog
 import com.example.project1.ui.theme.EcoColors
 
+// Internal navigation pages for the admin profile flow
 private enum class AdminProfilePage { Hub, Info, StaffDirectory, StaffDetails, UserManagement, UserDetails, PasswordResets }
 
 @Composable
@@ -52,6 +53,7 @@ fun AdminProfileFunct(
     onLogout: () -> Unit,
     snackbarHost: @Composable () -> Unit = {}
 ) {
+    // UI state for navigation and active dialogs/selections
     var page by remember { mutableStateOf(AdminProfilePage.Hub) }
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showLogoutConfirm by remember { mutableStateOf(false) }
@@ -64,6 +66,7 @@ fun AdminProfileFunct(
         snackbarHost = snackbarHost
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            // Switch current view based on active page state
             when (page) {
                 AdminProfilePage.Hub -> AdminHubPage(
                     displayName = admin?.name.orEmpty().ifBlank { "Staff" },
@@ -133,6 +136,7 @@ fun AdminProfileFunct(
         }
     }
 
+    // Password change dialog
     if (showPasswordDialog) {
         ChangePasswordDialog(
             verificationCode = verificationCode,
@@ -149,6 +153,7 @@ fun AdminProfileFunct(
         )
     }
 
+    // Logout confirmation dialog
     if (showLogoutConfirm) {
         ProfileConfirmDialog(
             title = "Log out",

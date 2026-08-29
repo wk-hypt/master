@@ -38,11 +38,13 @@ import java.util.Locale
 const val REPORT_TYPE_OVERALL = "OVERALL"
 const val REPORT_TYPE_STUDENT = "STUDENT"
 
+// Represents a single breakdown item (e.g., top action types with counts)
 data class ReportBarItem(
     val label: String,
     val count: Int
 )
 
+// Represents submission activity data for a specific day in a weekly trend
 data class DayTrendItem(
     val dayLabel: String,
     val fullDateLabel: String,
@@ -50,6 +52,7 @@ data class DayTrendItem(
     val submissions: List<EcoSubmissionEntity> = emptyList()
 )
 
+// Main UI state representing all data displayed on the report screen
 data class ReportUiState(
     val isLoading: Boolean = true,
     val hasData: Boolean = false,
@@ -67,7 +70,7 @@ data class ReportUiState(
     val topContributors: List<UserEntity> = emptyList()
 )
 
-/** Raw source data behind the report screen, cached so a "Save" can build a fresh snapshot on demand. */
+// Raw source data cached to build snapshots on demand
 private data class RawReportData(
     val submissions: List<EcoSubmissionEntity> = emptyList(),
     val tasks: List<TaskEntity> = emptyList(),
@@ -75,6 +78,7 @@ private data class RawReportData(
     val vouchers: List<VoucherEntity> = emptyList()
 )
 
+// Static snapshot of metrics used when saving a report
 private data class ReportSnapshot(
     val totalSubmissions: Int,
     val approvedCount: Int,
@@ -97,6 +101,7 @@ class AdminReportViewModel(
     private val _currentAdmin = MutableStateFlow<AdminEntity?>(null)
     val currentAdmin: StateFlow<AdminEntity?> = _currentAdmin.asStateFlow()
 
+    // Set active admin
     fun setCurrentAdmin(adminId: String) {
         currentAdminId = adminId
         viewModelScope.launch {
@@ -108,6 +113,7 @@ class AdminReportViewModel(
         }
     }
 
+    // Combine repo data streams
     private val rawData: StateFlow<RawReportData> = combine(
         submissionRepository.getReportSubmissionsStream(),
         taskRepository.getReportTasksStream(),
@@ -121,6 +127,7 @@ class AdminReportViewModel(
         initialValue = RawReportData()
     )
 
+    // Map raw data to UI state
     val reportUiState: StateFlow<ReportUiState> = rawData
         .map { raw -> buildReportUiState(raw.submissions, raw.tasks, raw.users, raw.vouchers) }
         .stateIn(
@@ -129,6 +136,7 @@ class AdminReportViewModel(
             initialValue = ReportUiState()
         )
 
+    // Saved reports stream
     val savedReports: StateFlow<List<ReportEntity>> =
         reportRepository.getAllReportsStream()
             .stateIn(
@@ -137,13 +145,7 @@ class AdminReportViewModel(
                 initialValue = emptyList()
             )
 
-    /**
-     * Saves the report shown when the admin taps "Save".
-     * - studentId == null -> the overall campus snapshot.
-     * - studentId != null -> a simple static snapshot scoped to just that student.
-     * - startDate/endDate == null -> all-time totals (same as before).
-     * - startDate/endDate set -> totals scoped to that date range only.
-     */
+    // Save report snapshot
     fun saveReport(input: ReportFormInput) {
         val studentId = input.studentId
         val hasRange = input.startDate != null || input.endDate != null
@@ -193,10 +195,7 @@ class AdminReportViewModel(
         }
     }
 
-    /**
-     * Simple static totals, optionally filtered to one student and/or a [startDate]..[endDate]
-     * window (both inclusive, either side may be null for an open range).
-     */
+    // Build scoped totals
     private fun buildScopedSnapshot(
         raw: RawReportData,
         studentId: String?,
@@ -231,6 +230,7 @@ class AdminReportViewModel(
         )
     }
 
+    // Update report info
     fun updateReport(report: ReportEntity, title: String, narrative: ReportNarrative) {
         viewModelScope.launch {
             try {
@@ -241,6 +241,7 @@ class AdminReportViewModel(
         }
     }
 
+    // Delete report
     fun deleteReport(report: ReportEntity) {
         viewModelScope.launch {
             try {
@@ -251,6 +252,7 @@ class AdminReportViewModel(
         }
     }
 
+    // Compute UI state values
     private fun buildReportUiState(
         submissions: List<EcoSubmissionEntity>,
         tasks: List<TaskEntity>,
@@ -288,12 +290,12 @@ class AdminReportViewModel(
         )
     }
 
+    // Generate 7-day trend buckets
     private fun buildWeeklyTrend(submissions: List<EcoSubmissionEntity>): List<DayTrendItem> {
         val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())
         val fullDateFormat = SimpleDateFormat("EEEE, dd MMM", Locale.getDefault())
         val calendar = Calendar.getInstance()
 
-        // Build the last 7 calendar-day buckets, oldest first.
         val dayBuckets = (6 downTo 0).map { offset ->
             val cal = calendar.clone() as Calendar
             cal.add(Calendar.DAY_OF_YEAR, -offset)
@@ -318,6 +320,7 @@ class AdminReportViewModel(
         }
     }
 
+    // Generate top action breakdown
     private fun buildBreakdown(values: List<String>): List<ReportBarItem> {
         return values
             .groupingBy { it }
@@ -326,5 +329,4 @@ class AdminReportViewModel(
             .sortedByDescending { it.count }
             .take(5)
     }
-
 }

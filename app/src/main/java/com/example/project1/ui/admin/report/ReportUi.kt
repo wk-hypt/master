@@ -9,12 +9,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.example.project1.ui.theme.EcoColors
 
+// Global shape and spacing design tokens used across the reporting feature modules
 internal val ReportCardShape = RoundedCornerShape(16.dp)
 internal val ReportChipShape = RoundedCornerShape(20.dp)
 internal val ReportCardPadding = 16.dp
 internal val ReportScreenPadding = 14.dp
 internal val ReportSectionGap = 14.dp
 
+// Custom reusable modifier extension applying standard surface background, border stroke, and corner clipping for report cards
 internal fun Modifier.reportCard() = this
     .clip(ReportCardShape)
     .background(EcoColors.Surface)

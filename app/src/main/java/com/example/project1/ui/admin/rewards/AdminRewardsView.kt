@@ -1,5 +1,7 @@
 package com.example.project1.ui.admin.rewards
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -27,10 +29,13 @@ import com.example.project1.ui.AppViewModelProvider
 import kotlinx.coroutines.launch
 import com.example.project1.ui.theme.EcoColors
 
+// main view for managing admin rewards, inventory, and qr scanning
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AdminRewardsView(
     viewModel: AdminRewardsViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    // collect state flows from viewmodel
     val available by viewModel.available.collectAsState()
     val expired by viewModel.expired.collectAsState()
     val scanResult by viewModel.scanResult.collectAsState()
@@ -38,10 +43,12 @@ fun AdminRewardsView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    // dialog and sheet visibility states
     var showCreateSheet by remember { mutableStateOf(false) }
     var editingVoucher by remember { mutableStateOf<VoucherEntity?>(null) }
     var voucherToDelete by remember { mutableStateOf<VoucherEntity?>(null) }
 
+    // handle qr scan result notifications
     LaunchedEffect(scanResult) {
         val result = scanResult ?: return@LaunchedEffect
         if (result is VoucherScanResult.Success) {
@@ -50,6 +57,7 @@ fun AdminRewardsView(
         }
     }
 
+    // render functional content view for admin rewards
     AdminRewardsFunct(
         available = available,
         expired = expired,
@@ -62,6 +70,7 @@ fun AdminRewardsView(
         modifier = Modifier.fillMaxSize()
     )
 
+    // bottom sheet dialog for creating a new voucher
     if (showCreateSheet) {
         VoucherFormDialog(
             existing = null,
@@ -85,6 +94,7 @@ fun AdminRewardsView(
         )
     }
 
+    // bottom sheet dialog for editing an existing voucher
     editingVoucher?.let { voucher ->
         VoucherFormDialog(
             existing = voucher,
@@ -109,6 +119,7 @@ fun AdminRewardsView(
         )
     }
 
+    // confirmation dialog for deleting a voucher
     voucherToDelete?.let { voucher ->
         AlertDialog(
             onDismissRequest = { voucherToDelete = null },

@@ -21,10 +21,12 @@ fun AdminProfileView(
     onNavigateToApproval: (tab: Int) -> Unit = {},
     viewModel: AdminProfileViewModel = viewModel(key = adminId, factory = AppViewModelProvider.Factory)
 ) {
+    // Update active admin ID when it changes
     LaunchedEffect(adminId) {
         viewModel.setCurrentAdmin(adminId)
     }
 
+    // Collect all required ViewModel states
     val admin by viewModel.admin.collectAsState()
     val message by viewModel.message.collectAsState()
     val pendingSubmissionsCount by viewModel.pendingSubmissionsCount.collectAsState()
@@ -40,12 +42,14 @@ fun AdminProfileView(
     val verificationCode by viewModel.verificationCode.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Show snackbar feedback messages
     LaunchedEffect(message) {
         val text = message ?: return@LaunchedEffect
         snackbarHostState.showSnackbar(text)
         viewModel.clearMessage()
     }
 
+    // Pass states and lambda callbacks to the UI content layout
     AdminProfileFunct(
         admin = admin,
         pendingSubmissionsCount = pendingSubmissionsCount,
