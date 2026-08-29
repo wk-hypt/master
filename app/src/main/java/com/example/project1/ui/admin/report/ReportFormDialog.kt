@@ -67,6 +67,7 @@ internal val ReportAudienceOptions = listOf("Internal staff", "Campus management
 
 internal val ReportDepartmentOptions = listOf("Sustainability Office", "Campus Admin", "FOCS", "FAFB", "FOAS", "FOBE", "FOET", "FCCI", "FSSH", "Other")
 
+// Modal bottom sheet dialog for creating a new report snapshot or editing an existing one
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportFormDialog(
@@ -83,6 +84,7 @@ fun ReportFormDialog(
     )
     val existingNarrative = remember(existing) { existing?.narrative() ?: ReportNarrative() }
 
+    // Initialize local form field states from existing data or defaults
     val initialTitle = existing?.title.orEmpty()
     val initialPreparedBy = existingNarrative.preparedBy.orEmpty().ifBlank { defaultPreparedBy }
     val initialDepartment = existingNarrative.department.orEmpty().ifBlank { defaultDepartment }
@@ -116,21 +118,23 @@ fun ReportFormDialog(
     var showDateRangePicker by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
 
+    // Track whether any form fields have been modified from their initial values
     val hasUnsavedChanges =
         title != initialTitle ||
-            preparedBy != initialPreparedBy ||
-            department != initialDepartment ||
-            purpose != initialPurpose ||
-            audience != initialAudience ||
-            summary != initialSummary ||
-            findings != initialFindings ||
-            recommendations != initialRecommendations ||
-            notes != initialNotes ||
-            isStudentReport != initialIsStudentReport ||
-            selectedStudent?.studentId != initialStudentId ||
-            startDate != initialStartDate ||
-            endDate != initialEndDate
+                preparedBy != initialPreparedBy ||
+                department != initialDepartment ||
+                purpose != initialPurpose ||
+                audience != initialAudience ||
+                summary != initialSummary ||
+                findings != initialFindings ||
+                recommendations != initialRecommendations ||
+                notes != initialNotes ||
+                isStudentReport != initialIsStudentReport ||
+                selectedStudent?.studentId != initialStudentId ||
+                startDate != initialStartDate ||
+                endDate != initialEndDate
 
+    // Intercept close action to prompt user if there are unsaved changes
     fun requestClose() {
         if (hasUnsavedChanges) {
             showDiscardDialog = true
@@ -157,6 +161,7 @@ fun ReportFormDialog(
                 .padding(bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            // Header bar containing dialog title, description, and close button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -185,6 +190,7 @@ fun ReportFormDialog(
                 }
             }
 
+            // Scope selection section (only available when creating a new report)
             if (existing == null) {
                 FormSectionLabel("1. Scope")
                 Row(
@@ -217,6 +223,7 @@ fun ReportFormDialog(
                 )
             }
 
+            // Document details input fields
             FormSectionLabel(if (existing == null) "2. Document details" else "Document details")
             FormTextField(value = title, onValueChange = { title = it }, label = "Report title", singleLine = true)
             FormTextField(value = preparedBy, onValueChange = { preparedBy = it }, label = "Prepared by", singleLine = true)
@@ -244,6 +251,7 @@ fun ReportFormDialog(
                 onSelect = { audience = it }
             )
 
+            // Narrative text blocks section
             FormSectionLabel(if (existing == null) "3. Narrative" else "Narrative")
             FormTextField(
                 value = summary,
@@ -270,6 +278,7 @@ fun ReportFormDialog(
                 minLines = 2
             )
 
+            // Primary confirmation action button to save or generate the report
             Button(
                 onClick = {
                     val target = if (isStudentReport) selectedStudent else null
@@ -310,6 +319,7 @@ fun ReportFormDialog(
         }
     }
 
+    // Confirmation dialog when attempting to dismiss with unsaved changes
     if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
@@ -333,6 +343,7 @@ fun ReportFormDialog(
         )
     }
 
+    // Date range picker dialog for filtering coverage period
     if (showDateRangePicker) {
         val rangeState = rememberDateRangePickerState(
             initialSelectedStartDateMillis = startDate,
@@ -360,6 +371,7 @@ fun ReportFormDialog(
     }
 }
 
+// Section category header label within the report form
 @Composable
 private fun FormSectionLabel(text: String) {
     Text(
@@ -372,6 +384,7 @@ private fun FormSectionLabel(text: String) {
     )
 }
 
+// Outlined text input field with emoji sanitization
 @Composable
 private fun FormTextField(
     value: String,
@@ -394,6 +407,7 @@ private fun FormTextField(
     )
 }
 
+// Clickable field component displaying selected date range or filter state
 @Composable
 private fun DateRangeField(startDate: Long?, endDate: Long?, onClick: () -> Unit, onClear: () -> Unit) {
     val dateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
@@ -447,6 +461,7 @@ private fun DateRangeField(startDate: Long?, endDate: Long?, onClick: () -> Unit
     }
 }
 
+// Selectable pill chip component for report type scopes
 @Composable
 private fun ReportTypeChip(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Surface(
@@ -470,6 +485,7 @@ private fun ReportTypeChip(label: String, selected: Boolean, modifier: Modifier 
     }
 }
 
+// Dropdown selector component supporting preset options and optional custom text input
 @Composable
 private fun OptionDropdown(
     label: String,
@@ -531,6 +547,7 @@ private fun OptionDropdown(
     }
 }
 
+// Student selection dropdown component for generating individual student reports
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StudentDropdown(students: List<UserEntity>, selected: UserEntity?, onSelect: (UserEntity) -> Unit) {

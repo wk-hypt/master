@@ -5,6 +5,7 @@ import com.example.project1.data.model.TaskEntity
 import com.example.project1.data.model.UserEntity
 import java.util.Calendar
 
+// represents a membership level tier based on total points
 data class MemberTier(
     val name: String,
     val level: Int,
@@ -12,6 +13,7 @@ data class MemberTier(
     val minPoints: Int,
     val nextThreshold: Int?
 ) {
+    // calculates progress towards the next tier threshold
     fun progress(points: Int): Float {
         val cap = nextThreshold ?: return 1f
         val span = (cap - minPoints).coerceAtLeast(1)
@@ -19,6 +21,7 @@ data class MemberTier(
     }
 }
 
+// represents an unlockable achievement badge
 data class EcoBadge(
     val id: String,
     val title: String,
@@ -31,27 +34,32 @@ data class EcoBadge(
     val progressLabel: String get() = if (unlocked) "Unlocked" else "$current/$goal"
 }
 
+// represents a quick daily eco challenge
 data class DailyEcoQuest(
     val id: String,
     val title: String,
     val hint: String
 )
 
+// list of available daily eco quests
 fun dailyEcoQuests(): List<DailyEcoQuest> = listOf(
     DailyEcoQuest("bottle", "Reusable bottle", "Skip a disposable cup or bottle today."),
     DailyEcoQuest("recycle", "Sort recycling", "Put at least one item in the right bin."),
     DailyEcoQuest("walk", "Walk a short trip", "Skip a vehicle for a nearby destination.")
 )
 
+// picks today's quest cyclically based on the day of the year
 fun todaysEcoQuest(now: Long = System.currentTimeMillis()): DailyEcoQuest {
     val quests = dailyEcoQuests()
     val dayOfYear = Calendar.getInstance().apply { timeInMillis = now }.get(Calendar.DAY_OF_YEAR)
     return quests[dayOfYear % quests.size]
 }
 
+// finds the closest locked badge challenge to focus on
 fun nextBadgeChallenge(badges: List<EcoBadge>): EcoBadge? =
     badges.filter { !it.unlocked }.maxByOrNull { it.progress }
 
+// represents a major milestone achievement with bonus rewards
 data class EcoMilestone(
     val id: String,
     val title: String,
@@ -64,6 +72,7 @@ data class EcoMilestone(
     val locked: Boolean get() = current < goal
 }
 
+// represents a personalized green goal
 data class EcoGoal(
     val title: String,
     val current: Int,
@@ -74,6 +83,7 @@ data class EcoGoal(
     val completed: Boolean get() = current >= target
 }
 
+// aggregates profile stats for display
 data class EcoProfileStats(
     val approvedActions: Int = 0,
     val submittedActions: Int = 0,
@@ -90,6 +100,7 @@ data class EcoProfileStats(
 
 enum class WeeklyActivitySource { Submission, Task }
 
+// individual activity entry for weekly logs
 data class WeeklyActivityEntry(
     val source: WeeklyActivitySource,
     val title: String,
@@ -98,6 +109,7 @@ data class WeeklyActivityEntry(
     val timestamp: Long
 )
 
+// summary of user activities for a specific day of the week
 data class WeeklyDayActivity(
     val dayIndex: Int,
     val shortLabel: String,
@@ -110,6 +122,7 @@ data class WeeklyDayActivity(
     val taskCount: Int get() = entries.count { it.source == WeeklyActivitySource.Task }
 }
 
+// determines the appropriate membership tier for given points
 fun memberTierFor(points: Int): MemberTier {
     val tiers = listOf(
         MemberTier("Seedling", 1, minPoints = 0, nextThreshold = 100),
@@ -121,6 +134,7 @@ fun memberTierFor(points: Int): MemberTier {
     return tiers.last { points >= it.minPoints }
 }
 
+// generates the list of badges and their current unlocked states
 fun badgesFor(
     points: Int,
     plasticsSaved: Int,
@@ -143,6 +157,7 @@ data class EcoImpact(
     val waterLitersSaved: Int
 )
 
+// calculates estimated environmental impact equivalents
 fun impactFor(points: Int, plasticsSaved: Int): EcoImpact {
     val co2Grams = plasticsSaved * 80 + points * 5
     val trees = co2Grams / 21_000.0
@@ -150,6 +165,7 @@ fun impactFor(points: Int, plasticsSaved: Int): EcoImpact {
     return EcoImpact(co2Grams, trees, waterLiters)
 }
 
+// generates milestones based on points and plastics saved
 fun milestonesFor(points: Int, plasticsSaved: Int): List<EcoMilestone> = listOf(
     EcoMilestone("tree_planter", "Tree Planter", 30, plasticsSaved.coerceAtMost(20), 20, "$plasticsSaved/20 plastics saved"),
     EcoMilestone("solar_explorer", "Solar Explorer", 50, points.coerceAtMost(500), 500, "$points/500 points"),
@@ -157,12 +173,14 @@ fun milestonesFor(points: Int, plasticsSaved: Int): List<EcoMilestone> = listOf(
     EcoMilestone("zero_waste_advocate", "Zero Waste Advocate", 150, points.coerceAtMost(1500), 1500, "$points/1500 points")
 )
 
+// generates profile goals and progress
 fun goalsFor(points: Int, plasticsSaved: Int, stats: EcoProfileStats): List<EcoGoal> = listOf(
     EcoGoal("Save 50 plastic items", plasticsSaved, 50, "items"),
     EcoGoal("Reach 3,000 eco points", points, 3000, "points"),
     EcoGoal("Complete 30 eco actions", stats.approvedActions, 30, "actions")
 )
 
+// builds comprehensive profile stats by processing user submissions, tasks, and leaderboard data
 fun buildEcoProfileStats(
     currentUser: UserEntity?,
     submissions: List<EcoSubmissionEntity>,
@@ -181,11 +199,13 @@ fun buildEcoProfileStats(
         approvedTasks.forEach { add(it.reviewTimestamp ?: it.timestamp) }
     }
 
+    // calculates points earned within the last 30 days
     val thirtyDaysAgo = now - 30L * 24 * 60 * 60 * 1000
     val monthlyPoints =
         approvedSubmissions.filter { (it.reviewTimestamp ?: it.timestamp) >= thirtyDaysAgo }.sumOf { it.points } +
                 approvedTasks.filter { (it.reviewTimestamp ?: it.timestamp) >= thirtyDaysAgo }.sumOf { it.points }
 
+    // determines the user's campus rank from the leaderboard
     val rank = currentUser?.let { user ->
         allUsers
             .sortedByDescending { it.totalPoints }
@@ -203,6 +223,7 @@ fun buildEcoProfileStats(
     fun dayIndexFor(timestamp: Long): Int =
         ((startOfDay(timestamp) - weekStart) / (24L * 60 * 60 * 1000)).toInt()
 
+    // populate approved submissions into weekly buckets
     approvedSubmissions.forEach { submission ->
         val timestamp = submission.reviewTimestamp ?: submission.timestamp
         val dayIndex = dayIndexFor(timestamp)
@@ -216,6 +237,7 @@ fun buildEcoProfileStats(
             )
         }
     }
+    // populate approved tasks into weekly buckets
     approvedTasks.forEach { task ->
         val timestamp = task.reviewTimestamp ?: task.timestamp
         val dayIndex = dayIndexFor(timestamp)
@@ -254,6 +276,7 @@ fun buildEcoProfileStats(
     )
 }
 
+// helper to normalize timestamp to the start of the day (00:00:00)
 private fun startOfDay(timestamp: Long): Long {
     val c = Calendar.getInstance().apply { timeInMillis = timestamp }
     c.set(Calendar.HOUR_OF_DAY, 0)
@@ -263,6 +286,7 @@ private fun startOfDay(timestamp: Long): Long {
     return c.timeInMillis
 }
 
+// calculates the current consecutive day activity streak
 private fun calculateCurrentStreak(events: List<Long>, now: Long): Int {
     if (events.isEmpty()) return 0
     val eventDays = events.map(::startOfDay).toSet()
@@ -279,6 +303,7 @@ private fun calculateCurrentStreak(events: List<Long>, now: Long): Int {
     return streak
 }
 
+// formats full date labels for the past week
 private fun buildWeekFullLabels(now: Long): List<String> {
     val labels = mutableListOf<String>()
     val format = java.text.SimpleDateFormat("EEEE, d MMM", java.util.Locale.getDefault())
@@ -291,6 +316,7 @@ private fun buildWeekFullLabels(now: Long): List<String> {
     return labels
 }
 
+// formats short single-letter day labels for the past week
 private fun buildWeekLabels(now: Long): List<String> {
     val labels = mutableListOf<String>()
     val format = java.text.SimpleDateFormat("EEEEE", java.util.Locale.getDefault())

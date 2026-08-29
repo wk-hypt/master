@@ -80,7 +80,7 @@ fun TaskView(
     }
 
     if (showAddDialog) {
-        TargetFormDialog(
+        TaskFormDialog(
             existingTask = null,
             onDismiss = { showAddDialog = false },
             onConfirm = { title, description, quantity, deadline ->
@@ -94,7 +94,7 @@ fun TaskView(
     }
 
     taskBeingEdited?.let { task ->
-        TargetFormDialog(
+        TaskFormDialog(
             existingTask = task,
             onDismiss = { taskBeingEdited = null },
             onConfirm = { title, description, quantity, deadline ->

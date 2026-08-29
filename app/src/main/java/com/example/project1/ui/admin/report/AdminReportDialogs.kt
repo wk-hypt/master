@@ -49,6 +49,7 @@ import java.util.Date
 import java.util.Locale
 import com.example.project1.ui.theme.EcoColors
 
+// Dialog displaying detailed submissions for a specific trend day
 @Composable
 internal fun DaySubmissionsDialog(day: DayTrendItem, onDismiss: () -> Unit) {
     val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
@@ -110,6 +111,7 @@ internal fun DaySubmissionsDialog(day: DayTrendItem, onDismiss: () -> Unit) {
     }
 }
 
+// Dialog listing top student contributors ranked by points
 @Composable
 internal fun LeaderboardDialog(topUsers: List<UserEntity>, onDismiss: () -> Unit) {
     Dialog(
@@ -157,6 +159,7 @@ internal fun LeaderboardDialog(topUsers: List<UserEntity>, onDismiss: () -> Unit
     }
 }
 
+// Confirmation dialog for report deletion
 @Composable
 internal fun DeleteReportDialog(
     report: ReportEntity,
@@ -180,6 +183,7 @@ internal fun DeleteReportDialog(
     )
 }
 
+// Single row item representing a student contributor on the leaderboard
 @Composable
 private fun ContributorRow(rank: Int, user: UserEntity) {
     val (badgeBg, badgeText) = when (rank) {

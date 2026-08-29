@@ -48,6 +48,7 @@ fun TaskFunct(
 
     val statusOptions = listOf("In Progress", "Pending Approval", "Approved", "Rejected")
 
+    // filters tasks dynamically based on search keyword and status filter chip selection
     val filteredTasks = remember(tasks, searchQuery, selectedStatusFilter) {
         tasks.filter { task ->
             val matchesSearch = task.title.contains(searchQuery, ignoreCase = true) ||
@@ -86,6 +87,7 @@ fun TaskFunct(
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
 
+            // search bar and filter chips header section
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -117,6 +119,7 @@ fun TaskFunct(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
+                // horizontal filter chips row for task statuses
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     item {
                         FilterChip(
@@ -151,6 +154,7 @@ fun TaskFunct(
 
             HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 
+            // empty state view when no tasks match filter or list is empty
             if (filteredTasks.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -188,6 +192,7 @@ fun TaskFunct(
                     }
                 }
             } else {
+                // lazy column listing all filtered task cards
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
@@ -210,6 +215,7 @@ fun TaskFunct(
         }
     }
 
+    // confirmation dialog popup before task deletion
     taskToDelete?.let { task ->
         AlertDialog(
             onDismissRequest = { taskToDelete = null },
@@ -233,13 +239,7 @@ fun TaskFunct(
 }
 
 @Composable
-fun TaskCard(
-    task: TaskEntity,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit,
-    onSnapPhoto: (String) -> Unit,
-    onSubmitToAdmin: () -> Unit
-) {
+fun TaskCard(task: TaskEntity, onEditClick: () -> Unit, onDeleteClick: () -> Unit, onSnapPhoto: (String) -> Unit, onSubmitToAdmin: () -> Unit) {
     var showProofDialog by remember { mutableStateOf(false) }
 
     val currentProgress = task.currentQuantity
@@ -255,6 +255,7 @@ fun TaskCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
 
+            // task header row with optional image proof thumbnail and status badge
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -277,12 +278,7 @@ fun TaskCard(
                             .background(EcoColors.ApprovedBg),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Eco,
-                            contentDescription = "Eco Task",
-                            tint = EcoColors.PrimaryGreen,
-                            modifier = Modifier.size(26.dp)
-                        )
+                        Icon(imageVector = Icons.Default.Eco, contentDescription = "Eco Task", tint = EcoColors.PrimaryGreen, modifier = Modifier.size(26.dp))
                     }
                 }
 
@@ -294,32 +290,21 @@ fun TaskCard(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = task.title,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = EcoColors.TextDark,
-                            modifier = Modifier.weight(1f)
-                        )
+                        Text(text = task.title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = EcoColors.TextDark, modifier = Modifier.weight(1f))
                         Spacer(modifier = Modifier.width(6.dp))
                         StatusBadge(status = task.status)
                     }
 
                     if (!task.description.isNullOrBlank()) {
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = task.description,
-                            fontSize = 12.sp,
-                            color = Color(0xFF6C757D),
-                            maxLines = 2,
-                            lineHeight = 16.sp
-                        )
+                        Text(text = task.description, fontSize = 12.sp, color = Color(0xFF6C757D), maxLines = 2, lineHeight = 16.sp)
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // task deadline date info row
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Event, contentDescription = null, tint = Color(0xFFADB5BD), modifier = Modifier.size(14.dp))
                 Spacer(modifier = Modifier.width(4.dp))
@@ -328,6 +313,7 @@ fun TaskCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
+            // progress indicator bar with numerical count display
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 LinearProgressIndicator(
                     progress = { progressFraction },
@@ -337,16 +323,12 @@ fun TaskCard(
                     strokeCap = StrokeCap.Round
                 )
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "$currentProgress/${task.taskQuantity}",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = EcoColors.PrimaryGreen
-                )
+                Text(text = "$currentProgress/${task.taskQuantity}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = EcoColors.PrimaryGreen)
             }
 
             Spacer(modifier = Modifier.height(14.dp))
 
+            // action buttons and status feedback row (snap photo, submit, earned points)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -389,12 +371,7 @@ fun TaskCard(
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        text = "Waiting for Admin Approval",
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = EcoColors.PendingYellowFg
-                                    )
+                                    Text(text = "Waiting for Admin Approval", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.PendingYellowFg)
                                 }
                             }
                         }
@@ -415,18 +392,9 @@ fun TaskCard(
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Column {
-                                        Text(
-                                            text = "Rejected",
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = EcoColors.Rejected
-                                        )
+                                        Text(text = "Rejected", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = EcoColors.Rejected)
                                         if (!task.adminFeedback.isNullOrBlank()) {
-                                            Text(
-                                                text = task.adminFeedback,
-                                                fontSize = 11.sp,
-                                                color = EcoColors.Rejected
-                                            )
+                                            Text(text = task.adminFeedback, fontSize = 11.sp, color = EcoColors.Rejected)
                                         }
                                     }
                                 }
@@ -435,7 +403,7 @@ fun TaskCard(
                         else -> {
                             Button(
                                 onClick = { showProofDialog = true },
-                                enabled = !task.isTargetReached,
+                                enabled = !task.isTaskReached,
                                 colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
                                 shape = RoundedCornerShape(10.dp),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
@@ -445,7 +413,7 @@ fun TaskCard(
                                 Text("Snap Photo", fontSize = 12.sp)
                             }
 
-                            if (task.isTargetReached) {
+                            if (task.isTaskReached) {
                                 Button(
                                     onClick = onSubmitToAdmin,
                                     colors = ButtonDefaults.buttonColors(containerColor = EcoColors.DarkGreen),
@@ -461,6 +429,7 @@ fun TaskCard(
                     }
                 }
 
+                // edit and delete icon buttons for incomplete tasks
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (!task.isApproved && !task.isPending && !task.isRejected) {
                         IconButton(onClick = onEditClick) {
@@ -475,6 +444,7 @@ fun TaskCard(
         }
     }
 
+    // popup dialog for capturing progress proof photo
     if (showProofDialog) {
         SubmitProofDialog(
             onDismiss = { showProofDialog = false },

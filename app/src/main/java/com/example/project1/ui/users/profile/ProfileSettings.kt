@@ -60,15 +60,18 @@ internal fun SettingsPage(
         ProfilePageHeader(title = "Settings", onBack = onBack)
         Spacer(modifier = Modifier.height(8.dp))
 
+        // preferences section containing settings switches
         SettingsGroup("Preferences") {
             ToggleRow("Notifications", Icons.Default.Notifications, notificationsEnabled, onToggleNotifications)
         }
         Spacer(modifier = Modifier.height(20.dp))
+        // security section for password management and account deletion
         SettingsGroup("Account Security") {
             ProfileMenuRow("CHANGE PASSWORD", Icons.Default.Lock, onChangePassword)
             ProfileMenuRow("DELETE ACCOUNT", Icons.Default.Person, onDeleteAccount, tint = EcoColors.Danger)
         }
         Spacer(modifier = Modifier.height(20.dp))
+        // support and information options
         SettingsGroup("Support") {
             ProfileMenuRow("FAQ", Icons.Default.Info, onFaq)
             ProfileMenuRow("CONTACT US", Icons.Default.Support, onContact)
@@ -96,6 +99,7 @@ internal fun SupportTextPage(
             colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.White),
             modifier = Modifier.fillMaxWidth()
         ) {
+            // scrollable container rendering heading and body content blocks
             Column(modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
                 blocks.forEach { (heading, body) ->
                     Column(modifier = Modifier.padding(bottom = 14.dp)) {

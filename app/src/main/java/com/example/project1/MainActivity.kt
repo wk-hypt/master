@@ -13,7 +13,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.project1.ui.theme.EcoTheme
 
 class MainActivity : ComponentActivity() {
-    @RequiresApi(Build.VERSION_CODES.O)
+    @RequiresApi(Build.VERSION_CODES.O) //for java.time or system APIs.
     override fun onCreate(savedInstanceState: Bundle?) {
         Thread.sleep(1000)
         installSplashScreen()

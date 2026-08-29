@@ -39,6 +39,7 @@ import java.util.Locale
 import java.util.TimeZone
 import com.example.project1.ui.theme.EcoColors
 
+// bottom sheet dialog component for creating or editing voucher entities
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VoucherFormDialog(
@@ -58,16 +59,18 @@ fun VoucherFormDialog(
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    // form field states initialized with existing values if editing
     var merchant by remember { mutableStateOf(existing?.merchantName.orEmpty()) }
     var title by remember { mutableStateOf(existing?.title.orEmpty()) }
     var cost by remember { mutableStateOf(existing?.pointsCost?.toString().orEmpty()) }
     var category by remember { mutableStateOf(existing?.category.orEmpty()) }
     var quantity by remember { mutableIntStateOf(existing?.quantity?: 0) }
 
-    // Date Picker State
+    // date picker state and iso formatting handlers
     var expiryIsoString by remember { mutableStateOf(existing?.expiryDate) }
     var showDatePicker by remember { mutableStateOf(false) }
 
+    // format iso expiry string into a readable date display
     val displayExpiryDate = remember(expiryIsoString) {
         expiryIsoString?.takeIf { it.isNotBlank() }?.let { isoStr ->
             try {
@@ -84,11 +87,13 @@ fun VoucherFormDialog(
         } ?: ""
     }
 
+    // image selection state and content picker launcher
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? -> selectedImageUri = uri }
 
+    // validate required form fields and constraints
     val isValid = merchant.isNotBlank() &&
             title.isNotBlank() &&
             category.isNotBlank() &&
@@ -108,31 +113,23 @@ fun VoucherFormDialog(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            // dialog header title and close button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = if (existing == null) "Create New Voucher" else "Edit Voucher",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = EcoColors.TextDark
-                )
+                Text(text = if (existing == null) "Create New Voucher" else "Edit Voucher", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = EcoColors.TextDark)
                 IconButton(onClick = onDismiss) {
                     Icon(Icons.Default.Close, contentDescription = "Close")
                 }
             }
 
-            Text(
-                text = "Voucher Cover Image",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = EcoColors.TextDark
-            )
+            Text(text = "Voucher Cover Image", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = EcoColors.TextDark)
 
             val displayImage = selectedImageUri ?: existing?.imageUrl
 
+            // clickable image upload box preview container
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -158,16 +155,12 @@ fun VoucherFormDialog(
                             modifier = Modifier.size(36.dp)
                         )
                         Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "Tap to upload photo",
-                            fontSize = 12.sp,
-                            color = EcoColors.PrimaryGreen,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Text(text = "Tap to upload photo", fontSize = 12.sp, color = EcoColors.PrimaryGreen, fontWeight = FontWeight.Medium)
                     }
                 }
             }
 
+            // voucher title input text field
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it.withoutEmoji() },
@@ -181,6 +174,7 @@ fun VoucherFormDialog(
                 )
             )
 
+            // merchant name input text field
             OutlinedTextField(
                 value = merchant,
                 onValueChange = { merchant = it.withoutEmoji() },
@@ -194,6 +188,7 @@ fun VoucherFormDialog(
                 )
             )
 
+            // category input text field
             OutlinedTextField(
                 value = category,
                 onValueChange = { category = it.withoutEmoji() },
@@ -207,6 +202,7 @@ fun VoucherFormDialog(
                 )
             )
 
+            // row layout for points cost and quantity stepper controls
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -234,43 +230,37 @@ fun VoucherFormDialog(
                     )
                 )
 
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Text("Quantity", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = Color.DarkGray)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("(pcs/set)", fontSize = 12.sp, color = Color.Gray)
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedButton(
-                            onClick = { if (quantity > 1) quantity-- },
-                            contentPadding = PaddingValues(0.dp),
-                            modifier = Modifier.size(36.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                contentColor = Color.Black
-                            )
-                        ) {
-                            Icon(Icons.Default.Remove, contentDescription = "Decrease", modifier = Modifier.size(18.dp))
-                        }
-                        Text(
-                            text = quantity.toString(),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            color = Color.Black
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Text("Quantity", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = Color.DarkGray)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("(pcs/set)", fontSize = 12.sp, color = Color.Gray)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedButton(
+                        onClick = { if (quantity > 1) quantity-- },
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.size(36.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            contentColor = Color.Black
                         )
-                        OutlinedButton(
-                            onClick = { quantity++ },
-                            contentPadding = PaddingValues(0.dp),
-                            modifier = Modifier.size(36.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                contentColor = Color.Black
-                            )
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = "Increase", modifier = Modifier.size(18.dp))
-                        }
+                    ) {
+                        Icon(Icons.Default.Remove, contentDescription = "Decrease", modifier = Modifier.size(18.dp))
+                    }
+                    Text(text = quantity.toString(), fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
+                    OutlinedButton(
+                        onClick = { quantity++ },
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.size(36.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            contentColor = Color.Black
+                        )
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Increase", modifier = Modifier.size(18.dp))
+                    }
                 }
             }
 
-            // Expiry Date Input Field
+            // expiration date input field overlay with click listener
             Box(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = displayExpiryDate,
@@ -300,6 +290,7 @@ fun VoucherFormDialog(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // submit confirm button to save or create voucher data
             Button(
                 onClick = {
                     var imageBytes: ByteArray? = null
@@ -328,15 +319,12 @@ fun VoucherFormDialog(
                 colors = ButtonDefaults.buttonColors(containerColor = EcoColors.PrimaryGreen),
                 shape = RoundedCornerShape(10.dp)
             ) {
-                Text(
-                    text = if (existing == null) "Create Voucher" else "Save Changes",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Text(text = if (existing == null) "Create Voucher" else "Save Changes", fontSize = 15.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
 
+    // material date picker dialog popup implementation
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState()
         DatePickerDialog(

@@ -162,12 +162,12 @@ val TaskEntity.isPending: Boolean
 val TaskEntity.isRejected: Boolean
     get() = status.equals("Rejected", ignoreCase = true)
 
-val TaskEntity.isTargetReached: Boolean
+val TaskEntity.isTaskReached: Boolean
     get() = currentQuantity >= taskQuantity
 
 // Checks if task is ready to submit to admin
 val TaskEntity.canSubmitToAdmin: Boolean
-    get() = isTargetReached && !isPending && !isApproved && !isRejected
+    get() = isTaskReached && !isPending && !isApproved && !isRejected
 
 fun TaskEntity.approvedAtMillis(): Long = reviewTimestamp ?: timestamp
 

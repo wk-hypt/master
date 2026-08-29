@@ -1,6 +1,8 @@
 package com.example.project1.ui.admin.rewards
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.project1.data.model.NewVoucher
@@ -16,15 +18,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.UUID
 
+// sealed class for QR scan result status
 sealed class VoucherScanResult {
     data class Success(val message: String) : VoucherScanResult()
     data class Invalid(val message: String) : VoucherScanResult()
 }
 
+// viewmodel for managing admin rewards and QR scanning operations
 class AdminRewardsViewModel(
     private val offerRepository: OfferRepository
 ) : ViewModel() {
 
+    // get stream of active, non-expired available vouchers
+    @RequiresApi(Build.VERSION_CODES.O)
     val available: StateFlow<List<VoucherEntity>> =
         offerRepository.getAvailableVouchersStream()
             .map { list -> list.filter { !VoucherRules.isExpired(it.expiryDate) } }
@@ -34,6 +40,8 @@ class AdminRewardsViewModel(
                 initialValue = emptyList()
             )
 
+//    // get stream of expired vouchers
+    @RequiresApi(Build.VERSION_CODES.O)
     val expired: StateFlow<List<VoucherEntity>> =
         offerRepository.getAvailableVouchersStream()
             .map { list -> list.filter { VoucherRules.isExpired(it.expiryDate) } }
@@ -43,13 +51,16 @@ class AdminRewardsViewModel(
                 initialValue = emptyList()
             )
 
+    // state flow for tracking qr scan outcome
     private val _scanResult = MutableStateFlow<VoucherScanResult?>(null)
     val scanResult: StateFlow<VoucherScanResult?> = _scanResult.asStateFlow()
 
+    // clear current scan result state
     fun clearScanResult() {
         _scanResult.value = null
     }
 
+    // validate and consume scanned voucher qr payload
     fun consumeScannedQr(expectedTitle: String, qrPayload: String) = viewModelScope.launch {
         try {
             val used = offerRepository.consumeWalletVoucher(qrPayload, expectedTitle)
@@ -61,6 +72,7 @@ class AdminRewardsViewModel(
         }
     }
 
+    // create a new voucher and handle image upload if present
     fun create(
         merchant: String,
         title: String,
@@ -94,6 +106,7 @@ class AdminRewardsViewModel(
         }
     }
 
+    // update existing voucher details and optional image
     fun update(
         existing: VoucherEntity,
         merchant: String,
@@ -127,6 +140,7 @@ class AdminRewardsViewModel(
         }
     }
 
+    // delete voucher from repository
     fun delete(voucher: VoucherEntity) = viewModelScope.launch {
         try {
             offerRepository.deleteVoucher(voucher)

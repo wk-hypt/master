@@ -57,6 +57,7 @@ import com.example.project1.ui.common.ProfileConfirmDialog
 import com.example.project1.ui.common.ProfilePageHeader
 import com.example.project1.ui.theme.EcoColors
 
+// filter options for submission history status
 private enum class HistoryFilter(val label: String) {
     All("All"),
     Pending("Pending"),
@@ -76,6 +77,7 @@ internal fun ProfileHistoryPage(
     var selectedIds by remember { mutableStateOf(setOf<Int>()) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
+    // filter submissions based on status chip selection
     val filtered = remember(submissions, filter) {
         when (filter) {
             HistoryFilter.All -> submissions
@@ -90,6 +92,7 @@ internal fun ProfileHistoryPage(
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         ProfilePageHeader(title = "Submission history", onBack = onBack) {
             if (selectionMode) {
+                // delete button and cancel option during multi-select mode
                 IconButton(
                     onClick = { showDeleteConfirm = true },
                     enabled = selectedIds.isNotEmpty()
@@ -105,6 +108,7 @@ internal fun ProfileHistoryPage(
                     selectedIds = emptySet()
                 }) { Text("Cancel", fontWeight = FontWeight.Bold) }
             } else if (filtered.isNotEmpty()) {
+                // button to enter batch selection mode
                 TextButton(onClick = { selectionMode = true }) { Text("Select", fontWeight = FontWeight.Bold) }
             }
         }
@@ -115,6 +119,7 @@ internal fun ProfileHistoryPage(
         )
         Spacer(modifier = Modifier.height(12.dp))
 
+        // filter chips for submission status
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             HistoryFilter.entries.forEach { option ->
                 FilterChip(
@@ -131,6 +136,7 @@ internal fun ProfileHistoryPage(
         }
         Spacer(modifier = Modifier.height(12.dp))
 
+        // empty state view when no items match filter
         if (filtered.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -154,6 +160,7 @@ internal fun ProfileHistoryPage(
                 }
             }
         } else {
+            // lazy list of submission cards
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 20.dp),
@@ -184,10 +191,12 @@ internal fun ProfileHistoryPage(
         }
     }
 
+    // detail view dialog for a specific submission
     selected?.let { submission ->
         HistoryDetailDialog(submission) { selected = null }
     }
 
+    // confirmation dialog for deleting selected submissions
     if (showDeleteConfirm) {
         val count = selectedIds.size
         ProfileConfirmDialog(
@@ -226,6 +235,7 @@ private fun HistoryCard(
             modifier = Modifier.padding(12.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // show checkbox when in selection mode
             if (selectionMode) {
                 Checkbox(
                     checked = checked,
@@ -234,6 +244,7 @@ private fun HistoryCard(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
             }
+            // thumbnail container for submission image or fallback icon
             Box(
                 modifier = Modifier
                     .size(56.dp)
@@ -257,6 +268,7 @@ private fun HistoryCard(
                 }
             }
             Spacer(modifier = Modifier.width(12.dp))
+            // submission details text
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     submission.actionType,
@@ -279,6 +291,7 @@ private fun HistoryCard(
                     color = Color(0xFF9E9E9E)
                 )
             }
+            // status chip and points awarded
             Column(horizontalAlignment = Alignment.End) {
                 HistoryStatusChip(submission.status)
                 if (submission.status.equals("Approved", ignoreCase = true) && submission.points > 0) {

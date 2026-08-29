@@ -31,7 +31,7 @@ import com.example.project1.ui.theme.EcoColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TargetFormDialog(
+fun TaskFormDialog(
     existingTask: TaskEntity? = null,
     onDismiss: () -> Unit,
     onConfirm: (title: String, description: String, quantity: Int, deadline: Long) -> Unit
@@ -42,6 +42,7 @@ fun TargetFormDialog(
     val locale = LocalConfiguration.current.locales[0]
     val dateFormatter = remember(locale) { SimpleDateFormat("dd MMM yyyy", locale) }
 
+    // form field states initialized with existing task data if editing
     var title by remember { mutableStateOf(existingTask?.title ?: "") }
     var description by remember { mutableStateOf(existingTask?.description ?: "") }
     var quantity by remember { mutableIntStateOf(existingTask?.taskQuantity ?: 1) }
@@ -51,6 +52,7 @@ fun TargetFormDialog(
 
     val isFormValid = title.isNotBlank()
 
+    // opens native date picker dialog restricted to future dates
     fun openDatePicker() {
         val calendar = Calendar.getInstance().apply { timeInMillis = deadlineMillis }
         DatePickerDialog(
@@ -70,10 +72,11 @@ fun TargetFormDialog(
     AdaptiveDialogSurface(onDismiss = onDismiss) {
         Column(modifier = Modifier.fillMaxSize()) {
 
+            // top app bar with title and close button
             TopAppBar(
                 title = {
                     Text(
-                        text = if (isEditMode) "Edit Target" else "Set a New Target",
+                        text = if (isEditMode) "Edit Task" else "Set a New Task",
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
@@ -94,10 +97,11 @@ fun TargetFormDialog(
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
+                // task title input field
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it.withoutEmoji() },
-                    label = { RequiredLabel("Target Title") },
+                    label = { RequiredLabel("Task Title") },
                     placeholder = { Text("e.g. No plastic straws this week") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -113,11 +117,12 @@ fun TargetFormDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // task description input field
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it.withoutEmoji() },
                     label = { Text("Description (optional)") },
-                    placeholder = { Text("Tell us more about your target") },
+                    placeholder = { Text("Tell us more about your task") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(100.dp),
@@ -134,12 +139,13 @@ fun TargetFormDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // task quantity increment/decrement controls
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    RequiredLabel("Target Count")
+                    RequiredLabel("Task Count")
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         OutlinedButton(
                             onClick = { if (quantity > 1) quantity-- },
@@ -151,20 +157,8 @@ fun TargetFormDialog(
                         ) {
                             Icon(Icons.Default.Remove, contentDescription = "Decrease", modifier = Modifier.size(18.dp))
                         }
-                        Text(
-                            text = quantity.toString(),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            color = Color.Black
-                        )
-                        OutlinedButton(
-                            onClick = { quantity++ },
-                            contentPadding = PaddingValues(0.dp),
-                            modifier = Modifier.size(36.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                contentColor = Color.Black
-                            )
+                        Text(text = quantity.toString(), fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 12.dp), color = Color.Black)
+                        OutlinedButton(onClick = { quantity++ }, contentPadding = PaddingValues(0.dp), modifier = Modifier.size(36.dp), colors = ButtonDefaults.buttonColors(contentColor = Color.Black)
                         ) {
                             Icon(Icons.Default.Add, contentDescription = "Increase", modifier = Modifier.size(18.dp))
                         }
@@ -176,6 +170,7 @@ fun TargetFormDialog(
                 RequiredLabel("Deadline")
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // date picker button
                 OutlinedButton(
                     onClick = { openDatePicker() },
                     modifier = Modifier.fillMaxWidth(),
@@ -184,14 +179,12 @@ fun TargetFormDialog(
                     Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(18.dp), tint = EcoColors.PrimaryGreen)
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    Text(
-                        text = dateFormatter.format(Date(deadlineMillis)),
-                        color = Color(0xFF212529)
-                    )
+                    Text(text = dateFormatter.format(Date(deadlineMillis)), color = Color(0xFF212529))
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // confirmation button to save or submit task
                 Button(
                     onClick = { onConfirm(title, description, quantity, deadlineMillis) },
                     enabled = isFormValid,
@@ -205,7 +198,7 @@ fun TargetFormDialog(
                     shape = RoundedCornerShape(25.dp)
                 ) {
                     Text(
-                        text = if (isEditMode) "Save Changes" else "Confirm Target",
+                        text = if (isEditMode) "Save Changes" else "Confirm Task",
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )

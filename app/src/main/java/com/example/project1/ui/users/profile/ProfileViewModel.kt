@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.example.project1.ui.users.profile
 
 import android.net.Uri
@@ -31,8 +33,10 @@ class ProfileViewModel(
     private val taskRepository: TaskRepository
 ) : ViewModel() {
 
+    // holds the currently active student ID for reactive data queries
     private val _studentId = MutableStateFlow("")
 
+    // sets the current student context and loads cached preference settings
     fun setCurrentStudent(id: String) {
         if (_studentId.value == id) return
         _studentId.value = id
@@ -48,6 +52,7 @@ class ProfileViewModel(
         _completedDailyQuestId.value = if (savedDate == today) settingsRepository.getDailyQuestId(id) else null
     }
 
+    // streams user entity data reactively based on the active student ID
     val user: StateFlow<UserEntity?> = _studentId
         .flatMapLatest { id ->
             if (id.isBlank()) flowOf(null) else userRepository.getUserStream(id)
@@ -58,6 +63,7 @@ class ProfileViewModel(
             initialValue = null
         )
 
+    // streams all eco-submissions for the current student
     val submissions: StateFlow<List<EcoSubmissionEntity>> = _studentId
         .flatMapLatest { id ->
             if (id.isBlank()) flowOf(emptyList()) else submissionRepository.getAllSubmissionsStream(id)
@@ -68,10 +74,12 @@ class ProfileViewModel(
             initialValue = emptyList()
         )
 
+    // streams profile task entities for calculation purposes
     private val profileTasks: Flow<List<TaskEntity>> = _studentId.flatMapLatest { id ->
         if (id.isBlank()) flowOf(emptyList()) else taskRepository.getAllTasksStream(id)
     }
 
+    // streams weekly campus leaderboard users
     private val campusUsers: StateFlow<List<UserEntity>> =
         userRepository.getWeeklyLeaderboardStream()
             .stateIn(
@@ -80,6 +88,7 @@ class ProfileViewModel(
                 initialValue = emptyList()
             )
 
+    // combines multiple flows into comprehensive eco profile statistics
     val ecoStats: StateFlow<EcoProfileStats> = combine(
         user,
         submissions,
@@ -93,6 +102,7 @@ class ProfileViewModel(
         initialValue = EcoProfileStats()
     )
 
+    // manages snackbar notification messages across the profile view
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
@@ -100,10 +110,12 @@ class ProfileViewModel(
         _message.value = null
     }
 
+    // preference for toggling app notifications
     val notificationsEnabled: StateFlow<Boolean> = settingsRepository.notificationsEnabled
 
     fun setNotifications(enabled: Boolean) = settingsRepository.setNotifications(enabled)
 
+    // avatar color index configuration state
     private val _avatarColorIndex = MutableStateFlow(0)
     val avatarColorIndex: StateFlow<Int> = _avatarColorIndex.asStateFlow()
 
@@ -112,6 +124,7 @@ class ProfileViewModel(
         settingsRepository.setAvatarColorIndex(_studentId.value, index)
     }
 
+    // user profile photo path state
     private val _profilePhotoPath = MutableStateFlow<String?>(null)
     val profilePhotoPath: StateFlow<String?> = _profilePhotoPath.asStateFlow()
 
@@ -133,6 +146,7 @@ class ProfileViewModel(
         _profilePhotoPath.value = null
     }
 
+    // profile background photo path state
     private val _backgroundPhotoPath = MutableStateFlow<String?>(null)
     val backgroundPhotoPath: StateFlow<String?> = _backgroundPhotoPath.asStateFlow()
 
@@ -154,7 +168,7 @@ class ProfileViewModel(
         _backgroundPhotoPath.value = null
     }
 
-    // ---- Milestone rewards: claiming a reached milestone grants real bonus points ----
+    // tracks claimed milestone IDs to grant bonus points
     private val _claimedMilestones = MutableStateFlow<Set<String>>(emptySet())
     val claimedMilestones: StateFlow<Set<String>> = _claimedMilestones.asStateFlow()
 
@@ -171,6 +185,7 @@ class ProfileViewModel(
         }
     }
 
+    // tracks collected achievement badges
     private val _collectedBadges = MutableStateFlow<Set<String>>(emptySet())
     val collectedBadges: StateFlow<Set<String>> = _collectedBadges.asStateFlow()
 
@@ -182,6 +197,7 @@ class ProfileViewModel(
         _message.value = "Badge collected!"
     }
 
+    // currently equipped showcase badge identifier
     private val _showcaseBadgeId = MutableStateFlow<String?>(null)
     val showcaseBadgeId: StateFlow<String?> = _showcaseBadgeId.asStateFlow()
 
@@ -193,6 +209,7 @@ class ProfileViewModel(
         _message.value = if (badgeId == null) "Showcase badge cleared" else "Badge equipped on your profile"
     }
 
+    // tracks daily quest completion status
     private val _dailyQuestCompleted = MutableStateFlow(false)
     val dailyQuestCompleted: StateFlow<Boolean> = _dailyQuestCompleted.asStateFlow()
 
@@ -214,6 +231,7 @@ class ProfileViewModel(
         }
     }
 
+    // formats current calendar date into ISO string format
     private fun todayIsoDate(): String {
         val c = java.util.Calendar.getInstance()
         return "%04d-%02d-%02d".format(
@@ -227,6 +245,7 @@ class ProfileViewModel(
         const val DAILY_QUEST_BONUS = 5
     }
 
+    // updates and persists user profile information fields
     fun saveProfileInfo(
         name: String,
         faculty: String,
@@ -255,11 +274,13 @@ class ProfileViewModel(
         }
     }
 
+    // verification code state for secure password changes
     private val _verificationCode = MutableStateFlow<String?>(null)
     val verificationCode: StateFlow<String?> = _verificationCode.asStateFlow()
 
     private var pendingNewPassword: String? = null
 
+    // validates change password request and triggers verification code generation
     fun requestPasswordChange(current: String, newPassword: String, confirm: String) = viewModelScope.launch {
         val id = _studentId.value
         val existing = user.value ?: userRepository.getUserById(id)
@@ -276,12 +297,14 @@ class ProfileViewModel(
         }
     }
 
+    // regenerates verification code for pending password change
     fun regenerateVerificationCode() {
         if (pendingNewPassword != null) {
             _verificationCode.value = generateVerificationCode()
         }
     }
 
+    // validates verification code and commits password update
     fun confirmPasswordChange(enteredCode: String) = viewModelScope.launch {
         val id = _studentId.value
         val newPassword = pendingNewPassword
@@ -304,14 +327,17 @@ class ProfileViewModel(
         }
     }
 
+    // cancels pending password change operation
     fun cancelPasswordChange() {
         pendingNewPassword = null
         _verificationCode.value = null
     }
 
+    // generates a random 6-digit verification code string
     private fun generateVerificationCode(): String =
         Random.nextInt(0, 1_000_000).toString().padStart(6, '0')
 
+    // deletes selected user submissions
     fun deleteSubmissions(ids: List<Int>) = viewModelScope.launch {
         if (ids.isEmpty()) return@launch
         try {
@@ -325,6 +351,7 @@ class ProfileViewModel(
         }
     }
 
+    // deletes current user account and invokes callback
     fun deleteAccount(onDeleted: () -> Unit) = viewModelScope.launch {
         val id = _studentId.value
         if (id.isBlank()) return@launch

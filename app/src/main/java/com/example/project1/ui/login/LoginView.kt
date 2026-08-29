@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project1.ui.AppViewModelProvider
 
+// main login screen
 @Composable
 fun LoginView(
     onLoginSuccess: (String) -> Unit,
@@ -15,31 +16,34 @@ fun LoginView(
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    // reset state on enter
     LaunchedEffect(Unit) {
         viewModel.reset()
     }
 
     Box(modifier = modifier.fillMaxSize()) {
+        // login & registration form
         LoginFunct(
             uiState = viewModel.uiState,
-            onIdChange = { viewModel.onStudentIdChange(it) },
-            onNameChange = { viewModel.onNameChange(it) },
-            onPasswordChange = { viewModel.onPasswordChange(it) },
-            onToggleMode = { viewModel.toggleMode() },
+            onIdChange = viewModel::onStudentIdChange,
+            onNameChange = viewModel::onNameChange,
+            onPasswordChange = viewModel::onPasswordChange,
+            onToggleMode = viewModel::toggleMode,
             onLoginClick = {
-                if (viewModel.uiState.isRegisterMode) {
-                    viewModel.login(onSuccess = {
+                viewModel.login(onSuccess = { id ->
+                    if (viewModel.uiState.isRegisterMode) {
                         viewModel.toggleMode()
                         onRegisterSuccess()
-                    })
-                } else {
-                    viewModel.login(onSuccess = onLoginSuccess)
-                }
+                    } else {
+                        onLoginSuccess(id)
+                    }
+                })
             },
-            onForgotPasswordClick = { viewModel.openForgotPassword() },
+            onForgotPasswordClick = viewModel::openForgotPassword,
             modifier = Modifier.fillMaxSize()
         )
 
+        // password recovery dialog
         if (viewModel.forgotUiState.isOpen) {
             ForgotPasswordDialog(
                 state = viewModel.forgotUiState,

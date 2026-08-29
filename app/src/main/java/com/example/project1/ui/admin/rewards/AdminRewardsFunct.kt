@@ -59,6 +59,7 @@ import com.example.project1.ui.adaptive.HeightSize
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
 import com.example.project1.ui.theme.EcoColors
 
+// main functional UI component for managing admin rewards catalog, tabs, and qr scanning
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminRewardsFunct(
@@ -72,11 +73,13 @@ fun AdminRewardsFunct(
     snackbarHost: @Composable () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    // state variables for tab selection, qr scanning flow, and lock state
     var selectedTab by remember { mutableIntStateOf(0) }
     var selectedScanVoucher by remember { mutableStateOf<VoucherEntity?>(null) }
     var showScanner by remember { mutableStateOf(false) }
     var scanLocked by remember { mutableStateOf(false) }
 
+    // reset or close scanner states when scan result changes
     LaunchedEffect(scanResult) {
         when (scanResult) {
             is VoucherScanResult.Success -> {
@@ -93,6 +96,7 @@ fun AdminRewardsFunct(
         containerColor = EcoColors.PageBg,
         snackbarHost = snackbarHost,
         floatingActionButton = {
+            // show add fab only on available tab
             if (selectedTab == 0) {
                 FloatingActionButton(
                     onClick = onAddClick,
@@ -109,20 +113,13 @@ fun AdminRewardsFunct(
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            // header title and description section
             Column(modifier = Modifier.padding(if (LocalAppWindowInfo.current.heightSize == HeightSize.Compact) 12.dp else 20.dp)) {
-                Text(
-                    text = "Rewards Catalog",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = EcoColors.TextDark
-                )
-                Text(
-                    text = "Manage campus vouchers and expirations",
-                    fontSize = 13.sp,
-                    color = Color(0xFF8B948E)
-                )
+                Text(text = "Rewards Catalog", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = EcoColors.TextDark)
+                Text(text = "Manage campus vouchers and expirations", fontSize = 13.sp, color = Color(0xFF8B948E))
             }
 
+            // tab row for switching between available, expired, and scan views
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Color.White,
@@ -151,33 +148,35 @@ fun AdminRewardsFunct(
                 )
             }
 
+            // content container based on active tab
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            when (selectedTab) {
-                0 -> AvailableAdminList(
-                    vouchers = available,
-                    onEditClick = onEditClick,
-                    onDeleteClick = onDeleteClick
-                )
-                1 -> ExpiredAdminList(
-                    vouchers = expired,
-                    onDeleteClick = onDeleteClick
-                )
-                else -> ScanVoucherPanel(
-                    catalog = (available + expired).distinctBy { it.title.trim().lowercase() },
-                    selected = selectedScanVoucher,
-                    onSelect = { selectedScanVoucher = it },
-                    onStartScan = {
-                        if (selectedScanVoucher != null) {
-                            scanLocked = false
-                            showScanner = true
+                when (selectedTab) {
+                    0 -> AvailableAdminList(
+                        vouchers = available,
+                        onEditClick = onEditClick,
+                        onDeleteClick = onDeleteClick
+                    )
+                    1 -> ExpiredAdminList(
+                        vouchers = expired,
+                        onDeleteClick = onDeleteClick
+                    )
+                    else -> ScanVoucherPanel(
+                        catalog = (available + expired).distinctBy { it.title.trim().lowercase() },
+                        selected = selectedScanVoucher,
+                        onSelect = { selectedScanVoucher = it },
+                        onStartScan = {
+                            if (selectedScanVoucher != null) {
+                                scanLocked = false
+                                showScanner = true
+                            }
                         }
-                    }
-                )
-            }
+                    )
+                }
             }
         }
     }
 
+    // popup dialog for scanning qr codes with camera
     if (showScanner) {
         val voucher = selectedScanVoucher
         if (voucher != null) {
@@ -199,6 +198,7 @@ fun AdminRewardsFunct(
     }
 }
 
+// panel for selecting a specific voucher type before launching the qr scanner
 @Composable
 private fun ScanVoucherPanel(
     catalog: List<VoucherEntity>,
@@ -207,12 +207,7 @@ private fun ScanVoucherPanel(
     onStartScan: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = "Select the voucher type first. Only a matching unused QR will be accepted.",
-            fontSize = 13.sp,
-            color = Color(0xFF6B7280),
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
+        Text(text = "Select the voucher type first. Only a matching unused QR will be accepted.", fontSize = 13.sp, color = Color(0xFF6B7280), modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
 
         if (catalog.isEmpty()) {
             EmptyState("No vouchers in the catalog. Create one first.")
@@ -260,25 +255,11 @@ private fun ScanVoucherPanel(
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = voucher.title,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                color = EcoColors.TextDark
-                            )
-                            Text(
-                                text = voucher.merchantName,
-                                fontSize = 12.sp,
-                                color = Color(0xFF6B7280)
-                            )
+                            Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = EcoColors.TextDark)
+                            Text(text = voucher.merchantName, fontSize = 12.sp, color = Color(0xFF6B7280))
                         }
                         if (isSelected) {
-                            Text(
-                                text = "Selected",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = EcoColors.PrimaryGreen
-                            )
+                            Text(text = "Selected", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = EcoColors.PrimaryGreen)
                         }
                     }
                 }
@@ -301,6 +282,7 @@ private fun ScanVoucherPanel(
     }
 }
 
+// list component displaying active available vouchers
 @Composable
 private fun AvailableAdminList(
     vouchers: List<VoucherEntity>,
@@ -327,6 +309,7 @@ private fun AvailableAdminList(
     }
 }
 
+// list component displaying expired vouchers
 @Composable
 private fun ExpiredAdminList(
     vouchers: List<VoucherEntity>,
@@ -351,6 +334,7 @@ private fun ExpiredAdminList(
     }
 }
 
+// card item layout for available vouchers with action buttons
 @Composable
 private fun AdminAvailableCard(
     voucher: VoucherEntity,
@@ -397,42 +381,19 @@ private fun AdminAvailableCard(
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = voucher.title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = EcoColors.TextDark
-                )
-                Text(
-                    text = voucher.merchantName,
-                    fontSize = 12.sp,
-                    color = Color(0xFF6B7280)
-                )
+                Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = EcoColors.TextDark)
+                Text(text = voucher.merchantName, fontSize = 12.sp, color = Color(0xFF6B7280))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "${voucher.pointsCost} pts · ${voucher.category}",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = EcoColors.PrimaryGreen
-                    )
-                    Text(
-                        text = "Stock: ${voucher.quantity}",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (voucher.quantity > 0) EcoColors.Blue else EcoColors.Danger
-                    )
+                    Text(text = "${voucher.pointsCost} pts · ${voucher.category}", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = EcoColors.PrimaryGreen)
+                    Text(text = "Stock: ${voucher.quantity}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (voucher.quantity > 0) EcoColors.Blue else EcoColors.Danger)
                 }
 
-                // Display Expiry Date if set
+                // display expiry date if configured
                 if (!voucher.expiryDate.isNullOrBlank()) {
-                    Text(
-                        text = "Expires: ${voucher.expiryDate.take(10)}",
-                        fontSize = 11.sp,
-                        color = Color(0xFFD97706)
-                    )
+                    Text(text = "Expires: ${voucher.expiryDate.take(10)}", fontSize = 11.sp, color = Color(0xFFD97706))
                 }
             }
 
@@ -446,6 +407,7 @@ private fun AdminAvailableCard(
     }
 }
 
+// card item layout for expired vouchers
 @Composable
 private fun AdminExpiredCard(
     voucher: VoucherEntity,
@@ -464,31 +426,13 @@ private fun AdminExpiredCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = voucher.title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = EcoColors.TextDark
-                )
+                Text(text = voucher.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = EcoColors.TextDark)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = voucher.merchantName,
-                    fontSize = 12.sp,
-                    color = Color(0xFF6B7280)
-                )
+                Text(text = voucher.merchantName, fontSize = 12.sp, color = Color(0xFF6B7280))
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Status: Expired",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = EcoColors.Danger
-                )
+                Text(text = "Status: Expired", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = EcoColors.Danger)
                 if (!voucher.expiryDate.isNullOrBlank()) {
-                    Text(
-                        text = "Expired on: ${voucher.expiryDate.take(10)}",
-                        fontSize = 11.sp,
-                        color = EcoColors.Danger
-                    )
+                    Text(text = "Expired on: ${voucher.expiryDate.take(10)}", fontSize = 11.sp, color = EcoColors.Danger)
                 }
             }
             IconButton(onClick = onDeleteClick) {
@@ -498,6 +442,7 @@ private fun AdminExpiredCard(
     }
 }
 
+// reusable empty state placeholder component
 @Composable
 private fun EmptyState(text: String) {
     Box(

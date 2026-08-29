@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,6 +53,7 @@ import com.example.project1.ui.adaptive.adaptiveDialogModifier
 import com.example.project1.ui.common.withoutEmoji
 import com.example.project1.ui.theme.EcoColors
 
+// forgot password dialog flow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ForgotPasswordDialog(
@@ -70,17 +72,21 @@ fun ForgotPasswordDialog(
     onConfirmReset: () -> Unit,
     onBack: () -> Unit
 ) {
+    // password visibility states
     var isNewPasswordVisible by remember(state.step) { mutableStateOf(false) }
     var isConfirmPasswordVisible by remember(state.step) { mutableStateOf(false) }
 
+    // dialog title per step
     val title = when (state.step) {
-        ForgotPasswordStep.Identify -> "Reset Password"
-        ForgotPasswordStep.ConfirmEmail -> "Confirm your email"
-        ForgotPasswordStep.EmailOtp -> "Check your email"
-        ForgotPasswordStep.StaffPending -> "Staff verification"
-        ForgotPasswordStep.NewPassword -> "Set new password"
-        ForgotPasswordStep.Done -> "Password updated"
+        ForgotPasswordStep.Identify -> "Reset password"
+        ForgotPasswordStep.ConfirmEmail -> "Confirm email"
+        ForgotPasswordStep.EmailOtp -> "Enter code"
+        ForgotPasswordStep.StaffPending -> "Ask staff"
+        ForgotPasswordStep.NewPassword -> "New password"
+        ForgotPasswordStep.Done -> "Done"
     }
+
+    // check if back nav is allowed
     val canGoBack = state.step == ForgotPasswordStep.ConfirmEmail ||
             state.step == ForgotPasswordStep.EmailOtp ||
             state.step == ForgotPasswordStep.StaffPending ||
@@ -96,6 +102,7 @@ fun ForgotPasswordDialog(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // header bar
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -119,6 +126,7 @@ fun ForgotPasswordDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // step content switcher
                 when (state.step) {
                     ForgotPasswordStep.Identify -> IdentifyResetStep(state = state, onStudentIdChange = onStudentIdChange, onLookupAccount = onLookupAccount)
 
@@ -137,17 +145,14 @@ fun ForgotPasswordDialog(
     }
 }
 
+// step 1: student id lookup
 @Composable
 private fun IdentifyResetStep(
     state: ForgotPasswordUiState,
     onStudentIdChange: (String) -> Unit,
     onLookupAccount: () -> Unit
 ) {
-    Text(
-        text = "Enter your Student ID. A code is emailed only after you confirm the email saved on that account. The code is never shown in the app.",
-        fontSize = 13.sp,
-        color = Color.Gray
-    )
+    Text(text = "Enter your Student ID", fontSize = 13.sp, color = Color.Gray)
     Spacer(modifier = Modifier.height(20.dp))
     OutlinedTextField(
         value = state.studentId,
@@ -165,7 +170,16 @@ private fun IdentifyResetStep(
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = EcoColors.PrimaryGreen,
+            focusedLabelColor = Color.Black,
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black,
+            unfocusedBorderColor = Color(0xFF424242),
+            unfocusedLabelColor = Color(0xFF424242),
+            unfocusedTrailingIconColor = Color(0xFF424242)
+        )
     )
     Spacer(modifier = Modifier.height(24.dp))
     ResetActionButton(
@@ -175,6 +189,7 @@ private fun IdentifyResetStep(
     )
 }
 
+// step 2: email confirmation
 @Composable
 private fun ConfirmEmailResetStep(
     state: ForgotPasswordUiState,
@@ -182,11 +197,7 @@ private fun ConfirmEmailResetStep(
     onConfirmEmail: () -> Unit,
     onRequestStaff: () -> Unit
 ) {
-    Text(
-        text = "Enter the email saved on this account. A 6-digit code will be sent there. If you cannot use that email, request a staff reset.",
-        fontSize = 13.sp,
-        color = Color.Gray
-    )
+    Text(text = "Enter the email on this account", fontSize = 13.sp, color = Color.Gray)
     Spacer(modifier = Modifier.height(20.dp))
     OutlinedTextField(
         value = state.emailInput,
@@ -203,7 +214,16 @@ private fun ConfirmEmailResetStep(
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = EcoColors.PrimaryGreen,
+            focusedLabelColor = Color.Black,
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black,
+            unfocusedBorderColor = Color(0xFF424242),
+            unfocusedLabelColor = Color(0xFF424242),
+            unfocusedTrailingIconColor = Color(0xFF424242)
+        )
     )
     val errorMessage = state.errorMessage
     if (errorMessage != null) {
@@ -218,7 +238,7 @@ private fun ConfirmEmailResetStep(
     )
     Spacer(modifier = Modifier.height(8.dp))
     Text(
-        text = "I cannot use this email. Request staff reset.",
+        text = "Can't use this email?",
         fontSize = 13.sp,
         color = EcoColors.PrimaryGreen,
         fontWeight = FontWeight.Medium,
@@ -229,6 +249,7 @@ private fun ConfirmEmailResetStep(
     )
 }
 
+// step 3: otp verification
 @Composable
 private fun EmailOtpResetStep(
     state: ForgotPasswordUiState,
@@ -236,17 +257,13 @@ private fun EmailOtpResetStep(
     onVerifyOtp: () -> Unit,
     onResendOtp: () -> Unit
 ) {
-    Text(
-        text = "A 6-digit code was sent to ${state.maskedEmail}. Open that inbox and type the code here. Do not tap any link in the email.",
-        fontSize = 13.sp,
-        color = Color.Gray
-    )
+    Text(text = "Code sent to ${state.maskedEmail}", fontSize = 13.sp, color = Color.Gray)
     Spacer(modifier = Modifier.height(20.dp))
     OutlinedTextField(
         value = state.otpCode,
         onValueChange = { onOtpChange(it.withoutEmoji()) },
-        label = { Text("Email code") },
-        placeholder = { Text("6-digit code") },
+        label = { Text("Code") },
+        placeholder = { Text("Enter code") },
         singleLine = true,
         enabled = !state.isLoading,
         isError = state.otpError != null,
@@ -258,7 +275,16 @@ private fun EmailOtpResetStep(
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = EcoColors.PrimaryGreen,
+            focusedLabelColor = Color.Black,
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black,
+            unfocusedBorderColor = Color(0xFF424242),
+            unfocusedLabelColor = Color(0xFF424242),
+            unfocusedTrailingIconColor = Color(0xFF424242)
+        )
     )
     val errorMessage = state.errorMessage
     if (errorMessage != null) {
@@ -269,9 +295,9 @@ private fun EmailOtpResetStep(
     val canResend = !state.isLoading && state.resendSecondsLeft <= 0
     Text(
         text = if (state.resendSecondsLeft > 0) {
-            "Send a new code in ${state.resendSecondsLeft}s"
+            "Resend in ${state.resendSecondsLeft}s"
         } else {
-            "Didn't get it? Send a new code."
+            "Resend code"
         },
         fontSize = 13.sp,
         color = if (canResend) EcoColors.PrimaryGreen else Color.Gray,
@@ -282,36 +308,23 @@ private fun EmailOtpResetStep(
             .padding(vertical = 8.dp)
     )
     Spacer(modifier = Modifier.height(16.dp))
-    ResetActionButton(
-        label = "Verify code",
-        isLoading = state.isLoading,
-        onClick = onVerifyOtp
-    )
+    ResetActionButton(label = "Verify", isLoading = state.isLoading, onClick = onVerifyOtp)
 }
 
+// step 4: staff pending notice
 @Composable
 private fun StaffPendingResetStep(
     state: ForgotPasswordUiState,
     onDone: () -> Unit
 ) {
-    Text(
-        text = state.staffTitle.ifBlank { "Staff verification" },
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Bold,
-        color = Color(0xFF212529),
-        textAlign = TextAlign.Center
-    )
+    Text(text = state.staffTitle.ifBlank { "Ask staff" }, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF212529), textAlign = TextAlign.Center)
     Spacer(modifier = Modifier.height(12.dp))
-    Text(
-        text = state.staffBody,
-        fontSize = 13.sp,
-        color = Color.Gray,
-        textAlign = TextAlign.Center
-    )
+    Text(text = state.staffBody, fontSize = 13.sp, color = Color.Gray, textAlign = TextAlign.Center)
     Spacer(modifier = Modifier.height(24.dp))
     ResetActionButton(label = "Back to login", isLoading = false, onClick = onDone)
 }
 
+// step 5: new password entry
 @Composable
 private fun NewPasswordResetStep(
     state: ForgotPasswordUiState,
@@ -323,11 +336,7 @@ private fun NewPasswordResetStep(
     onConfirmPasswordChange: (String) -> Unit,
     onConfirmReset: () -> Unit
 ) {
-    Text(
-        text = "Choose a new password, then you can log in with it right away.",
-        fontSize = 13.sp,
-        color = Color.Gray
-    )
+    Text(text = "Enter a new password", fontSize = 13.sp, color = Color.Gray)
     Spacer(modifier = Modifier.height(20.dp))
     OutlinedTextField(
         value = state.newPassword,
@@ -341,11 +350,7 @@ private fun NewPasswordResetStep(
             if (message != null) {
                 Text(text = message, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
             } else {
-                Text(
-                    text = "At least 8 characters, with capital, small letter, number and special character",
-                    fontSize = 11.sp,
-                    color = Color.Gray
-                )
+                Text(text = "8+ characters, A-z, number, symbol", fontSize = 11.sp, color = Color.Gray)
             }
         },
         visualTransformation = if (isNewPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -365,7 +370,7 @@ private fun NewPasswordResetStep(
     OutlinedTextField(
         value = state.confirmPassword,
         onValueChange = { onConfirmPasswordChange(it.withoutEmoji()) },
-        label = { Text("Confirm new password") },
+        label = { Text("Confirm password") },
         singleLine = true,
         enabled = !state.isLoading,
         isError = state.confirmError != null,
@@ -386,7 +391,16 @@ private fun NewPasswordResetStep(
             }
         },
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = EcoColors.PrimaryGreen,
+            focusedLabelColor = Color.Black,
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black,
+            unfocusedBorderColor = Color(0xFF424242),
+            unfocusedLabelColor = Color(0xFF424242),
+            unfocusedTrailingIconColor = Color(0xFF424242)
+        )
     )
     val errorMessage = state.errorMessage
     if (errorMessage != null) {
@@ -394,33 +408,21 @@ private fun NewPasswordResetStep(
         Text(text = errorMessage, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
     }
     Spacer(modifier = Modifier.height(24.dp))
-    ResetActionButton(
-        label = "Update password",
-        isLoading = state.isLoading,
-        onClick = onConfirmReset
-    )
+    ResetActionButton(label = "Save password", isLoading = state.isLoading, onClick = onConfirmReset)
 }
 
+// step 6: success screen
 @Composable
 private fun DoneResetStep(onDone: () -> Unit) {
     Spacer(modifier = Modifier.height(12.dp))
-    Icon(
-        imageVector = Icons.Default.CheckCircle,
-        contentDescription = null,
-        tint = EcoColors.PrimaryGreen,
-        modifier = Modifier.size(56.dp)
-    )
+    Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(56.dp))
     Spacer(modifier = Modifier.height(16.dp))
-    Text(
-        text = "Your password has been updated. You can now log in with your new password.",
-        fontSize = 14.sp,
-        color = Color.Gray,
-        textAlign = TextAlign.Center
-    )
+    Text(text = "You can log in now.", fontSize = 14.sp, color = Color.Gray, textAlign = TextAlign.Center)
     Spacer(modifier = Modifier.height(24.dp))
     ResetActionButton(label = "Back to login", isLoading = false, onClick = onDone)
 }
 
+// reusable action button
 @Composable
 private fun ResetActionButton(
     label: String,
