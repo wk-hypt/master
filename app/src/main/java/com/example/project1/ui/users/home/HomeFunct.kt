@@ -38,6 +38,7 @@ import com.example.project1.R
 import com.example.project1.data.model.BannerItem
 import com.example.project1.data.model.CampusVoucher
 import com.example.project1.data.model.FeatureCardItem
+import com.example.project1.data.model.VoucherExpiryUpdate
 import com.example.project1.data.model.VoucherRules
 import com.example.project1.ui.adaptive.HeightSize
 import com.example.project1.ui.adaptive.LocalAppWindowInfo
@@ -399,9 +400,26 @@ fun HotRewardsMarket(supabaseClient: SupabaseClient, currentUserId: String, onNa
         try {
             isLoading = true
             withContext(Dispatchers.IO) {
-                val allVouchers = supabaseClient.from("campus_vouchers")
+                val loaded = supabaseClient.from("campus_vouchers")
                     .select()
                     .decodeList<CampusVoucher>()
+                val allVouchers = loaded.map { voucher ->
+                    val renewal = VoucherRules.catalogExpiryRenewal(
+                        id = voucher.id,
+                        title = voucher.title,
+                        redeemedBy = voucher.redeemedBy,
+                        isRedeemed = voucher.isRedeemed,
+                        expiryDate = voucher.expiryDate
+                    ) ?: return@map voucher
+                    runCatching {
+                        supabaseClient.from("campus_vouchers").update(
+                            VoucherExpiryUpdate(expiryDate = renewal.second)
+                        ) {
+                            filter { eq("id", renewal.first) }
+                        }
+                    }
+                    voucher.copy(expiryDate = renewal.second)
+                }
 
                 marketVouchers = VoucherRules.pickFeaturedHomeVouchers(
                     vouchers = allVouchers,

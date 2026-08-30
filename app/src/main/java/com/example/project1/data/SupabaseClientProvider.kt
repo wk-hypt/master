@@ -8,8 +8,8 @@ import io.github.jan.supabase.storage.Storage
 
 object SupabaseClientProvider {
     val client: SupabaseClient = createSupabaseClient(
-        supabaseUrl = "https://nclhilldpwxtpvbzustw.supabase.co",
-        supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jbGhpbGxkcHd4dHB2Ynp1c3R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3NTIyNzEsImV4cCI6MjEwMDMyODI3MX0.kSbmbjj2zrzhvhffU8OX_a2xknu3Y9YWCQX_Lrv4-BY"
+        supabaseUrl = "https://apnagyerovxeriqycgku.supabase.co",
+        supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwbmFneWVyb3Z4ZXJpcXljZ2t1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMjAwMTAsImV4cCI6MjEwMzU5NjAxMH0.bCOvZpybZJ8KDWJORgxjYV8IH-vAnWTdU9svgrmVI1s"
     ) {
         // install plugins
         install(Auth)

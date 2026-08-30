@@ -49,3 +49,8 @@ data class NewVoucher(
     @SerialName("redeemed_at") val redeemedAt: String? = null,
     @SerialName("expiry_date") val expiryDate: String? = null
 )
+
+@Serializable
+data class VoucherExpiryUpdate(
+    @SerialName("expiry_date") val expiryDate: String
+)

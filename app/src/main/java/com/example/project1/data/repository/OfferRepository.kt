@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.project1.data.model.NewVoucher
 import com.example.project1.data.model.VoucherEntity
+import com.example.project1.data.model.VoucherExpiryUpdate
 import com.example.project1.data.model.VoucherRules
 import com.example.project1.data.pollingFlow
 import io.github.jan.supabase.postgrest.Postgrest
@@ -38,13 +39,14 @@ class SupabaseOfferRepository(
 
     // get stream of unredeemed vouchers
     override fun getAvailableVouchersStream(): Flow<List<VoucherEntity>> = pollingFlow {
-        postgrest.from("campus_vouchers").select {
+        val vouchers = postgrest.from("campus_vouchers").select {
             filter {
                 eq("is_redeemed", false)
                 exact("redeemed_by", null)
             }
             order("id", Order.ASCENDING)
-        }.decodeList()
+        }.decodeList<VoucherEntity>()
+        renewRollingCatalogExpiries(vouchers)
     }
 
     // get stream of user's active wallet vouchers
@@ -191,8 +193,36 @@ class SupabaseOfferRepository(
 
     // get stream of all vouchers
     override fun getAllVouchersStream(): Flow<List<VoucherEntity>> = pollingFlow {
-        postgrest.from("campus_vouchers").select {
+        val vouchers = postgrest.from("campus_vouchers").select {
             order("id", Order.DESCENDING)
-        }.decodeList()
+        }.decodeList<VoucherEntity>()
+        renewRollingCatalogExpiries(vouchers)
+    }
+
+    // RM2 / Bingxue / RM5 catalog rows: when expiry has passed, set it to that month's last day
+    private suspend fun renewRollingCatalogExpiries(
+        vouchers: List<VoucherEntity>
+    ): List<VoucherEntity> {
+        var result = vouchers
+        for (voucher in vouchers) {
+            val renewal = VoucherRules.catalogExpiryRenewal(
+                id = voucher.id,
+                title = voucher.title,
+                redeemedBy = voucher.redeemedBy,
+                isRedeemed = voucher.isRedeemed,
+                expiryDate = voucher.expiryDate
+            ) ?: continue
+            runCatching {
+                postgrest.from("campus_vouchers").update(
+                    VoucherExpiryUpdate(expiryDate = renewal.second)
+                ) {
+                    filter { eq("id", renewal.first) }
+                }
+            }
+            result = result.map { row ->
+                if (row.id == renewal.first) row.copy(expiryDate = renewal.second) else row
+            }
+        }
+        return result
     }
 }
