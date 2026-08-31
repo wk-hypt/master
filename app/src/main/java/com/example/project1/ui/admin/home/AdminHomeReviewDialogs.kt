@@ -87,17 +87,7 @@ fun ApprovePointsDialog(
                     .padding(horizontal = 24.dp, vertical = 28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape)
-                        .background(EcoColors.ApprovedBg),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = EcoColors.PrimaryGreen, modifier = Modifier.size(34.dp))
-                }
-                Spacer(modifier = Modifier.height(14.dp))
-                Text(title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = EcoColors.TextDark, textAlign = TextAlign.Center)
+                Text(title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = EcoColors.PrimaryGreen, textAlign = TextAlign.Center)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
