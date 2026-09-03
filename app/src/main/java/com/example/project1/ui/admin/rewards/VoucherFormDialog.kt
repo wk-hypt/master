@@ -326,7 +326,25 @@ fun VoucherFormDialog(
 
     // material date picker dialog popup implementation
     if (showDatePicker) {
-        val datePickerState = rememberDatePickerState()
+        val todayMillis = remember {
+            val calendar = java.util.Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                set(java.util.Calendar.HOUR_OF_DAY, 0)
+                set(java.util.Calendar.MINUTE, 0)
+                set(java.util.Calendar.SECOND, 0)
+                set(java.util.Calendar.MILLISECOND, 0)
+            }
+            calendar.timeInMillis
+        }
+
+        val datePickerState = rememberDatePickerState(
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    // Only allow today and future dates
+                    return utcTimeMillis >= todayMillis
+                }
+            }
+        )
+
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
