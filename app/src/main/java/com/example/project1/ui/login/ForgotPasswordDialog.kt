@@ -68,7 +68,6 @@ fun ForgotPasswordDialog(
     onConfirmEmail: () -> Unit,
     onRequestStaff: () -> Unit,
     onVerifyOtp: () -> Unit,
-    onResendOtp: () -> Unit,
     onConfirmReset: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -132,7 +131,7 @@ fun ForgotPasswordDialog(
 
                     ForgotPasswordStep.ConfirmEmail -> ConfirmEmailResetStep(state = state, onEmailChange = onEmailChange, onConfirmEmail = onConfirmEmail, onRequestStaff = onRequestStaff)
 
-                    ForgotPasswordStep.EmailOtp -> EmailOtpResetStep(state = state, onOtpChange = onOtpChange, onVerifyOtp = onVerifyOtp, onResendOtp = onResendOtp)
+                    ForgotPasswordStep.EmailOtp -> EmailOtpResetStep(state = state, onOtpChange = onOtpChange, onVerifyOtp = onVerifyOtp)
 
                     ForgotPasswordStep.StaffPending -> StaffPendingResetStep(state = state, onDone = onDismiss)
 
@@ -254,8 +253,7 @@ private fun ConfirmEmailResetStep(
 private fun EmailOtpResetStep(
     state: ForgotPasswordUiState,
     onOtpChange: (String) -> Unit,
-    onVerifyOtp: () -> Unit,
-    onResendOtp: () -> Unit
+    onVerifyOtp: () -> Unit
 ) {
     Text(text = "Code sent to ${state.maskedEmail}", fontSize = 13.sp, color = Color.Gray)
     Spacer(modifier = Modifier.height(20.dp))
@@ -291,22 +289,6 @@ private fun EmailOtpResetStep(
         Spacer(modifier = Modifier.height(8.dp))
         Text(text = errorMessage, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
     }
-    Spacer(modifier = Modifier.height(8.dp))
-    val canResend = !state.isLoading && state.resendSecondsLeft <= 0
-    Text(
-        text = if (state.resendSecondsLeft > 0) {
-            "Resend in ${state.resendSecondsLeft}s"
-        } else {
-            "Resend code"
-        },
-        fontSize = 13.sp,
-        color = if (canResend) EcoColors.PrimaryGreen else Color.Gray,
-        fontWeight = FontWeight.Medium,
-        textDecoration = if (canResend) TextDecoration.Underline else TextDecoration.None,
-        modifier = Modifier
-            .clickable(enabled = canResend, onClick = onResendOtp)
-            .padding(vertical = 8.dp)
-    )
     Spacer(modifier = Modifier.height(16.dp))
     ResetActionButton(label = "Verify", isLoading = state.isLoading, onClick = onVerifyOtp)
 }
