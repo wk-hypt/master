@@ -57,7 +57,6 @@ fun LoginView(
                 onConfirmEmail = { viewModel.confirmRegisteredEmail() },
                 onRequestStaff = { viewModel.requestStaffReset() },
                 onVerifyOtp = { viewModel.verifyEmailOtp() },
-                onResendOtp = { viewModel.resendEmailOtp() },
                 onConfirmReset = { viewModel.confirmResetPassword() },
                 onBack = { viewModel.backForgotPasswordStep() }
             )
